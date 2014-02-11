@@ -12,7 +12,9 @@ Summary
 The ``speedseq`` suite is a lightweight, flexible, and open source pipeline that identifies
 genomic variation (Structural Variants, INDELs, and Single Nucleotide Variants). 
 There are two modes of analysis supported: 
+
 1.) Identification of variants in a single sample.
+
 2.) Comparison of two samples, i.e. tumor and matched normal
 
 Constitutive Pipeline Tools (Required)
@@ -43,7 +45,7 @@ The following installation process assumes that none of the above required tools
 It is recommended that recent versions of tools are used in this release of ``speedseq`` meaning that
 the use of any other versions cannot be guaranteed to work.
 
-**gcc** and **cmake** are required for compilation
+**gpp** and **cmake** are required for compilation
 
 
 1.) BEDTOOLS
