@@ -81,7 +81,9 @@ sudo apt-get install gcc-c++ make git gcc zlib-devel cmake cmake-gui
 ###Manual installation
 
 The following installation process assumes that none of the required tools are installed.
+
 It is recommended that the specified versions of tools are used in this release of ``speedseq``.
+
 The use of unspecified versions of the pipeline tools cannot be guaranteed to work. 
 
 ``speedseq`` can be installed with the following commands: 
@@ -184,6 +186,16 @@ Obtain each of the pipeline tools and install them:
 
 ``gemini`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
+	sudo yum -y install python27 git gcc gcc-c++ zlib-devel
+~~~~~~~~~~~~~~~~~~
+or
+~~~~~~~~~~~~~~~~~~
+	apt-get install python27 git gcc gcc-c++ zlib-devel
+~~~~~~~~~~~~~~~~~~
+
+Once the the necessary packages have been acquired, install gemini:
+
+~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/arq5x/gemini
 	cd gemini
 	sudo python setup.py install
@@ -199,18 +211,6 @@ Obtain each of the pipeline tools and install them:
 	make
 	sudo cp bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
-
-####11.) PARALLEL
-
-``parallel`` can be installed and used by ``speedseq`` with the following commands: 
-~~~~~~~~~~~~~~~~~~
-	curl -OL http://ftp.gnu.org/gnu/parallel/parallel-20100424.tar.bz2
-	tar -xvf parallel-20100424.tar.bz2
-	cd parallel-20100424
-	make
-	sudo cp bin/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~
-
 
 For alternative installations, release issues, and unmentioned dependencies, please consult the website/creator of the specific tool.
 
