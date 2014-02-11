@@ -38,6 +38,8 @@ There are two modes of analysis supported:
 
 9.) [GEMINI](https://github.com/arq5x/gemini)
 
+10.) [SAMBLASTER](https://github.com/gregoryfaust/samblaster)
+
 ##Installation
 ----------------
 
@@ -74,8 +76,6 @@ sudo yum -y install gcc-c++ cmake
 	sudo scp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 	
-For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
-
 ####2.) BWA
 
 ``bwa`` can be installed and used by ``speedseq`` with the following commands: 
@@ -85,8 +85,6 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 	sudo cp bwa /usr/local/bin
 ~~~~~~~~~~~~~~~~~~
 	
-For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
-
 ####3.) FREEBAYES
 
 ``freebayes`` can be installed and used by ``speedseq`` with the following commands: 
@@ -97,8 +95,6 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 	sudo scp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
 	
-For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
-
 ####4.) LUMPY
 
 ``lumpy-sv`` can be installed and used by ``speedseq`` with the following commands:
@@ -109,9 +105,6 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 	sudo cp -r bin/* /usr/local/bin/
 	sudo cp -r scripts/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
-	
-For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
-
 
 ####5.) SAMBAMBA
 
@@ -125,8 +118,6 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 	sudo scp sambamba_v0.4.4 /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 
-For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
-
 ####6.) TABIX
 
 ``tabix`` can be installed and used by ``speedseq`` with the following commands: 
@@ -137,9 +128,6 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 	sudo cp tabix /usr/local/bin/
 	sudo cp bgzip /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
-	
-For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
-
 
 ####7.) SNPEFF
 
@@ -153,9 +141,6 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 	sudp scp -r scripts/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 
-For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
-
-
 ####8.) VCFLIB
 
 ``vcflib`` can be installed and used by ``speedseq`` with the following commands: 
@@ -165,9 +150,6 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 	make
 	sudo cp bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
-
-For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
-
 
 ####9.) GEMINI
 
@@ -180,7 +162,18 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 	sudo python gemini/install-data.py /usr/local/share/
 ~~~~~~~~~~~~~~~~~~
 
-For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
+####10.) SAMBLASTER
+
+``samblaster`` can be installed and used by ``speedseq`` with the following commands: 
+~~~~~~~~~~~~~~~~~~
+	git clone https://github.com/gregoryfaust/samblaster
+	cd samblster
+	make
+	sudo cp bin/* /usr/local/bin/
+~~~~~~~~~~~~~~~~~~
+
+For alternative installations, release issues, and unmentioned dependencies, please consult the website/creator of the specific tool.
+
 
 
 ##Example Usage
