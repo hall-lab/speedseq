@@ -43,23 +43,9 @@ There are two modes of analysis supported:
 ##Installation
 ----------------
 
-``speedseq`` can be installed with the following commands: 
-~~~~~~~~~~~~~~~~~~
-	git clone https://github.com/cc2qe/speedseq
-	cd speedseq
-	make
-	sudo cp -r bin/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~
+There is an automatic (coming soon) and manual installation.
 
-python setup.py or Makefile coming soon
-
-###Manual installation
-
-The following installation process assumes that none of the above required tools are installed.  
-It is recommended that recent versions of tools are used in this release of ``speedseq`` meaning that
-the use of any other versions cannot be guaranteed to work. 
-
-**g++** and **cmake** are required for compilation
+**g++** and **cmake** are required for compilation of ``speedseq`` pipeline tools. Use a linux package installer to obtain these.
 
 ~~~~~~~~~~~~~~~~~~~
 sudo yum -y install gcc-c++ cmake cmake-gui
@@ -70,6 +56,31 @@ or
 ~~~~~~~~~~~~~~~~~~~
 apt-get install gcc-c++ cmake cmake-gui
 ~~~~~~~~~~~~~~~~~~~
+
+###Automatic installation (coming soon)
+
+``speedseq`` can be installed with the following commands: 
+~~~~~~~~~~~~~~~~~~
+	git clone https://github.com/cc2qe/speedseq
+	cd speedseq
+	sudo python setup.py install
+	sudo cp -r bin/* /usr/local/bin/
+~~~~~~~~~~~~~~~~~~
+
+###Manual installation
+
+The following installation process assumes that none of the above required tools are installed.  
+It is recommended that recent versions of tools are used in this release of ``speedseq`` meaning that
+the use of any other versions cannot be guaranteed to work. 
+
+``speedseq`` can be installed with the following commands: 
+~~~~~~~~~~~~~~~~~~
+	git clone https://github.com/cc2qe/speedseq
+	cd speedseq
+	sudo cp -r bin/* /usr/local/bin/
+~~~~~~~~~~~~~~~~~~
+
+Obtain each of the pipeline tools and install them:
 
 ####1.) BEDTOOLS
 	
