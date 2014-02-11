@@ -175,7 +175,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 
 
 Example Use
-~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 Use ``speedseq aln`` to align and dedupe. ` ``speedseq lumpy``
 ~~~~~~~~~~~~~~~~~~
