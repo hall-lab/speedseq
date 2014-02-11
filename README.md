@@ -41,7 +41,7 @@ There are two modes of analysis supported:
 ##Installation
 ----------------
 
-``speedq`` can be installed with the following commands: 
+``speedseq`` can be installed with the following commands: 
 ~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/cc2qe/speedseq
 	cd speedseq
