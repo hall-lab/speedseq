@@ -68,6 +68,7 @@ the use of any other versions cannot be guaranteed to work.
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
 2.) BWA
+
 ``bwa`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/lh3/bwa
@@ -78,6 +79,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
 3.) FREEBAYES
+
 ``freebayes`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/ekg/freebayes
@@ -89,6 +91,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
 4.) LUMPY
+
 ``lumpy-sv`` can be installed and used by ``speedseq`` with the following commands:
 ~~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/arq5x/lumpy-sv
@@ -102,6 +105,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 
 
 5.) SAMBAMBA
+
 ``sambamba`` can be installed and used by ``speedseq`` by: 
 
 *Go to https://github.com/lomereiter/sambamba/releases
@@ -115,6 +119,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
 6.) TABIX
+
 ``tabix`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
 	git clone --recursive  git://github.com/samtools/tabix
@@ -128,6 +133,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 
 
 7.) SNPEFF
+
 ``snpeff`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
 	wget http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip/download
@@ -142,6 +148,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 
 
 8.) VCFLIB
+
 ``vcflib`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
 	git clone --recursive  https://github.com/ekg/vcflib
@@ -150,11 +157,11 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 	sudo scp
 ~~~~~~~~~~~~~~~~~~
 
-
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
 
 9.) GEMINI
+
 ``gemini`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
 	sudo yum -y install python27 git gcc gcc-c++ zlib-devel
