@@ -59,12 +59,17 @@ The following installation process assumes that none of the above required tools
 It is recommended that recent versions of tools are used in this release of ``speedseq`` meaning that
 the use of any other versions cannot be guaranteed to work. 
 
-**gpp** and **cmake** are required for compilation
+**g++** and **cmake** are required for compilation
 
 ~~~~~~~~~~~~~~~~~~~
 sudo yum -y install gcc-c++ cmake
 ~~~~~~~~~~~~~~~~~~~
+ 
+or 
 
+~~~~~~~~~~~~~~~~~~~
+apt-get install gcc-c++ cmake cmake-gui
+~~~~~~~~~~~~~~~~~~~
 
 ####1.) BEDTOOLS
 	
@@ -156,6 +161,15 @@ sudo yum -y install gcc-c++ cmake
 ``gemini`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
 	sudo yum -y install python27 git gcc gcc-c++ zlib-devel
+~~~~~~~~~~~~~~~~~~
+or
+~~~~~~~~~~~~~~~~~~
+	sudo yum -y install python27 git gcc gcc-c++ zlib-devel
+~~~~~~~~~~~~~~~~~~
+
+Install gemini:
+
+~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/arq5x/gemini
 	cd gemini
 	sudo python setup.py install
