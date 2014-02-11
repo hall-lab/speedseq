@@ -56,11 +56,9 @@ the use of any other versions cannot be guaranteed to work.
 
 
 1.) BEDTOOLS
-~~~~~~~~~~~~~~~~~~
 	
 ``bedtools`` can be installed and used by ``speedseq`` with the following commands: 
-
-.. code-block:: bash
+~~~~~~~~~~~~~~~~~~
 	
 	git clone https://github.com/arq5x/bedtools
 	cd bedtools
@@ -79,6 +77,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 	git clone https://github.com/lh3/bwa
 	cd bwa
 	sudo scp bwa /usr/local/bin
+~~~~~~~~~~~~~~~~~~
 	
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
