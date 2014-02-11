@@ -134,26 +134,31 @@ global options:
     # Check that the ref and fastq files exist
     if [[ ! -f $REF ]]
     then
-	echo "Error: Reference file $REF not found."
+	aln_usage
+	echo -e "Error: Reference file $REF not found.\n"
 	exit 1
     elif [[ ! -f $FQ ]]
     then
-	echo "Error: Fastq file $FQ not found."
+	aln_usage
+	echo -e "Error: Fastq file $FQ not found.\n"
 	exit 1
     fi
 
     # Check the for the relevant binaries
     if [[ -z "$BWA" ]]
     then
-        echo -e "\nError: bwa executable not found. Please set path in speedseq.config file\n"
+	aln_usage
+        echo -e "Error: bwa executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z  "$SAMBLASTER" ]]
     then
-        echo -e "\nError: samblaster executable not found. Please set path in speedseq.config file\n"
+	aln_usage
+        echo -e "Error: samblaster executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z "$SAMBAMBA" ]]
     then
-        echo -e "\nError: sambamba executable not found. Please set path in speedseq.config file\n"
+	aln_usage
+        echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     fi
 
@@ -202,7 +207,7 @@ options:
          -w FILE  BED file of windowed genomic intervals
          -t INT   threads [1]
          -T DIR   temp directory [./temp]
-         -A       annotate the vcf with snpEff
+         -A BOOL  annotate the vcf with snpEff (true or false) (default: true)
          -K       path to speedseq.config file (default: same directory as speedseq)
          -v       verbose
          -h       show this message
@@ -222,10 +227,10 @@ options:
     OUTPUT=`basename "$IN_BAM"`
     THREADS=1
     TEMP_DIR="./temp"
-    ANNOTATE=0
+    ANNOTATE="true"
     VERBOSE=0
 
-    while getopts ":ho:w:t:T:AvK:" OPTION
+    while getopts ":ho:w:t:T:A:vK:" OPTION
     do
         case "${OPTION}" in
             h)
@@ -245,7 +250,7 @@ options:
                 TEMP_DIR="$OPTARG"
                 ;;
 	    A)
-		ANNOTATE=1
+		ANNOTATE=`echo "$OPTARG" | tr [:upper:] [:lower:]`
 		;;
             v)
                 VERBOSE=1
@@ -260,37 +265,67 @@ options:
     # Check the for the relevant binaries
     if [[ -z "$FREEBAYES" ]]
     then
-        echo -e "\nError: freebayes executable not found. Please set path in speedseq.config file\n"
+	var_usage
+        echo -e "Error: freebayes executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z  "$BEDTOOLS" ]]
     then
-        echo -e "\nError: bedtools executable not found. Please set path in speedseq.config file\n"
+	var_usage
+        echo -e "Error: bedtools executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z "$JAVA" ]]
     then
-        echo -e "\nError: java executable not found. Please set path in speedseq.config file\n"
+	var_usage
+        echo -e "Error: java executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z "$BGZIP" ]]
     then
-        echo -e "\nError: bgzip executable not found. Please set path in speedseq.config file\n"
+	var_usage
+        echo -e "Error: bgzip executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z "$TABIX" ]]
     then
-        echo -e "\nError: tabix executable not found. Please set path in speedseq.config file\n"
+	var_usage
+        echo -e "Error: tabix executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$SNPEFF" ]] && [[ $ANNOTATE -eq 1 ]]
+    elif [[ -z "$SNPEFF" ]] && [[ "$ANNOTATE" == "true" ]]
     then
-        echo -e "\nError: SnpEff jar not found. Please set path in speedseq.config file\n"
+	var_usage
+        echo -e "Error: SnpEff jar not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$SNPEFF_CONFIG" ]] && [[ $ANNOTATE -eq 1 ]]
+    elif [[ -z "$SNPEFF_CONFIG" ]] && [[ "$ANNOTATE" == "true" ]]
     then
-        echo -e "\nError: SnpEff config file not found. Please set path in speedseq.config file\n"
+	var_usage
+        echo -e "Error: SnpEff config file not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$SNPEFF_GENOME" ]] && [[ $ANNOTATE -eq 1 ]]
+    elif [[ -z "$SNPEFF_GENOME" ]] && [[ "$ANNOTATE" == "true" ]]
     then
-        echo -e "\nError: tabix executable not found. Please set path in speedseq.config file\n"
+	var_usage
+        echo -e "Error: tabix executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     fi
+
+    # Check that ANNOTATE is either true or false
+    if [[ "$ANNOTATE" != "true" ]] && [[ "$ANNOTATE" != "false" ]]
+    then
+	var_usage
+	echo -e "Error: -A must be either true or false\n"
+	exit 1
+    fi
+
+    # Check that the ref and fastq files exist
+    if [[ ! -f $REF ]]
+    then
+	var_usage
+	echo -e "Error: Reference file $REF not found.\n"
+	exit 1
+    elif [[ ! -f $IN_BAM ]]
+    then
+	var_usage
+	echo -e "Error: BAM file $IN_BAM not found.\n"
+	exit 1
+    fi
+
 
     echo "Calling variants..."
 
@@ -316,7 +351,7 @@ options:
     i=`head -n 1 $WINDOWS | awk '{print $1":"$2".."$3}'`
     grep "^#" $TEMP_DIR/$OUTBASE.$i.vcf > $TEMP_DIR/header.txt
 
-    if [ $ANNOTATE -eq 1 ]
+    if [[ "$ANNOTATE" == "true" ]]
     then
 	# merge the vcf region files, with snpEff annotation
 	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
@@ -360,13 +395,13 @@ options:
          -t INT   threads [1]
          -F FLOAT Require at least this fraction of observations supporting
                     an alternate allele within a single individual in order
-                    to evaluate the position [0.1]
+                    to evaluate the position [0.05]
          -C INT   Require at least this count of observations supporting
                     an alternate allele within a single individual in order
                     to evaluate the position [2]
          -q QUAL  minimum variant quality to output [1]
          -T DIR   temp directory [./temp]
-         -A       annotate the vcf with snpEff
+         -A BOOL  annotate the vcf with snpEff (true or false) (default: true)
          -K       path to speedseq.config file (default: same directory as speedseq)
          -v       verbose
          -h       show this message
@@ -386,14 +421,14 @@ options:
     TUMOR_BAM="${@:(-1)}"
     OUTPUT=`basename "$TUMOR_BAM"`
     THREADS=1
-    MIN_ALT_FRACTION=0.1
+    MIN_ALT_FRACTION=0.05
     MIN_ALT_COUNT=2
     TEMP_DIR="./temp"
-    ANNOTATE=0
+    ANNOTATE="true"
     QUAL=1
     VERBOSE=0
 
-    while getopts ":ho:w:t:F:C:T:Aq:vK:" OPTION
+    while getopts ":ho:w:t:F:C:T:A:q:vK:" OPTION
     do
         case "${OPTION}" in
             h)
@@ -419,7 +454,7 @@ options:
                 TEMP_DIR="$OPTARG"
                 ;;
             A)
-                ANNOTATE=1
+                ANNOTATE=`echo "$OPTARG" | tr [:upper:] [:lower:]`
                 ;;
 	    q)
 		QUAL="$OPTARG"
@@ -437,35 +472,69 @@ options:
     # Check the for the relevant binaries
     if [[ -z "$FREEBAYES" ]]
     then
-        echo -e "\nError: freebayes executable not found. Please set path in speedseq.config file\n"
+        somatic_usage
+        echo -e "Error: freebayes executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z  "$BEDTOOLS" ]]
     then
-        echo -e "\nError: bedtools executable not found. Please set path in speedseq.config file\n"
+        somatic_usage
+        echo -e "Error: bedtools executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z "$JAVA" ]]
     then
-        echo -e "\nError: java executable not found. Please set path in speedseq.config file\n"
+        somatic_usage
+        echo -e "Error: java executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z "$BGZIP" ]]
     then
-        echo -e "\nError: bgzip executable not found. Please set path in speedseq.config file\n"
+        somatic_usage
+        echo -e "Error: bgzip executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z "$TABIX" ]]
     then
-        echo -e "\nError: tabix executable not found. Please set path in speedseq.config file\n"
+        somatic_usage
+        echo -e "Error: tabix executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$SNPEFF" ]] && [[ $ANNOTATE -eq 1 ]]
+    elif [[ -z "$SNPEFF" ]] && [[ "$ANNOTATE" == "true" ]]
     then
-        echo -e "\nError: SnpEff jar not found. Please set path in speedseq.config file\n"
+        somatic_usage
+        echo -e "Error: SnpEff jar not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$SNPEFF_CONFIG" ]] && [[ $ANNOTATE -eq 1 ]]
+    elif [[ -z "$SNPEFF_CONFIG" ]] && [[ "$ANNOTATE" == "true" ]]
     then
-        echo -e "\nError: SnpEff config file not found. Please set path in speedseq.config file\n"
+        somatic_usage
+        echo -e "Error: SnpEff config file not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$SNPEFF_GENOME" ]] && [[ $ANNOTATE -eq 1 ]]
+    elif [[ -z "$SNPEFF_GENOME" ]] && [[ "$ANNOTATE" == "true" ]]
     then
-        echo -e "\nError: tabix executable not found. Please set path in speedseq.config file\n"
+        somatic_usage
+        echo -e "Error: tabix executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    fi
+
+    # Check that ANNOTATE is either true or false
+    if [[ "$ANNOTATE" != "true" ]] && [[ "$ANNOTATE" != "false" ]]
+    then
+	somatic_usage
+	echo -e "Error: -A must be either true or false\n"
+	exit 1
+    fi
+
+    # Check that the ref and fastq files exist
+    if [[ ! -f $REF ]]
+    then
+        somatic_usage
+        echo -e "Error: Reference file $REF not found.\n"
+        exit 1
+    elif [[ ! -f $NORMAL_BAM ]]
+    then
+        somatic_usage
+        echo -e "Error: BAM file $NORMAL_BAM not found.\n"
+        exit 1
+    elif [[ ! -f $TUMOR_BAM ]]
+    then
+        somatic_usage
+        echo -e "Error: BAM file $TUMOR_BAM not found.\n"
         exit 1
     fi
 
@@ -501,7 +570,7 @@ options:
     TUMOR_RG=`cat ${TEMP_DIR}/header.txt | tail -n 1 | cut -f 10`
     NORMAL_RG=`cat ${TEMP_DIR}/header.txt | tail -n 1 | cut -f 11`
 
-    if [ $ANNOTATE -eq 1 ]
+    if [[ "$ANNOTATE" == "true" ]]
     then
         # merge the vcf region files, with snpEff annotation
 	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
@@ -639,15 +708,15 @@ global options:
     # Check the for the relevant binaries
     if [[ -z "$LUMPY" ]]
     then
-        echo -e "\nError: lumpy executable not found. Please set path in speedseq.config file\n"
+        echo -e "Error: lumpy executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z  "$PAIREND_DISTRO" ]]
     then
-        echo -e "\nError: pairend_distro.pl executable not found. Please set path in speedseq.config file\n"
+        echo -e "Error: pairend_distro.pl executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z  "$SAMBAMBA" ]]
     then
-        echo -e "\nError: sambamba executable not found. Please set path in speedseq.config file\n"
+        echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     fi
 
@@ -773,8 +842,8 @@ case "$1" in
 	lumpy "${@:2}"
 	;;
     *)
-	echo -e "\nError: command \"$1\" not recognized"
 	usage
+	echo -e "Error: command \"$1\" not recognized\n"
 	exit 1
 esac
 
