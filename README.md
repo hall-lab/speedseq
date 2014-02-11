@@ -44,7 +44,7 @@ There are two modes of analysis supported:
 
 There is an automatic (coming soon) and manual installation process for ``speedseq``.
 
-The following are required for both modes of installation:
+The following are required for both installations:
 - **cmake**
 - **g++**
 - **gcc**
@@ -56,13 +56,13 @@ The following are required for both modes of installation:
 Use a Linux package installer to obtain these:
 
 ~~~~~~~~~~~~~~~~~~~
-sudo yum -y install gcc-c++ make git gcc zlib-devel cmake cmake-gui
+sudo yum -y install cmake gcc-c++ gcc git make zlib-devel
 ~~~~~~~~~~~~~~~~~~~
  
 or 
 
 ~~~~~~~~~~~~~~~~~~~
-sudo apt-get install gcc-c++ make git gcc zlib-devel cmake cmake-gui
+sudo apt-get install cmake gcc-c++ gcc git make zlib-devel
 ~~~~~~~~~~~~~~~~~~~
 
 ###Automatic installation (coming soon)
