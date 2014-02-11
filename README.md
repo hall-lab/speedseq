@@ -20,6 +20,8 @@ There are two modes of analysis supported:
 ##Constitutive Pipeline Tools (Required)
 ------------------------------------------
 
+0.) [SPEEDSEQ](https://github.com/cc2qe/speedseq)
+
 1.) [BEDTOOLS](https://github.com/arq5x/bedtools)
 
 2.) [BWA](https://github.com/lh3/bwa)
@@ -43,9 +45,11 @@ There are two modes of analysis supported:
 ##Installation
 ----------------
 
-There is an automatic (coming soon) and manual installation.
+There is an automatic (coming soon) and manual installation process for ``speedseq``.
 
-**g++** and **cmake** are required for compilation of ``speedseq`` pipeline tools. Use a linux package installer to obtain these.
+In order to compile the necessary pipeline tools, **g++** and **cmake** are required. 
+
+Use a Linux package installer to obtain these:
 
 ~~~~~~~~~~~~~~~~~~~
 sudo yum -y install gcc-c++ cmake cmake-gui
@@ -68,6 +72,8 @@ apt-get install gcc-c++ cmake cmake-gui
 ~~~~~~~~~~~~~~~~~~
 
 ###Manual installation
+
+####0.) SPEEDSEQ
 
 The following installation process assumes that none of the above required tools are installed.  
 It is recommended that recent versions of tools are used in this release of ``speedseq`` meaning that
