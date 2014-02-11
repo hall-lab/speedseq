@@ -1,6 +1,5 @@
-==============================
           speedseq         
-==============================
+-------------------------------
 
 **Current version:** 0.0.1a
 
@@ -194,9 +193,8 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
 
-===================
 Example Use
-===================
+~~~~~~~~~~~~~~~~~~~~
 
 Use ``speedseq aln`` to align and dedupe. ` ``speedseq lumpy``
 
