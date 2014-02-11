@@ -64,6 +64,7 @@ the use of any other versions cannot be guaranteed to work.
 	cd bedtools
 	make
 	sudo scp -r bin/* /usr/local/bin/
+~~~~~~~~~~~~~~~~~~
 	
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
