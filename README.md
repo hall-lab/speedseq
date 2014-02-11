@@ -43,7 +43,7 @@ Installation
 
 The following installation process assumes that none of the above required tools are installed.  
 It is recommended that recent versions of tools are used in this release of ``speedseq`` meaning that
-the use of any other versions cannot be guaranteed to work.
+the use of any other versions cannot be guaranteed to work. (Makefile coming soon)
 
 **gpp** and **cmake** are required for compilation
 
