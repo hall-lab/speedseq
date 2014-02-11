@@ -708,14 +708,17 @@ global options:
     # Check the for the relevant binaries
     if [[ -z "$LUMPY" ]]
     then
+	lumpy_usage
         echo -e "Error: lumpy executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z  "$PAIREND_DISTRO" ]]
     then
+	lumpy_usage
         echo -e "Error: pairend_distro.pl executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z  "$SAMBAMBA" ]]
     then
+	lumpy_usage
         echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     fi
