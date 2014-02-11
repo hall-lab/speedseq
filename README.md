@@ -5,7 +5,7 @@
 
 Created by Colby Chiang, Ryan Layer, Greg G Faust, Michael R Lindberg, Aaron R Quinlan, and Ira M Hall.
 
-Current support is for Linux support only
+Current support for Linux only
 
 ##Summary
 --------------
