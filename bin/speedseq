@@ -1,0 +1,853 @@
+#!/bin/bash -e
+
+############################################################
+#  Program: speedseq
+#  Version: 0.0.1
+#  Author: Colby Chiang (cc2qe@virginia.edu)
+############################################################
+
+# source the paths to the binaries used in the script
+function source_binaries() {
+    if [[ -e $1 ]]
+    then
+	echo "Sourcing executables from $1 ..."
+	source $1
+    else
+	echo "Config file $1 not found. Attempting to auto-source executables"
+	BWA=`which bwa || true`
+	SAMBLASTER=`which samblaster || true`
+	SAMBAMBA=`which sambamba || true`
+	FREEBAYES=`which freebayes || true`
+	BEDTOOLS=`which bedtools || true`
+	JAVA=`which java || true`
+	SNPEFF=
+	SNPEFF_CONFIG=
+	SNPEFF_GENOME=
+	BGZIP=`which bgzip || true`
+	TABIX=`which tabix || true`
+	LUMPY=`which lumpy || true`
+	PAIREND_DISTRO=`which pairend_distro.pl || true`
+    fi
+
+}
+
+## global usage
+function usage() {
+    echo "
+Program: speedseq
+Version: 0.0.1
+Author: Colby Chiang (cc2qe@virginia.edu)
+
+usage:   speedseq <command> [options]
+
+command: aln      align fastq files with BWA-MEM
+         var      call variants with freebayes
+         somatic  call somatic variants in a tumor/normal pair with freebayes
+         lumpy    call SVs with lumpy
+
+options: -h       show this message
+"
+}
+
+# alignment with BWA-MEM
+function aln() {
+    function aln_usage() {
+	echo "
+usage:   speedseq aln [options] <reference.fa> <in.fq>
+
+alignment options:
+         -o STR   output prefix [in.fq]
+         -R       read group header line such as \"@RG\tID:foo\tSM:bar\" [null]
+         -t INT   threads [1]
+         -T DIR   temp directory [./temp]
+
+mapdups options:
+         -i       include duplicates in splitters and discordants
+         -c INT   maximum number of split alignments for a read to be included in splitter file [2]
+         -m INT   minimum non-overlapping base pairs between two alignments for a read to be included in splitter file [20]
+
+global options:
+         -K       path to speedseq.config file (default: same directory as speedseq)
+         -v       verbose
+         -h       show this message
+"
+    }
+
+    # Check options passed in.
+    if test -z "$2"
+    then
+	aln_usage
+	exit 1
+    fi
+
+    # set defaults
+    REF="${@:(-2):1}"
+    FQ="${@:(-1)}"
+    OUTPUT=`basename "$FQ"`
+    RG_FMT=""
+    INCLUDE_DUPS="-e"
+    MAX_SPLIT_COUNT=2
+    MIN_NON_OVERLAP=20
+    THREADS=1
+    TEMP_DIR="./temp"
+    VERBOSE=0
+
+    while getopts ":hw:o:R:ic:m:t:T:v:K:" OPTION
+    do
+	case "${OPTION}" in
+	    h)
+		aln_usage
+		exit 1
+		;;
+	    R)
+		RG="$OPTARG"
+		RG_FMT="-R '$OPTARG'"
+		;;
+	    o)
+		OUTPUT="$OPTARG"
+		;;
+	    i)
+		INCLUDE_DUPS=""
+		;;
+	    c)
+		MAX_SPLIT_COUNT="$OPTARG"
+		;;
+	    m)
+		MIN_NON_OVERLAP="$OPTARG"
+		;;
+	    t)
+		THREADS="$OPTARG"
+		;;
+	    T)
+		TEMP_DIR="$OPTARG"
+		;;
+	    v)
+		VERBOSE=1
+		;;
+	    K)
+		CONFIG="$OPTARG"
+		;;
+	esac
+    done
+    OPTIND=0
+
+    # Check that the ref and fastq files exist
+    if [[ ! -f $REF ]]
+    then
+	aln_usage
+	echo -e "Error: Reference file $REF not found.\n"
+	exit 1
+    elif [[ ! -f $FQ ]]
+    then
+	aln_usage
+	echo -e "Error: Fastq file $FQ not found.\n"
+	exit 1
+    fi
+
+    # Check the for the relevant binaries
+    if [[ -z "$BWA" ]]
+    then
+	aln_usage
+        echo -e "Error: bwa executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z  "$SAMBLASTER" ]]
+    then
+	aln_usage
+        echo -e "Error: samblaster executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z "$SAMBAMBA" ]]
+    then
+	aln_usage
+        echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    fi
+
+    echo "Aligning..."
+
+    OUTBASE=`basename "$OUTPUT"`
+
+    # create temp files
+    mkdir -p $TEMP_DIR/full $TEMP_DIR/spl $TEMP_DIR/disc
+    mkfifo $TEMP_DIR/spl_pipe $TEMP_DIR/disc_pipe
+
+    # pipe alignment commands to parallel, so all will finish before moving to index step
+    echo "
+    $BWA mem -t $THREADS -M -p $RG_FMT $REF $FQ | \
+	$SAMBLASTER $INCLUDE_DUPS -c $MAX_SPLIT_COUNT -m $MIN_NON_OVERLAP -s $TEMP_DIR/spl_pipe -d $TEMP_DIR/disc_pipe | \
+	$SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
+	$SAMBAMBA sort -t $THREADS -m 8G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
+    
+    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \
+	$SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
+    $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
+	$SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
+    " | parallel -j 3
+
+    # index the files
+    echo "
+    $SAMBAMBA index $OUTPUT.bam
+    $SAMBAMBA index $OUTPUT.discordants.bam
+    $SAMBAMBA index $OUTPUT.splitters.bam
+    " | parallel -j 3
+
+    # clean up
+    rm -r $TEMP_DIR
+
+    # exit cleanly
+    exit 0
+}
+
+function var() {
+    function var_usage() {
+        echo "
+usage:   speedseq var [options] <reference.fa> <input.bam>
+
+options:
+         -o STR   output prefix [input.bam]
+         -w FILE  BED file of windowed genomic intervals
+         -t INT   threads [1]
+         -T DIR   temp directory [./temp]
+         -A BOOL  annotate the vcf with snpEff (true or false) (default: true)
+         -K       path to speedseq.config file (default: same directory as speedseq)
+         -v       verbose
+         -h       show this message
+"
+    }
+
+    # Check options passed in.
+    if test -z "$2"
+    then
+        var_usage
+        exit 1
+    fi
+
+    # set defaults
+    REF="${@:(-2):1}"
+    IN_BAM="${@:(-1)}"
+    OUTPUT=`basename "$IN_BAM"`
+    THREADS=1
+    TEMP_DIR="./temp"
+    ANNOTATE="true"
+    VERBOSE=0
+
+    while getopts ":ho:w:t:T:A:vK:" OPTION
+    do
+        case "${OPTION}" in
+            h)
+                var_usage
+                exit 1
+                ;;
+            o)
+                OUTPUT="$OPTARG"
+                ;;
+	    w)
+		WINDOWS="$OPTARG"
+		;;
+            t)
+                THREADS="$OPTARG"
+                ;;
+            T)
+                TEMP_DIR="$OPTARG"
+                ;;
+	    A)
+		ANNOTATE=`echo "$OPTARG" | tr [:upper:] [:lower:]`
+		;;
+            v)
+                VERBOSE=1
+                ;;
+	    K)
+		CONFIG="$OPTARG"
+		;;
+        esac
+    done
+    OPTIND=0
+
+    # Check the for the relevant binaries
+    if [[ -z "$FREEBAYES" ]]
+    then
+	var_usage
+        echo -e "Error: freebayes executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z  "$BEDTOOLS" ]]
+    then
+	var_usage
+        echo -e "Error: bedtools executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z "$JAVA" ]]
+    then
+	var_usage
+        echo -e "Error: java executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z "$BGZIP" ]]
+    then
+	var_usage
+        echo -e "Error: bgzip executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z "$TABIX" ]]
+    then
+	var_usage
+        echo -e "Error: tabix executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z "$SNPEFF" ]] && [[ "$ANNOTATE" == "true" ]]
+    then
+	var_usage
+        echo -e "Error: SnpEff jar not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z "$SNPEFF_CONFIG" ]] && [[ "$ANNOTATE" == "true" ]]
+    then
+	var_usage
+        echo -e "Error: SnpEff config file not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z "$SNPEFF_GENOME" ]] && [[ "$ANNOTATE" == "true" ]]
+    then
+	var_usage
+        echo -e "Error: tabix executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    fi
+
+    # Check that ANNOTATE is either true or false
+    if [[ "$ANNOTATE" != "true" ]] && [[ "$ANNOTATE" != "false" ]]
+    then
+	var_usage
+	echo -e "Error: -A must be either true or false\n"
+	exit 1
+    fi
+
+    # Check that the ref and fastq files exist
+    if [[ ! -f $REF ]]
+    then
+	var_usage
+	echo -e "Error: Reference file $REF not found.\n"
+	exit 1
+    elif [[ ! -f $IN_BAM ]]
+    then
+	var_usage
+	echo -e "Error: BAM file $IN_BAM not found.\n"
+	exit 1
+    fi
+
+
+    echo "Calling variants..."
+
+    OUTBASE=`basename "$OUTPUT"`
+
+    # make temporary directory
+    mkdir -p $TEMP_DIR
+
+    # call variants on each of the windows in parallel
+    for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
+    do
+	echo "$FREEBAYES \
+        -f $REF \
+        --region $i \
+        $IN_BAM \
+        > ${TEMP_DIR}/$OUTBASE.$i.vcf"
+    done > $TEMP_DIR/var_command.txt
+
+    # run the parallel freebayes command
+    cat $TEMP_DIR/var_command.txt | parallel -j $THREADS
+
+    # make vcf header
+    i=`head -n 1 $WINDOWS | awk '{print $1":"$2".."$3}'`
+    grep "^#" $TEMP_DIR/$OUTBASE.$i.vcf > $TEMP_DIR/header.txt
+
+    if [[ "$ANNOTATE" == "true" ]]
+    then
+	# merge the vcf region files, with snpEff annotation
+	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
+        do
+            # if this fails then it bails out the script unless || true present
+	        cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
+        done \
+            | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \
+	    | $JAVA -jar $SNPEFF -c $SNPEFF_CONFIG -v $SNPEFF_GENOME \
+            | $BGZIP -c > $OUTPUT.vcf.gz
+    else
+        # merge the vcf region files, without snpEff annotation
+        for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
+	do
+            # if this fails then it bails out the script
+	    cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
+	done \
+	    | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \
+	    | $BGZIP -c > $OUTPUT.vcf.gz
+    fi
+
+    # index the vcf
+    $TABIX -f -p vcf $OUTPUT.vcf.gz
+
+    # clean up
+    rm -r $TEMP_DIR
+
+    # exit cleanly
+    exit 0
+
+}
+
+function somatic() {
+    function somatic_usage() {
+        echo "
+usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
+
+options:
+         -o STR   output prefix [tumor.bam]
+         -w FILE  BED file of windowed genomic intervals
+         -t INT   threads [1]
+         -F FLOAT Require at least this fraction of observations supporting
+                    an alternate allele within a single individual in order
+                    to evaluate the position [0.05]
+         -C INT   Require at least this count of observations supporting
+                    an alternate allele within a single individual in order
+                    to evaluate the position [2]
+         -q QUAL  minimum variant quality to output [1]
+         -T DIR   temp directory [./temp]
+         -A BOOL  annotate the vcf with snpEff (true or false) (default: true)
+         -K       path to speedseq.config file (default: same directory as speedseq)
+         -v       verbose
+         -h       show this message
+"
+    }
+
+    # Check options passed in.
+    if test -z "$3"
+    then
+        somatic_usage
+        exit 1
+    fi
+
+    # set defaults
+    REF="${@:(-3):1}"
+    NORMAL_BAM="${@:(-2):1}"
+    TUMOR_BAM="${@:(-1)}"
+    OUTPUT=`basename "$TUMOR_BAM"`
+    THREADS=1
+    MIN_ALT_FRACTION=0.05
+    MIN_ALT_COUNT=2
+    TEMP_DIR="./temp"
+    ANNOTATE="true"
+    QUAL=1
+    VERBOSE=0
+
+    while getopts ":ho:w:t:F:C:T:A:q:vK:" OPTION
+    do
+        case "${OPTION}" in
+            h)
+                somatic_usage
+                exit 1
+                ;;
+            o)
+                OUTPUT="$OPTARG"
+                ;;
+            w)
+                WINDOWS="$OPTARG"
+                ;;
+            t)
+                THREADS="$OPTARG"
+                ;;
+            F)
+                MIN_ALT_FRACTION="$OPTARG"
+                ;;
+	    C)
+		MIN_ALT_COUNT="$OPTARG"
+		;;
+            T)
+                TEMP_DIR="$OPTARG"
+                ;;
+            A)
+                ANNOTATE=`echo "$OPTARG" | tr [:upper:] [:lower:]`
+                ;;
+	    q)
+		QUAL="$OPTARG"
+		;;
+            v)
+                VERBOSE=1
+                ;;
+	    K)
+		CONFIG="$OPTARG"
+		;;
+        esac
+    done
+    OPTIND=0
+
+    # Check the for the relevant binaries
+    if [[ -z "$FREEBAYES" ]]
+    then
+        somatic_usage
+        echo -e "Error: freebayes executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z  "$BEDTOOLS" ]]
+    then
+        somatic_usage
+        echo -e "Error: bedtools executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z "$JAVA" ]]
+    then
+        somatic_usage
+        echo -e "Error: java executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z "$BGZIP" ]]
+    then
+        somatic_usage
+        echo -e "Error: bgzip executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z "$TABIX" ]]
+    then
+        somatic_usage
+        echo -e "Error: tabix executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z "$SNPEFF" ]] && [[ "$ANNOTATE" == "true" ]]
+    then
+        somatic_usage
+        echo -e "Error: SnpEff jar not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z "$SNPEFF_CONFIG" ]] && [[ "$ANNOTATE" == "true" ]]
+    then
+        somatic_usage
+        echo -e "Error: SnpEff config file not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z "$SNPEFF_GENOME" ]] && [[ "$ANNOTATE" == "true" ]]
+    then
+        somatic_usage
+        echo -e "Error: tabix executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    fi
+
+    # Check that ANNOTATE is either true or false
+    if [[ "$ANNOTATE" != "true" ]] && [[ "$ANNOTATE" != "false" ]]
+    then
+	somatic_usage
+	echo -e "Error: -A must be either true or false\n"
+	exit 1
+    fi
+
+    # Check that the ref and fastq files exist
+    if [[ ! -f $REF ]]
+    then
+        somatic_usage
+        echo -e "Error: Reference file $REF not found.\n"
+        exit 1
+    elif [[ ! -f $NORMAL_BAM ]]
+    then
+        somatic_usage
+        echo -e "Error: BAM file $NORMAL_BAM not found.\n"
+        exit 1
+    elif [[ ! -f $TUMOR_BAM ]]
+    then
+        somatic_usage
+        echo -e "Error: BAM file $TUMOR_BAM not found.\n"
+        exit 1
+    fi
+
+    echo "Calling somatic variants..."
+    
+    OUTBASE=`basename "$OUTPUT"`
+
+    # make temporary directory
+    mkdir -p $TEMP_DIR
+
+    # write command to call variants on each of the windows in parallel
+    for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
+    do
+	echo "$FREEBAYES -f $REF \
+        --pooled-discrete \
+        --genotype-qualities \
+        --min-alternate-fraction ${MIN_ALT_FRACTION} \
+        --min-alternate-count ${MIN_ALT_COUNT} \
+        --region $i \
+        $NORMAL_BAM $TUMOR_BAM \
+        | awk '\$6>=$QUAL' \
+        > ${TEMP_DIR}/$OUTBASE.$i.vcf"
+    done > $TEMP_DIR/var_command.txt
+
+    # run the freebayes command in parallel
+    cat $TEMP_DIR/var_command.txt | parallel -j $THREADS
+
+    # make vcf header
+    i=`head -n 1 $WINDOWS | awk '{print $1":"$2".."$3}'`
+    grep "^#" $TEMP_DIR/$OUTBASE.$i.vcf > $TEMP_DIR/header.txt
+
+    # get the tumor and normal readgroups
+    TUMOR_RG=`cat ${TEMP_DIR}/header.txt | tail -n 1 | cut -f 10`
+    NORMAL_RG=`cat ${TEMP_DIR}/header.txt | tail -n 1 | cut -f 11`
+
+    if [[ "$ANNOTATE" == "true" ]]
+    then
+        # merge the vcf region files, with snpEff annotation
+	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
+	do
+            # if this fails then it bails out the script, unless || true present
+            cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
+	done \
+            | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \
+            | $JAVA -jar $SNPEFF -t -c $SNPEFF_CONFIG -v $SNPEFF_GENOME \
+            | $BGZIP -c > $OUTPUT.vcf.gz
+    else
+        # merge the vcf region files, without snpEff annotation
+	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
+	do
+            # if this fails then it bails out the script
+            cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
+	done \
+            | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \
+            | $BGZIP -c > $OUTPUT.vcf.gz
+    fi
+
+    # index the vcf
+    $TABIX -f -p vcf $OUTPUT.vcf.gz
+
+    # clean up
+    rm -r $TEMP_DIR
+
+    # exit cleanly
+    exit 0
+
+}
+
+function lumpy() {
+    function lumpy_usage() {
+        echo "
+usage:   speedseq lumpy [options]
+
+lumpy options:
+         -B FILE  full BAM file (required)
+         -S FILE  split reads BAM file (required)
+         -D FILE  discordant reads BAM file (required)
+         -o STR   output prefix [fullBam.bam]
+         -x FILE  BED file to exclude
+         -m INT   minimum weight for a call [4]
+         -r FLOAT trim threshold [1e-10]
+         -L INT   read length [auto]
+         -T DIR   temp directory [./temp]
+
+         -s STR   lumpy split read parameters [auto]
+                      bam_file:<splitreads.bam>,
+                      back_distance:<20>,
+                      min_mapping_threshold:<20>,
+                      weight:<1>,
+                      id:<11>,
+                      min_clip:<20>
+
+         -p STR   lumpy discordant read parameters [auto]
+                      bam_file:<discreads.bam>,
+                      histo_file:<auto>,
+                      mean:<auto>,
+                      stdev:<auto>,
+                      read_length:<auto>,
+                      min_non_overlap:<read_length>,
+                      discordant_z:<5>,
+                      back_distance:<20>,
+                      min_mapping_threshold:<20>,
+                      weight:<1>,
+                      id:<10>
+
+global options:
+         -K       path to speedseq.config file (default: same directory as speedseq)
+         -v       verbose
+         -h       show this message
+"
+    }
+
+    # set defaults
+    MIN_WEIGHT=4
+    TRIM_THRES="1e-10"
+    EXCLUDE_BED=
+    TEMP_DIR="./temp"
+    VERBOSE=0
+
+    while getopts ":hB:S:D:o:m:r:x:s:p:T:vK:" OPTION
+    do
+	case "${OPTION}" in
+            h)
+                lumpy_usage
+                exit 1
+                ;;
+	    B)
+		FULL_BAM="$OPTARG"
+		;;
+	    S)
+		SPL_BAM="$OPTARG"
+		;;
+	    D)
+		DISC_BAM="$OPTARG"
+		;;
+            o)
+                OUTPUT="$OPTARG"
+                ;;
+            m)
+                MIN_WEIGHT="$OPTARG"
+                ;;
+            r)
+                TRIM_THRES="$OPTARG"
+                ;;
+	    L)
+		READ_LENGTH="$OPTARG"
+		;;
+            x)
+	        EXCLUDE_BED="$OPTARG"
+		EXCLUDE_BED_FMT="-x $EXCLUDE_BED"
+		;;  
+	    s)
+		LUMPY_SPL_STRING="$OPTARG"
+		;;
+	    p)
+		LUMPY_DISC_STRING="$OPTARG"
+		;;
+            T)
+                TEMP_DIR="$OPTARG"
+                ;;
+            v)
+                VERBOSE=1
+		;;
+	    K)
+		CONFIG="$OPTARG"
+		;;
+	esac
+    done
+    OPTIND=0
+
+    # Check the for the relevant binaries
+    if [[ -z "$LUMPY" ]]
+    then
+	lumpy_usage
+        echo -e "Error: lumpy executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z  "$PAIREND_DISTRO" ]]
+    then
+	lumpy_usage
+        echo -e "Error: pairend_distro.pl executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z  "$SAMBAMBA" ]]
+    then
+	lumpy_usage
+        echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    fi
+
+    echo "Running LUMPY..."
+
+    # error-check input
+    if [[ ! -f $FULL_BAM ]] || [[ ! -f $SPL_BAM ]] || [[ ! -f $DISC_BAM ]]
+    then
+	lumpy_usage
+	exit 1
+    fi
+
+    # default OUTPUT if not provided
+    if test -z "$OUTPUT"
+    then
+    OUTPUT=`basename "$FULL_BAM"`
+    fi
+
+    OUTBASE=`basename "$OUTPUT"`
+
+    # make temporary directory
+    mkdir ${TEMP_DIR}
+
+    # calc readlength if not provided
+    if test -z "$READ_LENGTH"
+    then
+	READ_LENGTH=`$SAMBAMBA view $FULL_BAM | head -n 10000 | awk 'BEGIN { MAX_LEN=0 } { LEN=length($10); if (LEN>MAX_LEN) MAX_LEN=LEN } END { print MAX_LEN }'`
+    fi
+
+    # calculate stats
+    echo -n "Calculating alignment stats... "
+    $SAMBAMBA view -F "not secondary_alignment" $FULL_BAM \
+	| head -n 10000000 | tail -n 5000000 \
+	| $PAIREND_DISTRO -rl $READ_LENGTH -X 3 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.x3.histo \
+	> ${TEMP_DIR}/$OUTBASE.insert.stats
+    echo "done"
+    MEAN=`cat ${TEMP_DIR}/$OUTBASE.insert.stats | tr '\t' '\n' | grep "^mean" | sed 's/mean\://g'`
+    STDEV=`cat ${TEMP_DIR}/$OUTBASE.insert.stats | tr '\t' '\n' | grep "^stdev" | sed 's/stdev\://g'`
+
+    # if LUMPY_SPL_STRING not provided, make one
+    if test -z "$LUMPY_SPL_STRING"
+    then
+	LUMPY_SPL_STRING="bam_file:${SPL_BAM},back_distance:20,min_mapping_threshold:20,weight:1,id:11,min_clip:20"
+    fi
+
+    # if LUMPY_DISC_STRING not provided, make one
+    if test -z "$LUMPY_DISC_STRING"
+    then
+	LUMPY_DISC_STRING="bam_file:${DISC_BAM},histo_file:${TEMP_DIR}/${OUTPUT}.x3.histo,mean:${MEAN},stdev:${STDEV},read_length:${READ_LENGTH},min_non_overlap:${READ_LENGTH},discordant_z:5,back_distance:20,weight:1,id:10,min_mapping_threshold:20"
+    fi
+
+    # call lumpy
+    $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FMT \
+	-pe $LUMPY_DISC_STRING \
+	-sr $LUMPY_SPL_STRING \
+	> $OUTPUT.bedpe
+
+    # clean up
+    rm -r ${TEMP_DIR}
+
+    # exit cleanly
+    exit 0
+
+}
+
+# Show usage when there are no arguments.
+if test -z "$1"
+then
+    usage
+    exit 1
+fi
+
+while getopts "K:h" OPTION
+do
+    case $OPTION in
+        h)
+            usage
+            exit 1
+            ;;
+	K)
+	    ;;
+        ?)
+            usage
+            exit
+            ;;
+    esac
+done
+
+# set config default
+SPEEDSEQ_DIR=`dirname $0`
+CONFIG="$SPEEDSEQ_DIR/speedseq.config"
+
+# get the config file from arguments
+# (getopts has a problem with skipping the first arg, so have to do this manually
+GET_NEXT=0
+for ARG in "$@"
+do
+    if [[ "$ARG" == "-K" ]]
+    then
+	GET_NEXT=1
+    elif [[ $GET_NEXT == 1 ]]
+    then
+	CONFIG=$ARG
+	break
+    fi
+done
+
+# source the executables
+source_binaries $CONFIG
+
+# call the function
+case "$1" in 
+    'aln')
+	aln "${@:2}"
+	;;
+    'var')
+	var "${@:2}"
+	;;
+    'somatic')
+	somatic "${@:2}"
+	;;
+    'lumpy')
+	lumpy "${@:2}"
+	;;
+    *)
+	usage
+	echo -e "Error: command \"$1\" not recognized\n"
+	exit 1
+esac
+
+## END SCRIPT
