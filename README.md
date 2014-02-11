@@ -28,23 +28,23 @@ There are two modes of analysis supported:
 
 4.) [LUMPY](https://github.com/arq5x/lumpy-sv)
 
+5.) [PARALLEL](http://www.gnu.org/software/parallel/)
 
-5.) [SAMBAMBA](https://github.com/lomereiter/sambamba)
+6.) [SAMBAMBA](https://github.com/lomereiter/sambamba)
 
-6.) [SNPEFF](https://github.com/CBMi-BiG/snpEff)
+7.) [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
 
-7.) [VCFLIB](https://github.com/ekg/vcflib)
+8.) [SNPEFF](https://github.com/CBMi-BiG/snpEff)
 
-8.) [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
+9.) [VCFLIB](https://github.com/ekg/vcflib)
 
-9.) 
 
 ##Installation
 ----------------
 
 There is an automatic (coming soon) and manual installation process for ``speedseq``.
 
-The following are required for installation:
+The following are required for both modes of installation:
 
 - **g++**
 - **make**
@@ -89,8 +89,39 @@ The use of unspecified versions of the pipeline tools cannot be guaranteed to wo
 ~~~~~~~~~~~~~~~~~~
 
 Obtain each of the pipeline tools and install them:
+	
+####1.) BWA
 
-####1.) BEDTOOLS
+``bwa`` can be installed and used by ``speedseq`` with the following commands: 
+~~~~~~~~~~~~~~~~~~
+	curl -OL http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.6a.tar.bz2
+	cd bwa
+	sudo cp bwa /usr/local/bin
+~~~~~~~~~~~~~~~~~~
+	
+####2.) FREEBAYES
+
+``freebayes`` can be installed and used by ``speedseq`` with the following commands: 
+~~~~~~~~~~~~~~~~~~~
+	curl -OL https://github.com/ekg/freebayes/archive/v9.9.2.tar.gz
+	tar -xvf v9.9.2.tar.gz
+	cd v9.9.2
+	cmake
+	sudo scp -r bin/* /usr/local/bin/
+~~~~~~~~~~~~~~~~~~~
+
+####3.) GEMINI
+
+``gemini`` can be installed and used by ``speedseq`` with the following commands: 
+
+Python 2.7.x
+grabix
+samtools
+tabix
+bedtools
+pybedtools
+
+##1.) BEDTOOLS
 	
 ``bedtools`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
@@ -100,39 +131,42 @@ Obtain each of the pipeline tools and install them:
 	make
 	sudo scp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
-	
-####2.) BWA
 
-``bwa`` can be installed and used by ``speedseq`` with the following commands: 
-~~~~~~~~~~~~~~~~~~
-	curl -OL http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.6a.tar.bz2
-	cd bwa
-	sudo cp bwa /usr/local/bin
-~~~~~~~~~~~~~~~~~~
-	
-####3.) FREEBAYES
 
-``freebayes`` can be installed and used by ``speedseq`` with the following commands: 
-~~~~~~~~~~~~~~~~~~~
-	https://github.com/ekg/freebayes/archive/v9.9.2.tar.gz
-	tar -xvf
-	cd freebayes
-	make
-	sudo scp -r bin/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~~
-	
+Once the the necessary packages have been acquired, install gemini:
+
+~~~~~~~~~~~~~~~~~~
+	git clone https://github.com/arq5x/gemini
+	cd gemini
+	sudo python setup.py install
+	sudo python gemini/install-data.py /usr/local/share/
+~~~~~~~~~~~~~~~~~~
+
 ####4.) LUMPY
 
 ``lumpy-sv`` can be installed and used by ``speedseq`` with the following commands:
 ~~~~~~~~~~~~~~~~~~~
-	git clone https://github.com/arq5x/lumpy-sv
-	cd lumpy-sv
+	curl -OL https://github.com/arq5x/lumpy-sv/releases/download/v0.1.5.tar.gz
+	tar -xvf v0.1.5.tar.gz
+	cd v0.1.5
 	make 
 	sudo cp -r bin/* /usr/local/bin/
 	sudo cp -r scripts/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
 
-####5.) SAMBAMBA
+####5.) PARALLEL
+
+``parallel`` can be installed and used by ``speedseq`` with the following commands:
+~~~~~~~~~~~~~~~~~~~
+	curl -OL http://ftp.gnu.org/gnu/parallel/parallel-20100424.tar.bz2
+	tar -xvf parallel-20100424.tar.bz2
+	cd parallel-20100424
+	make 
+	sudo cp -r bin/* /usr/local/bin/
+~~~~~~~~~~~~~~~~~~~
+
+
+####6.) SAMBAMBA
 
 ``sambamba`` can be installed and used by ``speedseq`` by: 
 
@@ -144,15 +178,14 @@ Obtain each of the pipeline tools and install them:
 	sudo scp sambamba_v0.4.4 /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 
-####6.) TABIX
+####6.) SAMBLASTER
 
-``tabix`` can be installed and used by ``speedseq`` with the following commands: 
+``samblaster`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
-	git clone --recursive  git://github.com/samtools/tabix
-	cd tabix
+	git clone git://github.com/GregoryFaust/samblaster.git
+	cd samblster
 	make
-	sudo cp tabix /usr/local/bin/
-	sudo cp bgzip /usr/local/bin/
+	sudo cp bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 
 ####7.) SNPEFF
@@ -177,40 +210,7 @@ Obtain each of the pipeline tools and install them:
 	sudo cp bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 
-####9.) GEMINI
-
-``gemini`` can be installed and used by ``speedseq`` with the following commands: 
-
-Python 2.7.x
-grabix
-samtools
-tabix
-bedtools
-pybedtools
-
-
-Once the the necessary packages have been acquired, install gemini:
-
-~~~~~~~~~~~~~~~~~~
-	git clone https://github.com/arq5x/gemini
-	cd gemini
-	sudo python setup.py install
-	sudo python gemini/install-data.py /usr/local/share/
-~~~~~~~~~~~~~~~~~~
-
-####10.) SAMBLASTER
-
-``samblaster`` can be installed and used by ``speedseq`` with the following commands: 
-~~~~~~~~~~~~~~~~~~
-	git clone git://github.com/GregoryFaust/samblaster.git
-	cd samblster
-	make
-	sudo cp bin/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~
-
-For alternative installations, release issues, and unmentioned dependencies, please consult the website/creator of the specific tool.
-
-
+For alternative installations and release issues please consult the website/creator of the tool in question.
 
 ##Example Usage
 ----------------------
