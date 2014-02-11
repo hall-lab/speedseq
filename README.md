@@ -170,13 +170,13 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 ##Example Use
 ----------------------
 
-Use ``speedseq aln`` to align and dedupe. ``speedseq lumpy``
+Use ``speedseq aln`` to align and dedupe the dataset.
 ~~~~~~~~~~~~~~~~~~
 	speedseq aln -o NA12878 -t 24 -T temp_NA12878 human_g1k_v37.fasta NA12878.fq.gz
 ~~~~~~~~~~~~~~~~~~
 
 
-Use ``speedseq somatic`` to call SNPs and Indels
+Use ``speedseq somatic`` to call SNPs and Indels.
 ~~~~~~~~~~~~~~~~~~
 	speedseq somatic -o NA12878.som -w annotations/ceph18.b37.include.2014-01-15.bed -t 24 human_g1k_v37.fasta NA12878.bam &> NA12878.som.log
 
@@ -189,7 +189,7 @@ Use ``speedseq somatic`` to call SNPs and Indels
 	zcat NA12878.som.F01.vcf.gz | awk '$1~"^#" || $6>=1' | bgzip -c > NA12878.som.F01.Q1.vcf.gz
 ~~~~~~~~~~~~~~~~~~
 
-Use `speedseq lumpy`` to call Structural Variants
+Use ``speedseq lumpy`` to call structural variants.
 ~~~~~~~~~~~~~~~~~~
 	speedseq lumpy -o NA12878.lumpy -x annotations/ceph18.b37.exclude.2014-01-15.bed -T temp_NA12878 -B NA12878.bam -D NA12878.discordants.bam -S NA12878.splitters.bam &> NA12878.lumpy.log
 ~~~~~~~~~~~~~~~~~~
