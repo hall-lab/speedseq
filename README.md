@@ -46,7 +46,7 @@ There are two modes of analysis supported:
 	git clone https://github.com/cc2qe/speedseq
 	cd speedseq
 	make
-	sudo scp -r bin/* /usr/local/bin/
+	sudo cp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 
 python setup.py or Makefile coming soon
@@ -78,7 +78,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 ~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/lh3/bwa
 	cd bwa
-	sudo scp bwa /usr/local/bin
+	sudo cp bwa /usr/local/bin
 ~~~~~~~~~~~~~~~~~~
 	
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
@@ -102,8 +102,8 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 	git clone https://github.com/arq5x/lumpy-sv
 	cd lumpy-sv
 	make 
-	sudo scp -r bin/* /usr/local/bin/
-	sudo scp -r scripts/* /usr/local/bin/
+	sudo cp -r bin/* /usr/local/bin/
+	sudo cp -r scripts/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
 	
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
@@ -130,8 +130,8 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 	git clone --recursive  git://github.com/samtools/tabix
 	cd tabix
 	make
-	sudo scp tabix /usr/local/bin/
-	sudo scp bgzip /usr/local/bin/
+	sudo cp tabix /usr/local/bin/
+	sudo cp bgzip /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 	
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
@@ -159,7 +159,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 	git clone --recursive  https://github.com/ekg/vcflib
 	cd vcflib
 	make
-	sudo scp
+	sudo cp bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
