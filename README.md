@@ -1,4 +1,4 @@
-speedseq         
+#speedseq         
 -------------------------------
 
 **Current version:** 0.0.1a
@@ -48,7 +48,7 @@ the use of any other versions cannot be guaranteed to work.
 **gpp** and **cmake** are required for compilation
 
 
-1.) BEDTOOLS
+####1.) BEDTOOLS
 	
 ``bedtools`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
@@ -60,7 +60,7 @@ the use of any other versions cannot be guaranteed to work.
 	
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
-2.) BWA
+####2.) BWA
 
 ``bwa`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
@@ -71,7 +71,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 	
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
-3.) FREEBAYES
+####3.) FREEBAYES
 
 ``freebayes`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~~
@@ -83,7 +83,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 	
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
-4.) LUMPY
+####4.) LUMPY
 
 ``lumpy-sv`` can be installed and used by ``speedseq`` with the following commands:
 ~~~~~~~~~~~~~~~~~~~
@@ -97,7 +97,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
 
-5.) SAMBAMBA
+####5.) SAMBAMBA
 
 ``sambamba`` can be installed and used by ``speedseq`` by: 
 
@@ -111,7 +111,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
-6.) TABIX
+####6.) TABIX
 
 ``tabix`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
@@ -125,7 +125,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
 
-7.) SNPEFF
+####7.) SNPEFF
 
 ``snpeff`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
@@ -140,7 +140,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
 
-8.) VCFLIB
+####8.) VCFLIB
 
 ``vcflib`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
@@ -153,7 +153,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
 
-9.) GEMINI
+####9.) GEMINI
 
 ``gemini`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
@@ -167,7 +167,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
 
-Example Use
+##Example Use
 ----------------------
 
 Use ``speedseq aln`` to align and dedupe. ``speedseq lumpy``
