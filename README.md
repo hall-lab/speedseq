@@ -18,32 +18,23 @@ There are two modes of analysis supported:
 Constitutive Pipeline Tools (Required)
 ------------------------------------------
 
-1.) BEDTOOLS
-https://github.com/arq5x/bedtools
+1.) [BEDTOOLS](https://github.com/arq5x/bedtools)
 
-2.) BWA
-https://github.com/lh3/bwa
+2.) [BWA](https://github.com/lh3/bwa)
 
-3.) FREEBAYES
-https://github.com/ekg/freebayes
+3.) [FREEBAYES](https://github.com/ekg/freebayes)
 
-4.) LUMPY
-https://github.com/arq5x/lumpy-sv
+4.) [LUMPY](https://github.com/arq5x/lumpy-sv)
 
-5.) SAMBAMBA
-https://github.com/lomereiter/sambamba
+5.) [SAMBAMBA](https://github.com/lomereiter/sambamba)
 
-6.) TABIX
-https://github.com/samtools/tabix
+6.) [TABIX](https://github.com/samtools/tabix)
 
-7.) SNPEFF
-https://github.com/CBMi-BiG/snpEff
+7.) [SNPEFF](https://github.com/CBMi-BiG/snpEff)
 
-8.) VCFLIB
-https://github.com/ekg/vcflib
+8.) [VCFLIB](https://github.com/ekg/vcflib)
 
-9.) GEMINI
-https://github.com/arq5x/gemini
+9.) [GEMINI](https://github.com/arq5x/gemini)
 
 Installation
 ----------------
