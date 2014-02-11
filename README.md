@@ -95,7 +95,9 @@ Obtain each of the pipeline tools and install them:
 ``bwa`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
 	curl -OL http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.6a.tar.bz2
-	cd bwa
+	tar -xvf bwa-0.7.6a.tar.bz2
+	cd bwa-0.7.6a
+	make
 	sudo cp bwa /usr/local/bin
 ~~~~~~~~~~~~~~~~~~
 	
@@ -103,9 +105,8 @@ Obtain each of the pipeline tools and install them:
 
 ``freebayes`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~~
-	curl -OL https://github.com/ekg/freebayes/archive/v9.9.2.tar.gz
-	tar -xvf v9.9.2.tar.gz
-	cd v9.9.2
+	git clone --recursive git://github.com/ekg/freebayes.git
+	cd freebayes
 	cmake
 	sudo scp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
