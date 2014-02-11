@@ -20,8 +20,6 @@ There are two modes of analysis supported:
 ##Constitutive Pipeline Tools (Required)
 ------------------------------------------
 
-0.) [SPEEDSEQ](https://github.com/cc2qe/speedseq)
-
 1.) [BEDTOOLS](https://github.com/arq5x/bedtools)
 
 2.) [BWA](https://github.com/lh3/bwa)
@@ -73,11 +71,9 @@ apt-get install gcc-c++ cmake cmake-gui
 
 ###Manual installation
 
-####0.) SPEEDSEQ
-
-The following installation process assumes that none of the above required tools are installed.  
-It is recommended that recent versions of tools are used in this release of ``speedseq`` meaning that
-the use of any other versions cannot be guaranteed to work. 
+The following installation process assumes that none of the required tools are installed.  
+It is recommended that the specified versions of tools are used in this release of ``speedseq``.
+The use of unspecified versions of the pipeline tools cannot be guaranteed to work. 
 
 ``speedseq`` can be installed with the following commands: 
 ~~~~~~~~~~~~~~~~~~
@@ -92,8 +88,9 @@ Obtain each of the pipeline tools and install them:
 	
 ``bedtools`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
-	git clone https://github.com/arq5x/bedtools
-	cd bedtools
+	curl -OL https://github.com/arq5x/bedtools2/releases/download/v2.19.0/bedtools-2.19.0.tar.gz
+	tar -xvf bedtools-2.19.0.tar.gz
+	cd bedtools-2.19.0
 	make
 	sudo scp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
@@ -102,7 +99,7 @@ Obtain each of the pipeline tools and install them:
 
 ``bwa`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
-	git clone https://github.com/lh3/bwa
+	curl -OL http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.6a.tar.bz2
 	cd bwa
 	sudo cp bwa /usr/local/bin
 ~~~~~~~~~~~~~~~~~~
@@ -111,7 +108,8 @@ Obtain each of the pipeline tools and install them:
 
 ``freebayes`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~~
-	git clone https://github.com/ekg/freebayes
+	https://github.com/ekg/freebayes/archive/v9.9.2.tar.gz
+	tar -xvf
 	cd freebayes
 	make
 	sudo scp -r bin/* /usr/local/bin/
@@ -132,9 +130,9 @@ Obtain each of the pipeline tools and install them:
 
 ``sambamba`` can be installed and used by ``speedseq`` by: 
 
-* Go to https://github.com/lomereiter/sambamba/releases
+-Go to https://github.com/lomereiter/sambamba/releases
 
-* Download sambamba_v0.4.4_centos5.tar.bz2
+-Download sambamba_v0.4.4_centos5.tar.bz2
 ~~~~~~~~~~~~~~~~~~
 	tar -xvf sambamba_v0.4.4_centos5.tar.bz2
 	sudo scp sambamba_v0.4.4 /usr/local/bin/
@@ -184,7 +182,7 @@ or
 	apt-get install python27 git gcc gcc-c++ zlib-devel
 ~~~~~~~~~~~~~~~~~~
 
-Install gemini:
+Once the the necessary packages have been acquired, install gemini:
 
 ~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/arq5x/gemini
