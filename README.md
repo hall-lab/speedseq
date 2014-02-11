@@ -13,34 +13,31 @@ The ``speedseq`` suite is a lightweight, flexible, and open source pipeline that
 genomic variation (Structural Variants, INDELs, and Single Nucleotide Variants). 
 There are two modes of analysis supported: 
 
-1.) Identification of variants in a single sample.
+**1.) Identification of variants in a single sample.**
 
-2.) Comparison of two samples, i.e. tumor and matched normal
+**2.) Comparison of two samples, i.e. tumor and matched normal**
 
 ##Constitutive Pipeline Tools (Required)
 ------------------------------------------
 
-1.) [BEDTOOLS](https://github.com/arq5x/bedtools)
+1.) [BWA](https://github.com/lh3/bwa)
 
-2.) [BWA](https://github.com/lh3/bwa)
+2.) [FREEBAYES](https://github.com/ekg/freebayes)
 
-3.) [FREEBAYES](https://github.com/ekg/freebayes)
+3.) [GEMINI](https://github.com/arq5x/gemini)
 
 4.) [LUMPY](https://github.com/arq5x/lumpy-sv)
 
+
 5.) [SAMBAMBA](https://github.com/lomereiter/sambamba)
 
-6.) [TABIX](https://github.com/samtools/tabix)
+6.) [SNPEFF](https://github.com/CBMi-BiG/snpEff)
 
-7.) [SNPEFF](https://github.com/CBMi-BiG/snpEff)
+7.) [VCFLIB](https://github.com/ekg/vcflib)
 
-8.) [VCFLIB](https://github.com/ekg/vcflib)
+8.) [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
 
-9.) [GEMINI](https://github.com/arq5x/gemini)
-
-10.) [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
-
-11.) [PARALLEL](http://www.gnu.org/software/parallel/)
+9.) 
 
 ##Installation
 ----------------
@@ -183,13 +180,14 @@ Obtain each of the pipeline tools and install them:
 ####9.) GEMINI
 
 ``gemini`` can be installed and used by ``speedseq`` with the following commands: 
-~~~~~~~~~~~~~~~~~~
-	sudo yum -y install python27 git gcc gcc-c++ zlib-devel
-~~~~~~~~~~~~~~~~~~
-or
-~~~~~~~~~~~~~~~~~~
-	apt-get install python27 git gcc gcc-c++ zlib-devel
-~~~~~~~~~~~~~~~~~~
+
+Python 2.7.x
+grabix
+samtools
+tabix
+bedtools
+pybedtools
+
 
 Once the the necessary packages have been acquired, install gemini:
 
