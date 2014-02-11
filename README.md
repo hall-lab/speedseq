@@ -62,7 +62,7 @@ the use of any other versions cannot be guaranteed to work.
 **g++** and **cmake** are required for compilation
 
 ~~~~~~~~~~~~~~~~~~~
-sudo yum -y install gcc-c++ cmake
+sudo yum -y install gcc-c++ cmake cmake-gui
 ~~~~~~~~~~~~~~~~~~~
  
 or 
@@ -164,7 +164,7 @@ apt-get install gcc-c++ cmake cmake-gui
 ~~~~~~~~~~~~~~~~~~
 or
 ~~~~~~~~~~~~~~~~~~
-	sudo yum -y install python27 git gcc gcc-c++ zlib-devel
+	apt-get install python27 git gcc gcc-c++ zlib-devel
 ~~~~~~~~~~~~~~~~~~
 
 Install gemini:
