@@ -45,13 +45,13 @@ There are two modes of analysis supported:
 There is an automatic (coming soon) and manual installation process for ``speedseq``.
 
 The following are required for both modes of installation:
-
-- **g++**
-- **make**
-- **git**
-- **gcc**
-- **zlib**
 - **cmake**
+- **g++**
+- **gcc**
+- **git**
+- **make**
+- **zlib**
+
 
 Use a Linux package installer to obtain these:
 
