@@ -59,6 +59,10 @@ the use of any other versions cannot be guaranteed to work.
 
 **gpp** and **cmake** are required for compilation
 
+~~~~~~~~~~~~~~~~~~~
+sudo yum -y install gcc-c++ cmake
+~~~~~~~~~~~~~~~~~~~
+
 
 ####1.) BEDTOOLS
 	
