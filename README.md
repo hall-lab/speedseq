@@ -179,7 +179,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 For alternative installations, release issues, and unmentioned dependencies, please consult the tool website/creator.
 
 
-##Example Use
+##Example Usage
 ----------------------
 
 Use ``speedseq aln`` to align and dedupe the dataset.
@@ -189,7 +189,7 @@ Use ``speedseq aln`` to align and dedupe the dataset.
 
 Use ``speedseq var`` to call SNPs and indels on a single sample.
 ~~~~~~~~~~~~~~~~~~
-	speedseq var -o NA12878 -A -w annotations/ceph18.b37.include.2014-01-15.bed human_g1k_v37.fasta NA12878.bam
+	speedseq var -o NA12878 -w annotations/ceph18.b37.include.2014-01-15.bed human_g1k_v37.fasta NA12878.bam
 ~~~~~~~~~~~~~~~~~~
 
 Use ``speedseq lumpy`` to call structural variants.
@@ -199,7 +199,7 @@ Use ``speedseq lumpy`` to call structural variants.
 
 Use ``speedseq somatic`` to call SNPs and indels on a tumor/normal pair.
 ~~~~~~~~~~~~~~~~~~
-	speedseq somatic -o TCGA-B6-A0I6 -A -w annotations/ceph18.b37.include.2014-01-15.bed human_g1k_v37.fasta TCGA-B6-A0I6.normal.bam TCGA-B6-A0I6.tumor.bam
+	speedseq somatic -o TCGA-B6-A0I6 -w annotations/ceph18.b37.include.2014-01-15.bed human_g1k_v37.fasta TCGA-B6-A0I6.normal.bam TCGA-B6-A0I6.tumor.bam
 ~~~~~~~~~~~~~~~~~~
 
 
