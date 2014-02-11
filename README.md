@@ -38,7 +38,7 @@ There are two modes of analysis supported:
 
 9.) [GEMINI](https://github.com/arq5x/gemini)
 
-10.) [SAMBLASTER](https://github.com/gregoryfaust/samblaster)
+10.) [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
 
 ##Installation
 ----------------
@@ -191,7 +191,7 @@ Install gemini:
 
 ``samblaster`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
-	git clone https://github.com/gregoryfaust/samblaster
+	git clone git://github.com/GregoryFaust/samblaster.git
 	cd samblster
 	make
 	sudo cp bin/* /usr/local/bin/
