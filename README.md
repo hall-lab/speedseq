@@ -80,10 +80,8 @@ sudo apt-get install gcc-c++ make git gcc zlib-devel cmake cmake-gui
 
 ###Manual installation
 
-The following installation process assumes that none of the required tools are installed.
-
-It is recommended that the specified versions of tools are used in this release of ``speedseq``.
-
+The following installation process assumes that none of the required tools are installed.  
+It is recommended that the specified versions of tools are used in this release of ``speedseq``.  
 The use of unspecified versions of the pipeline tools cannot be guaranteed to work. 
 
 ``speedseq`` can be installed with the following commands: 
