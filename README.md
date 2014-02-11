@@ -41,9 +41,21 @@ There are two modes of analysis supported:
 ##Installation
 ----------------
 
+``speedq`` can be installed with the following commands: 
+~~~~~~~~~~~~~~~~~~
+	git clone https://github.com/cc2qe/speedseq
+	cd speedseq
+	make
+	sudo scp -r bin/* /usr/local/bin/
+~~~~~~~~~~~~~~~~~~
+
+python setup.py or Makefile coming soon
+
+###Manual installation
+
 The following installation process assumes that none of the above required tools are installed.  
 It is recommended that recent versions of tools are used in this release of ``speedseq`` meaning that
-the use of any other versions cannot be guaranteed to work. (Makefile coming soon)
+the use of any other versions cannot be guaranteed to work. 
 
 **gpp** and **cmake** are required for compilation
 
