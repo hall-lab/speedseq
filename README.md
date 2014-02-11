@@ -7,7 +7,7 @@ Created by Colby Chiang, Ryan Layer, Greg G Faust, Michael R Lindberg, Aaron R Q
 
 Current support is for Linux support only
 
-Summary
+##Summary
 --------------
 The ``speedseq`` suite is a lightweight, flexible, and open source pipeline that identifies
 genomic variation (Structural Variants, INDELs, and Single Nucleotide Variants). 
@@ -17,7 +17,7 @@ There are two modes of analysis supported:
 
 2.) Comparison of two samples, i.e. tumor and matched normal
 
-Constitutive Pipeline Tools (Required)
+##Constitutive Pipeline Tools (Required)
 ------------------------------------------
 
 1.) [BEDTOOLS](https://github.com/arq5x/bedtools)
@@ -38,7 +38,7 @@ Constitutive Pipeline Tools (Required)
 
 9.) [GEMINI](https://github.com/arq5x/gemini)
 
-Installation
+##Installation
 ----------------
 
 The following installation process assumes that none of the above required tools are installed.  
@@ -101,9 +101,9 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 
 ``sambamba`` can be installed and used by ``speedseq`` by: 
 
-*Go to https://github.com/lomereiter/sambamba/releases
+* Go to https://github.com/lomereiter/sambamba/releases
 
-*Download sambamba_v0.4.4_centos5.tar.bz2
+* Download sambamba_v0.4.4_centos5.tar.bz2
 ~~~~~~~~~~~~~~~~~~
 	tar -xvf sambamba_v0.4.4_centos5.tar.bz2
 	sudo scp sambamba_v0.4.4 /usr/local/bin/
