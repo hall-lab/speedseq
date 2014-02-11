@@ -184,31 +184,23 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 
 Use ``speedseq aln`` to align and dedupe the dataset.
 ~~~~~~~~~~~~~~~~~~
-	speedseq aln -o NA12878 -t 24 -T temp_NA12878 human_g1k_v37.fasta NA12878.fq.gz
+	speedseq aln -o NA12878 human_g1k_v37.fasta NA12878.fq.gz
 ~~~~~~~~~~~~~~~~~~
 
-
-Use ``speedseq somatic`` to call SNPs and Indels.
+Use ``speedseq var`` to call SNPs and indels on a single sample.
 ~~~~~~~~~~~~~~~~~~
-	speedseq somatic -o NA12878.som -w annotations/ceph18.b37.include.2014-01-15.bed -t 24 human_g1k_v37.fasta NA12878.bam &> NA12878.som.log
-
-	tabix -p vcf NA12878.som.annot.vcf.gz
-	
-	# somatic variant calling with min_alt_fraction 0.01 and snpEff annotation.
-	speedseq somatic -A -F 0.01 -o NA12878.som.F01 -w annotations/ceph18.b37.include.2014-01-15.bed -t 24 /shared/genomes/b37/full/human_g1k_v37.fasta NA12878.bam &> NA12878.som.F01.log
-	
-	# make a vcf with min qual 1
-	zcat NA12878.som.F01.vcf.gz | awk '$1~"^#" || $6>=1' | bgzip -c > NA12878.som.F01.Q1.vcf.gz
+	speedseq var -o NA12878 -A -w annotations/ceph18.b37.include.2014-01-15.bed human_g1k_v37.fasta NA12878.bam
 ~~~~~~~~~~~~~~~~~~
 
 Use ``speedseq lumpy`` to call structural variants.
 ~~~~~~~~~~~~~~~~~~
-	speedseq lumpy -o NA12878.lumpy -x annotations/ceph18.b37.exclude.2014-01-15.bed -T temp_NA12878 -B NA12878.bam -D NA12878.discordants.bam -S NA12878.splitters.bam &> NA12878.lumpy.log
+	speedseq lumpy -o NA12878 -x annotations/ceph18.b37.exclude.2014-01-15.bed -B NA12878.bam -D NA12878.discordants.bam -S NA12878.splitters.bam
 ~~~~~~~~~~~~~~~~~~
 
-
-
-
+Use ``speedseq somatic`` to call SNPs and indels on a tumor/normal pair.
+~~~~~~~~~~~~~~~~~~
+	speedseq somatic -o TCGA-B6-A0I6 -A -w annotations/ceph18.b37.include.2014-01-15.bed human_g1k_v37.fasta TCGA-B6-A0I6.normal.bam TCGA-B6-A0I6.tumor.bam
+~~~~~~~~~~~~~~~~~~
 
 
 
