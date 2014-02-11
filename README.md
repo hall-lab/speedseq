@@ -40,23 +40,32 @@ There are two modes of analysis supported:
 
 10.) [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
 
+11.) [PARALLEL](http://www.gnu.org/software/parallel/)
+
 ##Installation
 ----------------
 
 There is an automatic (coming soon) and manual installation process for ``speedseq``.
 
-In order to compile the necessary pipeline tools, **g++** and **cmake** are required. 
+The following are required for installation:
+
+- **g++**
+- **make**
+- **git**
+- **gcc**
+- **zlib**
+- **cmake**
 
 Use a Linux package installer to obtain these:
 
 ~~~~~~~~~~~~~~~~~~~
-sudo yum -y install gcc-c++ cmake cmake-gui
+sudo yum -y install gcc-c++ make git gcc zlib-devel cmake cmake-gui
 ~~~~~~~~~~~~~~~~~~~
  
 or 
 
 ~~~~~~~~~~~~~~~~~~~
-apt-get install gcc-c++ cmake cmake-gui
+sudo apt-get install gcc-c++ make git gcc zlib-devel cmake cmake-gui
 ~~~~~~~~~~~~~~~~~~~
 
 ###Automatic installation (coming soon)
