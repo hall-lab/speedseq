@@ -177,7 +177,7 @@ For alternative installations, release issues, and unmentioned dependencies, ple
 Example Use
 ----------------------
 
-Use ``speedseq aln`` to align and dedupe. ` ``speedseq lumpy``
+Use ``speedseq aln`` to align and dedupe. ``speedseq lumpy``
 ~~~~~~~~~~~~~~~~~~
 	speedseq aln -o NA12878 -t 24 -T temp_NA12878 human_g1k_v37.fasta NA12878.fq.gz
 ~~~~~~~~~~~~~~~~~~
