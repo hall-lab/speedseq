@@ -82,11 +82,13 @@ sudo apt-get install build-essential cmake gcc-c++ gcc git make python27 python-
 
 ###Automatic installation (coming soon)
 
-``speedseq`` can be installed with the following commands: 
+``speedseq`` can be installed with the following commands:
+~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/cc2qe/speedseq
 	cd speedseq
 	sudo python setup.py install
 	sudo cp -r bin/* /usr/local/bin/
+~~~~~~~~~~~~~~~~~~
 
 ###Manual installation
 
