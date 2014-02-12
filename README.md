@@ -20,11 +20,11 @@ There are two modes of analysis supported:
 ##Constitutive Pipeline Tools (Required)
 ------------------------------------------
 
-1.) [BWA](https://github.com/lh3/bwa)
+1.) **[BWA](https://github.com/lh3/bwa)**
 
-2.) [FREEBAYES](https://github.com/ekg/freebayes)
+2.) **[FREEBAYES](https://github.com/ekg/freebayes)**
 
-3.) [GEMINI](https://github.com/arq5x/gemini)
+3.) **[GEMINI](https://github.com/arq5x/gemini)**
 
 - samtools
 - tabix
@@ -34,19 +34,19 @@ There are two modes of analysis supported:
 - pybedtools
   * Cython
 
-4.) [LUMPY](https://github.com/arq5x/lumpy-sv)
+4.) **[LUMPY](https://github.com/arq5x/lumpy-sv)**
 
 - GNU Scientific Library
 
-5.) [PARALLEL](http://www.gnu.org/software/parallel/)
+5.) **[PARALLEL](http://www.gnu.org/software/parallel/)**
 
-6.) [SAMBAMBA](https://github.com/lomereiter/sambamba)
+6.) **[SAMBAMBA](https://github.com/lomereiter/sambamba)**
 
-7.) [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
+7.) **[SAMBLASTER](https://github.com/GregoryFaust/samblaster)**
 
-8.) [SNPEFF](https://github.com/CBMi-BiG/snpEff)
+8.) **[SNPEFF](https://github.com/CBMi-BiG/snpEff)**
 
-9.) [VCFLIB](https://github.com/ekg/vcflib)
+9.) **[VCFLIB](https://github.com/ekg/vcflib)**
 
 
 ##Installation
@@ -55,16 +55,16 @@ There are two modes of analysis supported:
 There is an automatic (coming soon) and manual installation process for ``speedseq``.
 
 The following are required for both installations:
-- **cmake**
-- **g++**
-- **gcc**
-- **git**
-- **make**
-- **python27**
-- **python-devel**
-- **python-yaml**
-- **ncurses-devel**
-- **zlib-devel**
+- cmake
+- g++
+- gcc
+- git
+- make
+- python27
+- python-devel
+- python-yaml
+- ncurses-devel
+- zlib-devel
 
 A Linux package manager can be used to obtain these by with the command:
 
@@ -105,7 +105,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 
 **Obtain each of the pipeline tools and install:**
 	
-####1.) BWA
+**####1.) BWA**
 
 ``bwa`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
@@ -116,17 +116,17 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	sudo cp bwa /usr/local/bin
 ~~~~~~~~~~~~~~~~~~
 	
-####2.) FREEBAYES
+**####2.) FREEBAYES**
 
 ``freebayes`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~~
 	git clone --recursive git://github.com/ekg/freebayes.git
 	cd freebayes
 	make
-	sudo scp -r bin/* /usr/local/bin/
+	sudo cp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
 
-####3.) GEMINI
+**####3.) GEMINI**
 
 ``gemini`` can be automatically (requires Python 2.7.x) installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~~
@@ -139,7 +139,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 
 ``gemini`` and its dependencies can be manually installed and used by ``speedseq`` with the following commands: 
 
-- **samtools**
+- samtools
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL http://sourceforge.net/projects/samtools/files/samtools/0.1.19/samtools-0.1.19.tar.bz2
 	tar -xvf samtools-0.1.19.tar.bz2
@@ -149,7 +149,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	sudo cp bcftools/* /usr/local/bin/
 	sudo cp misc/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
-- **tabix**
+- tabix
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL http://sourceforge.net/projects/samtools/files/tabix/tabix-0.2.6.tar.bz2
 	tar -xvf tabix-0.2.6.tar.bz2
@@ -158,29 +158,29 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	sudo cp bgzip /usr/local/bin/
 	sudo cp tabix /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
-- **grabix**
+- grabix
 ~~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/arq5x/grabix
 	cd grabix
 	make
-	cp grabix /usr/local/bin/
+	sudo cp grabix /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
-- **Python 2.7.6**
+- Python 2.7.6
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL http://www.python.org/ftp/python/2.7.6/Python-2.7.6.tgz
 	tar -zxvf Python-2.7.6.tgz 
 	cd Python-2.7.6
-	sudo ./configure && sudo make install
+	./configure && sudo make install
 ~~~~~~~~~~~~~~~~~~~
-- **bedtools**
+- bedtools
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL https://github.com/arq5x/bedtools2/releases/download/v2.19.0/bedtools-2.19.0.tar.gz
 	tar -xvf bedtools-2.19.0.tar.gz
 	cd bedtools2-2.19.0/
 	make
-	sudo scp -r bin/* /usr/local/bin/
+	sudo cp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
-- **pybedtools**
+- pybedtools
   * cython  
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL http://cython.org/release/Cython-0.20.1.tar.gz
@@ -189,7 +189,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	sudo make
 ~~~~~~~~~~~~~~~~~~~
 
-Now install **pybedtools**
+Now install pybedtools
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL https://github.com/daler/pybedtools/archive/v0.6.4.tar.gz
 	tar -xvf v0.6.4.tar.gz
@@ -197,7 +197,7 @@ Now install **pybedtools**
 	sudo python setup.py install
 ~~~~~~~~~~~~~~~~~~~
 
-Once the software dependencies have been met, install ``gemini``:
+Now that software dependencies have been met, install ``gemini``:
 
 ~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/arq5x/gemini
@@ -206,11 +206,11 @@ Once the software dependencies have been met, install ``gemini``:
 	sudo python gemini/install-data.py /usr/local/share/
 ~~~~~~~~~~~~~~~~~~
 
-####4.) LUMPY
+**####4.) LUMPY**
 
 ``lumpy-sv`` can be installed and used by ``speedseq`` with the following commands:
 
-- **Gnu Scientific Library**
+- Gnu Scientific Library
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL ftp://ftp.gnu.org/gnu/gsl/gsl-1.9.tar.gz
 	tar -xvf gsl-1.9.tar.gz
@@ -218,7 +218,7 @@ Once the software dependencies have been met, install ``gemini``:
 	./configure && make
 ~~~~~~~~~~~~~~~~~~~
 
-Once the software dependencies have been met, install ``lumpy-sv``:
+Now that software dependencies have been met, install ``lumpy-sv``:
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL https://github.com/arq5x/lumpy-sv/archive/v0.1.5.tar.gz
 	tar -xvf v0.1.5.tar.gz
