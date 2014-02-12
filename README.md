@@ -25,8 +25,16 @@ There are two modes of analysis supported:
 2.) [FREEBAYES](https://github.com/ekg/freebayes)
 
 3.) [GEMINI](https://github.com/arq5x/gemini)
+	* samtools
+	* tabix
+	* grabix
+	* Python2.7.x
+	* bedtools
+	* pybedtools
+	  - cython
 
 4.) [LUMPY](https://github.com/arq5x/lumpy-sv)
+	* GNU Scientific Library
 
 5.) [PARALLEL](http://www.gnu.org/software/parallel/)
 
@@ -174,22 +182,22 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
   * cython  
   * numpy
 ~~~~~~~~~~~~~~~~~~~
-	#Feel free to use sudo python2.7 easy_install -Uq cython && sudo python2.7 easy_install -Uq numpy
 	curl -OL http://cython.org/release/Cython-0.20.1.tar.gz
 	tar -xvf Cython-0.20.1.tar.gz
 	cd Cython-0.20.1
-	python2.7 setup.py install
+	sudo make
 	curl -OL http://sourceforge.net/projects/numpy/files/NumPy/1.8.0/numpy-1.8.0.tar.gz
 	tar -xvf numpy-1.8.0.tar.gz
 	cd numpy-1.8.0
-	python2.7 setup.py install
+	sudo make
+	#sudo python2.7 easy_install -Uq cython && sudo python2.7 easy_install -Uq numpy
 ~~~~~~~~~~~~~~~~~~~
 - **pybedtools**
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL https://github.com/daler/pybedtools/archive/v0.6.4.tar.gz
 	tar -xvf v0.6.4.tar.gz
 	cd pybedtools-0.6.4/
-	sudo python2.7 setup.py install
+	sudo python setup.py install
 ~~~~~~~~~~~~~~~~~~~
 
 Once the software dependencies have been met, install ``gemini``:
@@ -197,17 +205,23 @@ Once the software dependencies have been met, install ``gemini``:
 ~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/arq5x/gemini
 	cd gemini
-	sudo python2.7 setup.py install
-	sudo python2.7 gemini/install-data.py /usr/local/share/
+	sudo python setup.py install
+	sudo python gemini/install-data.py /usr/local/share/
 ~~~~~~~~~~~~~~~~~~
 
 ####4.) LUMPY
 
 ``lumpy-sv`` can be installed and used by ``speedseq`` with the following commands:
+
 ~~~~~~~~~~~~~~~~~~~
-	curl -OL https://github.com/arq5x/lumpy-sv/releases/download/v0.1.5.tar.gz
+curl -OL ftp://ftp.gnu.org/gnu/gsl/gsl-1.9.tar.gz
+~~~~~~~~~~~~~~~~~~~
+
+
+~~~~~~~~~~~~~~~~~~~
+	curl -OL https://github.com/arq5x/lumpy-sv/archive/v0.1.5.tar.gz
 	tar -xvf v0.1.5.tar.gz
-	cd v0.1.5
+	cd lumpy-sv-0.1.5
 	make 
 	sudo cp -r bin/* /usr/local/bin/
 	sudo cp -r scripts/* /usr/local/bin/
