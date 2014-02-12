@@ -180,7 +180,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	make
 	sudo scp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
-- **pybedtools (requirements)**
+- **pybedtools**
   * cython  
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL http://cython.org/release/Cython-0.20.1.tar.gz
@@ -188,7 +188,8 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	cd Cython-0.20.1
 	sudo make
 ~~~~~~~~~~~~~~~~~~~
-- **pybedtools**
+
+Now install **pybedtools**
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL https://github.com/daler/pybedtools/archive/v0.6.4.tar.gz
 	tar -xvf v0.6.4.tar.gz
@@ -209,11 +210,15 @@ Once the software dependencies have been met, install ``gemini``:
 
 ``lumpy-sv`` can be installed and used by ``speedseq`` with the following commands:
 
+- **Gnu Scientific Library**
 ~~~~~~~~~~~~~~~~~~~
-curl -OL ftp://ftp.gnu.org/gnu/gsl/gsl-1.9.tar.gz
+	curl -OL ftp://ftp.gnu.org/gnu/gsl/gsl-1.9.tar.gz
+	tar -xvf gsl-1.9.tar.gz
+	cd gsl-1.9
+	./configure && make
 ~~~~~~~~~~~~~~~~~~~
 
-
+Once the software dependencies have been met, install ``lumpy-sv``:
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL https://github.com/arq5x/lumpy-sv/archive/v0.1.5.tar.gz
 	tar -xvf v0.1.5.tar.gz
