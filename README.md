@@ -32,7 +32,7 @@ There are two modes of analysis supported:
 - Python2.7.x
 - bedtools
 - pybedtools
-  * cython
+  * Cython
 
 4.) [LUMPY](https://github.com/arq5x/lumpy-sv)
 
