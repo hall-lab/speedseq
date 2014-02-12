@@ -126,22 +126,23 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 
 - **samtools**
 ~~~~~~~~~~~~~~~~~~~
-	curl
+	curl -OL http://sourceforge.net/projects/samtools/files/samtools/0.1.19/samtools-0.1.19.tar.bz2/download
 ~~~~~~~~~~~~~~~~~~~
 - **tabix**
 ~~~~~~~~~~~~~~~~~~~
-	curl
+	curl -OL http://sourceforge.net/projects/samtools/files/tabix/tabix-0.2.6.tar.bz2/download
 ~~~~~~~~~~~~~~~~~~~
 - **grabix**
 ~~~~~~~~~~~~~~~~~~~
-	curl
+	git clone https://github.com/arq5x/grabix
 ~~~~~~~~~~~~~~~~~~~
 - **Python 2.7.x**
 ~~~~~~~~~~~~~~~~~~~
-	curl -OL http://www.python.org/ftp/python/2.7.6/Python-2.7.6.tgz
-	gunzip Python-2.7.6.tgz
+	curl -OL http://www.python.org/ftp/python/2.7.3/Python-2.7.3.tgz
+	gunzip Python-2.7.3.tgz
 	tar -xvf Python-2.7.6.tar
-	cd Python-2.7.6
+	cd Python-2.7.3
+	sudo ./configure && make install
 	
 ~~~~~~~~~~~~~~~~~~~
 - **bedtools**
