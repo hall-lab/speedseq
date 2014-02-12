@@ -113,16 +113,53 @@ Obtain each of the pipeline tools and install them:
 
 ####3.) GEMINI
 
-``gemini`` can be installed and used by ``speedseq`` with the following commands: 
+The following are required for a ``gemini`` installation:
 
-Python 2.7.x
-grabix
-samtools
-tabix
-bedtools
-pybedtools
+- **Python 2.7.x**
+- **grabix**
+- **samtools**
+- **tabix**
+- **bedtools**
+- **pybedtools**
 
-##1.) BEDTOOLS
+``gemini`` can be automatically installed and used by ``speedseq`` with the following commands: 
+~~~~~~~~~~~~~~~~~~~
+curl -OL https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py > gemini_install.py
+python gemini_install.py /usr/local /usr/local/share/gemini
+export PATH=$PATH:/usr/local/gemini/bin
+# it would be wise to add the above line to your ``.bashrc`` or ``.bash_profile``
+gemini update
+~~~~~~~~~~~~~~~~~~~
+
+``gemini`` can be manually installed and used by ``speedseq`` with the following commands: 
+
+- **Python 2.7.x**
+~~~~~~~~~~~~~~~~~~~
+	wget
+~~~~~~~~~~~~~~~~~~~
+- **grabix**
+~~~~~~~~~~~~~~~~~~~
+	curl
+~~~~~~~~~~~~~~~~~~~
+- **samtools**
+~~~~~~~~~~~~~~~~~~~
+	curl
+~~~~~~~~~~~~~~~~~~~
+- **tabix**
+~~~~~~~~~~~~~~~~~~~
+	curl
+~~~~~~~~~~~~~~~~~~~
+- **bedtools**
+~~~~~~~~~~~~~~~~~~~
+	curl
+~~~~~~~~~~~~~~~~~~~
+- **pybedtools**
+~~~~~~~~~~~~~~~~~~~
+	curl
+~~~~~~~~~~~~~~~~~~~
+
+
+####3A.) BEDTOOLS
 	
 ``bedtools`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
