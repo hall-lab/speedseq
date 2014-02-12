@@ -50,19 +50,24 @@ The following are required for both installations:
 - **gcc**
 - **git**
 - **make**
-- **zlib**
+- **python27**
+- **python-devel**
+- **python-yaml**
+- **ncurses-devel**
+- **zlib-devel**
 
-
-A Linux package manager can be used to obtain these:
+A Linux package manager can be used to obtain these by with the command:
 
 ~~~~~~~~~~~~~~~~~~~
-sudo yum -y install cmake gcc-c++ gcc git make zlib-devel
+sudo yum update
+sudo yum -y install cmake gcc-c++ gcc git make python27 python-devel python-yaml ncurses-devel zlib-devel 
 ~~~~~~~~~~~~~~~~~~~
  
 or 
 
 ~~~~~~~~~~~~~~~~~~~
-sudo apt-get install cmake gcc-c++ gcc git make zlib-devel
+sudo apt-get update
+sudo apt-get install build-essential cmake gcc-c++ gcc git make python27 python-devel python-yaml ncurses-devel zlib-devel 
 ~~~~~~~~~~~~~~~~~~~
 
 ###Automatic installation (coming soon)
@@ -107,77 +112,93 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 ~~~~~~~~~~~~~~~~~~~
 	git clone --recursive git://github.com/ekg/freebayes.git
 	cd freebayes
-	cmake
+	make
 	sudo scp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
 
 ####3.) GEMINI
 
-``gemini`` can be automatically (coming soon) installed and used by ``speedseq`` with the following commands: 
+``gemini`` can be automatically (requires Python 2.7.x) installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py > gemini_install.py
-	python gemini_install.py /usr/local /usr/local/share/gemini
+	sudo python2.7 gemini_install.py /usr/local /usr/local/share/gemini
 	export PATH=$PATH:/usr/local/gemini/bin
 	# it would be wise to add the above line to your ``.bashrc`` or ``.bash_profile``
 	gemini update
 ~~~~~~~~~~~~~~~~~~~
 
-``gemini`` can be manually installed and used by ``speedseq`` with the following commands: 
+``gemini`` and its dependencies can be manually installed and used by ``speedseq`` with the following commands: 
 
 - **samtools**
 ~~~~~~~~~~~~~~~~~~~
-	curl -OL http://sourceforge.net/projects/samtools/files/samtools/0.1.19/samtools-0.1.19.tar.bz2/download
-	tar -xvf
-	cd
+	curl -OL http://sourceforge.net/projects/samtools/files/samtools/0.1.19/samtools-0.1.19.tar.bz2
+	tar -xvf samtools-0.1.19.tar.bz2
+	cd samtools-0.1.19
 	make
-	cp
+	sudo cp samtools /usr/local/bin/
+	sudo cp bcftools/* /usr/local/bin/
+	sudo cp misc/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
 - **tabix**
 ~~~~~~~~~~~~~~~~~~~
-	curl -OL http://sourceforge.net/projects/samtools/files/tabix/tabix-0.2.6.tar.bz2/download
-	tar -xvf
-	cd
+	curl -OL http://sourceforge.net/projects/samtools/files/tabix/tabix-0.2.6.tar.bz2
+	tar -xvf tabix-0.2.6.tar.bz2
+	cd tabix-0.2.6
 	make
-	cp
+	sudo cp bgzip /usr/local/bin/
+	sudo cp tabix /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
 - **grabix**
 ~~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/arq5x/grabix
 	cd grabix
 	make
-	cp
+	cp grabix /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
-- **Python 2.7.x**
+- **Python 2.7.6**
 ~~~~~~~~~~~~~~~~~~~
-	curl -OL http://www.python.org/ftp/python/2.7.3/Python-2.7.6.tgz
-	gunzip Python-2.7.6.tgz
-	tar -xvf Python-2.7.6.tar
+	curl -OL http://www.python.org/ftp/python/2.7.6/Python-2.7.6.tgz
+	tar -zxvf Python-2.7.6.tgz 
 	cd Python-2.7.6
-	sudo ./configure && make install
+	sudo ./configure && sudo make install
 ~~~~~~~~~~~~~~~~~~~
 - **bedtools**
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL https://github.com/arq5x/bedtools2/releases/download/v2.19.0/bedtools-2.19.0.tar.gz
 	tar -xvf bedtools-2.19.0.tar.gz
-	cd bedtools-2.19.0
+	cd bedtools2-2.19.0/
 	make
 	sudo scp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
-- **pybedtools**
+- **pybedtools (requirements)**
+  * cython  
   * numpy
-  * pyyaml
-  * cython
+~~~~~~~~~~~~~~~~~~~
+	#Feel free to use sudo python2.7 easy_install -Uq cython && sudo python2.7 easy_install -Uq numpy
+	curl -OL http://cython.org/release/Cython-0.20.1.tar.gz
+	tar -xvf Cython-0.20.1.tar.gz
+	cd Cython-0.20.1
+	python2.7 setup.py install
+	curl -OL http://sourceforge.net/projects/numpy/files/NumPy/1.8.0/numpy-1.8.0.tar.gz
+	tar -xvf numpy-1.8.0.tar.gz
+	cd numpy-1.8.0
+	python2.7 setup.py install
+~~~~~~~~~~~~~~~~~~~
+- **pybedtools**
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL https://github.com/daler/pybedtools/archive/v0.6.4.tar.gz
+	tar -xvf v0.6.4.tar.gz
+	cd pybedtools-0.6.4/
+	sudo python2.7 setup.py install
 ~~~~~~~~~~~~~~~~~~~
 
-Once the software dependencies have been acquired, install ``gemini``:
+Once the software dependencies have been met, install ``gemini``:
 
 ~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/arq5x/gemini
 	cd gemini
-	sudo python setup.py install
-	sudo python gemini/install-data.py /usr/local/share/
+	sudo python2.7 setup.py install
+	sudo python2.7 gemini/install-data.py /usr/local/share/
 ~~~~~~~~~~~~~~~~~~
 
 ####4.) LUMPY
