@@ -189,7 +189,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	sudo make
 ~~~~~~~~~~~~~~~~~~~
 
-Now install pybedtools
+  * pybedtools
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL https://github.com/daler/pybedtools/archive/v0.6.4.tar.gz
 	tar -xvf v0.6.4.tar.gz
