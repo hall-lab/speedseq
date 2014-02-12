@@ -115,7 +115,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	make
 	sudo cp bwa /usr/local/bin
 ~~~~~~~~~~~~~~~~~~
-	
+-
 ####2.) FREEBAYES
 
 ``freebayes`` can be installed and used by ``speedseq`` with the following commands: 
@@ -125,7 +125,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	make
 	sudo cp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
-
+-
 ####3.) GEMINI
 
 ``gemini`` can be automatically installed (Python 2.7.x required) and used by ``speedseq`` with the following commands: 
@@ -205,7 +205,7 @@ Now that software dependencies have been met, install ``gemini``:
 	sudo python setup.py install
 	sudo python gemini/install-data.py /usr/local/share/
 ~~~~~~~~~~~~~~~~~~
-
+-
 ####4.) LUMPY
 
 ``lumpy-sv`` can be installed and used by ``speedseq`` with the following commands:
@@ -227,7 +227,7 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 	sudo cp -r bin/* /usr/local/bin/
 	sudo cp -r scripts/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
-
+-
 ####5.) PARALLEL
 
 ``parallel`` can be installed and used by ``speedseq`` with the following commands:
@@ -238,8 +238,7 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 	make 
 	sudo cp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
-
-
+-
 ####6.) SAMBAMBA
 
 ``sambamba`` can be installed and used by ``speedseq`` by: 
@@ -248,7 +247,7 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 	tar -xvf sambamba_v0.4.4_centos5.tar.bz2 
 	sudo cp sambamba_v0.4.4 /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
-
+-
 ####7.) SAMBLASTER
 
 ``samblaster`` can be installed and used by ``speedseq`` with the following commands: 
@@ -258,7 +257,7 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 	make
 	sudo cp bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
-
+-
 ####8.) SNPEFF
 
 ``snpeff`` can be installed and used by ``speedseq`` with the following commands: 
@@ -270,7 +269,7 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 	sudo scp snpEff.config /usr/local/bin
 	sudp scp -r scripts/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
-
+-
 ####9.) VCFLIB
 
 ``vcflib`` can be installed and used by ``speedseq`` with the following commands: 
@@ -280,8 +279,8 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 	make
 	sudo cp bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
-
-For alternative installations and release issues of any of the above tools please consult the website/creator.
+-
+**For alternative installations and release issues of any of the above tools please consult the website/creator.**
 
 ##Example Usage
 ----------------------
