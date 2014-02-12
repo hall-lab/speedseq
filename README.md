@@ -199,16 +199,13 @@ Once the software dependencies have been acquired, install ``gemini``:
 ####6.) SAMBAMBA
 
 ``sambamba`` can be installed and used by ``speedseq`` by: 
-
--Go to https://github.com/lomereiter/sambamba/releases
-
--Download sambamba_v0.4.4_centos5.tar.bz2
 ~~~~~~~~~~~~~~~~~~
-	tar -xvf sambamba_v0.4.4_centos5.tar.bz2
-	sudo scp sambamba_v0.4.4 /usr/local/bin/
+	curl -OL https://github.com/lomereiter/sambamba/releases/download/v0.4.4/sambamba_v0.4.4_centos5.tar.bz2
+	tar -xvf sambamba_v0.4.4_centos5.tar.bz2 
+	sudo cp sambamba_v0.4.4 /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 
-####6.) SAMBLASTER
+####7.) SAMBLASTER
 
 ``samblaster`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
@@ -218,7 +215,7 @@ Once the software dependencies have been acquired, install ``gemini``:
 	sudo cp bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 
-####7.) SNPEFF
+####8.) SNPEFF
 
 ``snpeff`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
@@ -230,7 +227,7 @@ Once the software dependencies have been acquired, install ``gemini``:
 	sudp scp -r scripts/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 
-####8.) VCFLIB
+####9.) VCFLIB
 
 ``vcflib`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
