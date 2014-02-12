@@ -83,12 +83,10 @@ sudo apt-get install build-essential cmake gcc-c++ gcc git make python27 python-
 ###Automatic installation (coming soon)
 
 ``speedseq`` can be installed with the following commands: 
-~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/cc2qe/speedseq
 	cd speedseq
 	sudo python setup.py install
 	sudo cp -r bin/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~
 
 ###Manual installation
 
@@ -182,17 +180,11 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 ~~~~~~~~~~~~~~~~~~~
 - **pybedtools (requirements)**
   * cython  
-  * numpy
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL http://cython.org/release/Cython-0.20.1.tar.gz
 	tar -xvf Cython-0.20.1.tar.gz
 	cd Cython-0.20.1
 	sudo make
-	curl -OL http://sourceforge.net/projects/numpy/files/NumPy/1.8.0/numpy-1.8.0.tar.gz
-	tar -xvf numpy-1.8.0.tar.gz
-	cd numpy-1.8.0
-	sudo make
-	#sudo python2.7 easy_install -Uq cython && sudo python2.7 easy_install -Uq numpy
 ~~~~~~~~~~~~~~~~~~~
 - **pybedtools**
 ~~~~~~~~~~~~~~~~~~~
