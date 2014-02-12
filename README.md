@@ -53,7 +53,7 @@ The following are required for both installations:
 - **zlib**
 
 
-Use a Linux package installer to obtain these:
+A Linux package manager can be used to obtain these:
 
 ~~~~~~~~~~~~~~~~~~~
 sudo yum -y install cmake gcc-c++ gcc git make zlib-devel
@@ -78,8 +78,8 @@ sudo apt-get install cmake gcc-c++ gcc git make zlib-devel
 ###Manual installation
 
 The following instructions for installation assumes that the required tools are not installed.  
-It is recommended that the specified versions of tools are used for this release of ``speedseq``.  
-The use of unspecified versions of any pipeline tool cannot be guaranteed to work. 
+It is recommended that the specified versions of each tool is used for this release of ``speedseq``.  
+The use of unspecified versions of any pipeline component is not guaranteed to work. 
 
 ``speedseq`` can be installed with the following commands: 
 ~~~~~~~~~~~~~~~~~~
@@ -88,7 +88,7 @@ The use of unspecified versions of any pipeline tool cannot be guaranteed to wor
 	sudo cp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 
-Obtain each of the pipeline tools and install them:
+**Obtain each of the pipeline tools and install:**
 	
 ####1.) BWA
 
@@ -113,34 +113,17 @@ Obtain each of the pipeline tools and install them:
 
 ####3.) GEMINI
 
-The following are required for a ``gemini`` installation:
-
-- **Python 2.7.x**
-- **grabix**
-- **samtools**
-- **tabix**
-- **bedtools**
-- **pybedtools**
-
-``gemini`` can be automatically installed and used by ``speedseq`` with the following commands: 
+``gemini`` can be automatically (coming soon) installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~~
-curl -OL https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py > gemini_install.py
-python gemini_install.py /usr/local /usr/local/share/gemini
-export PATH=$PATH:/usr/local/gemini/bin
-# it would be wise to add the above line to your ``.bashrc`` or ``.bash_profile``
-gemini update
+	curl -OL https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py > gemini_install.py
+	python gemini_install.py /usr/local /usr/local/share/gemini
+	export PATH=$PATH:/usr/local/gemini/bin
+	# it would be wise to add the above line to your ``.bashrc`` or ``.bash_profile``
+	gemini update
 ~~~~~~~~~~~~~~~~~~~
 
 ``gemini`` can be manually installed and used by ``speedseq`` with the following commands: 
 
-- **Python 2.7.x**
-~~~~~~~~~~~~~~~~~~~
-	wget
-~~~~~~~~~~~~~~~~~~~
-- **grabix**
-~~~~~~~~~~~~~~~~~~~
-	curl
-~~~~~~~~~~~~~~~~~~~
 - **samtools**
 ~~~~~~~~~~~~~~~~~~~
 	curl
@@ -149,29 +132,38 @@ gemini update
 ~~~~~~~~~~~~~~~~~~~
 	curl
 ~~~~~~~~~~~~~~~~~~~
+- **grabix**
+~~~~~~~~~~~~~~~~~~~
+	curl
+~~~~~~~~~~~~~~~~~~~
+- **Python 2.7.x**
+~~~~~~~~~~~~~~~~~~~
+	curl -OL http://www.python.org/ftp/python/2.7.6/Python-2.7.6.tgz
+	gunzip Python-2.7.6.tgz
+	tar -xvf Python-2.7.6.tar
+	cd Python-2.7.6
+	
+~~~~~~~~~~~~~~~~~~~
 - **bedtools**
 ~~~~~~~~~~~~~~~~~~~
-	curl
-~~~~~~~~~~~~~~~~~~~
-- **pybedtools**
-~~~~~~~~~~~~~~~~~~~
-	curl
-~~~~~~~~~~~~~~~~~~~
-
-
-####3A.) BEDTOOLS
-	
-``bedtools`` can be installed and used by ``speedseq`` with the following commands: 
-~~~~~~~~~~~~~~~~~~
 	curl -OL https://github.com/arq5x/bedtools2/releases/download/v2.19.0/bedtools-2.19.0.tar.gz
 	tar -xvf bedtools-2.19.0.tar.gz
 	cd bedtools-2.19.0
 	make
 	sudo scp -r bin/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+- **pybedtools**
+  * numpy
+  * pyyaml
+  * cython
+~~~~~~~~~~~~~~~~~~~
+	numpydoc
+	pyyaml
+	cython
+	curl
+~~~~~~~~~~~~~~~~~~~
 
-
-Once the the necessary packages have been acquired, install gemini:
+Once the software dependencies have been acquired, install ``gemini``:
 
 ~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/arq5x/gemini
