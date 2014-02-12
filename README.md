@@ -25,6 +25,7 @@ There are two modes of analysis supported:
 2.) [FREEBAYES](https://github.com/ekg/freebayes)
 
 3.) [GEMINI](https://github.com/arq5x/gemini)
+
 	* samtools
 	* tabix
 	* grabix
@@ -34,6 +35,7 @@ There are two modes of analysis supported:
 	  - cython
 
 4.) [LUMPY](https://github.com/arq5x/lumpy-sv)
+
 	* GNU Scientific Library
 
 5.) [PARALLEL](http://www.gnu.org/software/parallel/)
