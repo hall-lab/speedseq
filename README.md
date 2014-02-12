@@ -29,14 +29,14 @@ There are two modes of analysis supported:
 - samtools
 - tabix
 - grabix
-- Python2.7.x
+- python2.7.x
 - bedtools
 - pybedtools
-  * Cython
+  * cython
 
 4.) [LUMPY](https://github.com/arq5x/lumpy-sv)
 
-- GNU Scientific Library
+- gnu scientific library
 
 5.) [PARALLEL](http://www.gnu.org/software/parallel/)
 
@@ -183,14 +183,12 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 - pybedtools
    * cython  
 ~~~~~~~~~~~~~~~~~~~
+	#cython
 	curl -OL http://cython.org/release/Cython-0.20.1.tar.gz
 	tar -xvf Cython-0.20.1.tar.gz
 	cd Cython-0.20.1
 	sudo make
-~~~~~~~~~~~~~~~~~~~
-
-   * pybedtools
-~~~~~~~~~~~~~~~~~~~
+	#pybedtools
 	curl -OL https://github.com/daler/pybedtools/archive/v0.6.4.tar.gz
 	tar -xvf v0.6.4.tar.gz
 	cd pybedtools-0.6.4/
@@ -210,7 +208,7 @@ Now that software dependencies have been met, install ``gemini``:
 
 ``lumpy-sv`` can be installed and used by ``speedseq`` with the following commands:
 
-- Gnu Scientific Library
+- gnu scientific library
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL ftp://ftp.gnu.org/gnu/gsl/gsl-1.9.tar.gz
 	tar -xvf gsl-1.9.tar.gz
