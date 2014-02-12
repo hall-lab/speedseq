@@ -181,15 +181,15 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	sudo cp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
 - pybedtools
-  * cython  
+   * cython  
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL http://cython.org/release/Cython-0.20.1.tar.gz
 	tar -xvf Cython-0.20.1.tar.gz
 	cd Cython-0.20.1
 	sudo make
 ~~~~~~~~~~~~~~~~~~~
--
-  * pybedtools
+
+   * pybedtools
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL https://github.com/daler/pybedtools/archive/v0.6.4.tar.gz
 	tar -xvf v0.6.4.tar.gz
