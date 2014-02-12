@@ -128,7 +128,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 -
 ####3.) GEMINI
 
-``gemini`` can be automatically installed (Python 2.7.x required) and used by ``speedseq`` with the following commands: 
+``gemini`` can be automatically installed (python 2.7.x required) and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py > gemini_install.py
 	sudo python2.7 gemini_install.py /usr/local /usr/local/share/gemini
@@ -165,7 +165,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	make
 	sudo cp grabix /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
-- Python 2.7.6
+- python 2.7.6
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL http://www.python.org/ftp/python/2.7.6/Python-2.7.6.tgz
 	tar -zxvf Python-2.7.6.tgz 
@@ -188,6 +188,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	tar -xvf Cython-0.20.1.tar.gz
 	cd Cython-0.20.1
 	sudo make
+
 	#pybedtools
 	curl -OL https://github.com/daler/pybedtools/archive/v0.6.4.tar.gz
 	tar -xvf v0.6.4.tar.gz
