@@ -248,7 +248,7 @@ Once the the necessary packages have been acquired, install gemini:
 	sudo cp bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 
-For alternative installations and release issues please consult the website/creator of the tool in question.
+For alternative installations and release issues of any of the above tools please consult the website/creator.
 
 ##Example Usage
 ----------------------
