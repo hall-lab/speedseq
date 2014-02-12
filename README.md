@@ -26,17 +26,17 @@ There are two modes of analysis supported:
 
 3.) [GEMINI](https://github.com/arq5x/gemini)
 
-	* samtools
-	* tabix
-	* grabix
-	* Python2.7.x
-	* bedtools
-	* pybedtools
-	  - cython
+	- samtools
+	- tabix
+	- grabix
+	- Python2.7.x
+	- bedtools
+	- pybedtools
+	  * cython
 
 4.) [LUMPY](https://github.com/arq5x/lumpy-sv)
 
-	* GNU Scientific Library
+	- GNU Scientific Library
 
 5.) [PARALLEL](http://www.gnu.org/software/parallel/)
 
