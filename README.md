@@ -20,11 +20,11 @@ There are two modes of analysis supported:
 ##Constitutive Pipeline Tools (Required)
 ------------------------------------------
 
-1.) **[BWA](https://github.com/lh3/bwa)**
+1.) [BWA](https://github.com/lh3/bwa)
 
-2.) **[FREEBAYES](https://github.com/ekg/freebayes)**
+2.) [FREEBAYES](https://github.com/ekg/freebayes)
 
-3.) **[GEMINI](https://github.com/arq5x/gemini)**
+3.) [GEMINI](https://github.com/arq5x/gemini)
 
 - samtools
 - tabix
@@ -34,19 +34,19 @@ There are two modes of analysis supported:
 - pybedtools
   * Cython
 
-4.) **[LUMPY](https://github.com/arq5x/lumpy-sv)**
+4.) [LUMPY](https://github.com/arq5x/lumpy-sv)
 
 - GNU Scientific Library
 
-5.) **[PARALLEL](http://www.gnu.org/software/parallel/)**
+5.) [PARALLEL](http://www.gnu.org/software/parallel/)
 
-6.) **[SAMBAMBA](https://github.com/lomereiter/sambamba)**
+6.) [SAMBAMBA](https://github.com/lomereiter/sambamba)
 
-7.) **[SAMBLASTER](https://github.com/GregoryFaust/samblaster)**
+7.) [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
 
-8.) **[SNPEFF](https://github.com/CBMi-BiG/snpEff)**
+8.) [SNPEFF](https://github.com/CBMi-BiG/snpEff)
 
-9.) **[VCFLIB](https://github.com/ekg/vcflib)**
+9.) [VCFLIB](https://github.com/ekg/vcflib)
 
 
 ##Installation
@@ -103,9 +103,9 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	sudo cp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 
-**Obtain each of the pipeline tools and install:**
+####Obtain each of the pipeline tools and install:
 	
-**####1.) BWA**
+####1.) BWA
 
 ``bwa`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
@@ -116,7 +116,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	sudo cp bwa /usr/local/bin
 ~~~~~~~~~~~~~~~~~~
 	
-**####2.) FREEBAYES**
+####2.) FREEBAYES
 
 ``freebayes`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~~
@@ -126,9 +126,9 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	sudo cp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
 
-**####3.) GEMINI**
+####3.) GEMINI
 
-``gemini`` can be automatically (requires Python 2.7.x) installed and used by ``speedseq`` with the following commands: 
+``gemini`` can be automatically installed (Python 2.7.x required) and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py > gemini_install.py
 	sudo python2.7 gemini_install.py /usr/local /usr/local/share/gemini
@@ -206,7 +206,7 @@ Now that software dependencies have been met, install ``gemini``:
 	sudo python gemini/install-data.py /usr/local/share/
 ~~~~~~~~~~~~~~~~~~
 
-**####4.) LUMPY**
+####4.) LUMPY
 
 ``lumpy-sv`` can be installed and used by ``speedseq`` with the following commands:
 
