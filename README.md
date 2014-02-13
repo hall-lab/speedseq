@@ -130,8 +130,8 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 
 ``gemini`` can be automatically installed (python 2.7.x required) and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~~
-	curl -OL https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py > gemini_install.py
-	#or  wget https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py
+	wget https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py	
+	#or curl -OL https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py > gemini_install.py
 	sudo python2.7 gemini_install.py /usr/local /usr/local/share/gemini
 	export PATH=$PATH:/usr/local/gemini/bin
 	# it would be wise to add the above line to your ``.bashrc`` or ``.bash_profile``
@@ -172,12 +172,6 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	tar -zxvf Python-2.7.6.tgz 
 	cd Python-2.7.6
 	./configure && sudo make install
-	#Change path variables to include your new python installation
-	PATH=$PATH:/usr/lib/python2.7/site-packages
-	PYTHONPATH=$PYTHONPATH:/usr/lib/python2.7/site-packages
-	export PATH
-	export PYTHONPATH 
-	# it would be wise to add the above four lines to your ``.bashrc`` or ``.bash_profile``
 ~~~~~~~~~~~~~~~~~~~
 - bedtools
 ~~~~~~~~~~~~~~~~~~~
