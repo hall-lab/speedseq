@@ -24,7 +24,7 @@ There are two modes of analysis supported:
 
 2.) [FREEBAYES](https://github.com/ekg/freebayes)
 
-3.) [GEMINI](https://github.com/arq5x/gemini)
+3.) [GEMINI](http://gemini.readthedocs.org/en/latest/content/installation.html#automated-installation)
 
 - samtools
 - tabix
@@ -131,6 +131,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 ``gemini`` can be automatically installed (python 2.7.x required) and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py > gemini_install.py
+	#or  wget https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py
 	sudo python2.7 gemini_install.py /usr/local /usr/local/share/gemini
 	export PATH=$PATH:/usr/local/gemini/bin
 	# it would be wise to add the above line to your ``.bashrc`` or ``.bash_profile``
@@ -193,7 +194,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	curl -OL http://cython.org/release/Cython-0.20.1.tar.gz
 	tar -xvf Cython-0.20.1.tar.gz
 	cd Cython-0.20.1
-	sudo make
+	sudo python setup.py install
 
 	#pybedtools
 	curl -OL https://github.com/daler/pybedtools/archive/v0.6.4.tar.gz
