@@ -214,7 +214,7 @@ Now that software dependencies have been met, install ``gemini``:
 	curl -OL ftp://ftp.gnu.org/gnu/gsl/gsl-1.9.tar.gz
 	tar -xvf gsl-1.9.tar.gz
 	cd gsl-1.9
-	./configure && make
+	./configure && make install
 ~~~~~~~~~~~~~~~~~~~
 
 Now that software dependencies have been met, install ``lumpy-sv``:
@@ -234,8 +234,8 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 	curl -OL http://ftp.gnu.org/gnu/parallel/parallel-20100424.tar.bz2
 	tar -xvf parallel-20100424.tar.bz2
 	cd parallel-20100424
-	make 
-	sudo cp -r bin/* /usr/local/bin/
+	./configure && make 
+	sudo cp src/parallel /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
 -
 ####6.) SAMBAMBA
@@ -252,16 +252,16 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 ``samblaster`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
 	git clone git://github.com/GregoryFaust/samblaster.git
-	cd samblster
+	cd samblaster
 	make
-	sudo cp bin/* /usr/local/bin/
+	sudo cp samblaster /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 -
 ####8.) SNPEFF
 
 ``snpeff`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
-	wget http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip/download
+	wget http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip
 	unzip snpEff_latest_core.zip
 	cd snpEff
 	sudo scp *jar /usr/local/bin/
