@@ -172,9 +172,9 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	cd Python-2.7.6
 	./configure && sudo make install
 	#Change path variables to include your new python installation
-	PATH="${PATH}:/usr/lib/python2.7/site-packages"
+	PATH=$PATH:/usr/lib/python2.7/site-packages
+	PYTHONPATH=$PYTHONPATH:/usr/lib/python2.7/site-packages
 	export PATH
-	PYTHONPATH="${PYTHONPATH}:/usr/lib/python2.7/site-packages"
 	export PYTHONPATH 
 	# it would be wise to add the above four lines to your ``.bashrc`` or ``.bash_profile``
 ~~~~~~~~~~~~~~~~~~~
