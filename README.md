@@ -128,7 +128,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 -
 ####3.) GEMINI
 
-``gemini`` can be automatically installed (python 2.7.x required) and used by ``speedseq`` with the following commands: 
+``gemini`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~~
 	wget https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py	
 	#or curl -OL https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py > gemini_install.py
@@ -137,74 +137,6 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	# it would be wise to add the above line to your ``.bashrc`` or ``.bash_profile``
 	gemini update
 ~~~~~~~~~~~~~~~~~~~
-
-``gemini`` and its dependencies can be manually installed and used by ``speedseq`` with the following commands: 
-
-- samtools
-~~~~~~~~~~~~~~~~~~~
-	curl -OL http://sourceforge.net/projects/samtools/files/samtools/0.1.19/samtools-0.1.19.tar.bz2
-	tar -xvf samtools-0.1.19.tar.bz2
-	cd samtools-0.1.19
-	make
-	sudo cp samtools /usr/local/bin/
-	sudo cp bcftools/* /usr/local/bin/
-	sudo cp misc/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~~
-- tabix
-~~~~~~~~~~~~~~~~~~~
-	curl -OL http://sourceforge.net/projects/samtools/files/tabix/tabix-0.2.6.tar.bz2
-	tar -xvf tabix-0.2.6.tar.bz2
-	cd tabix-0.2.6
-	make
-	sudo cp bgzip /usr/local/bin/
-	sudo cp tabix /usr/local/bin/
-~~~~~~~~~~~~~~~~~~~
-- grabix
-~~~~~~~~~~~~~~~~~~~
-	git clone https://github.com/arq5x/grabix
-	cd grabix
-	make
-	sudo cp grabix /usr/local/bin/
-~~~~~~~~~~~~~~~~~~~
-- python 2.7.6
-~~~~~~~~~~~~~~~~~~~
-	curl -OL http://www.python.org/ftp/python/2.7.6/Python-2.7.6.tgz
-	tar -zxvf Python-2.7.6.tgz 
-	cd Python-2.7.6
-	./configure && sudo make install
-~~~~~~~~~~~~~~~~~~~
-- bedtools
-~~~~~~~~~~~~~~~~~~~
-	curl -OL https://github.com/arq5x/bedtools2/releases/download/v2.19.0/bedtools-2.19.0.tar.gz
-	tar -xvf bedtools-2.19.0.tar.gz
-	cd bedtools2-2.19.0/
-	make
-	sudo cp -r bin/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~~
-- pybedtools
-   * cython  
-~~~~~~~~~~~~~~~~~~~
-	#cython
-	curl -OL http://cython.org/release/Cython-0.20.1.tar.gz
-	tar -xvf Cython-0.20.1.tar.gz
-	cd Cython-0.20.1
-	sudo python setup.py install
-
-	#pybedtools
-	curl -OL https://github.com/daler/pybedtools/archive/v0.6.4.tar.gz
-	tar -xvf v0.6.4.tar.gz
-	cd pybedtools-0.6.4/
-	sudo python setup.py install
-~~~~~~~~~~~~~~~~~~~
-
-Now that software dependencies have been met, install ``gemini``:
-
-~~~~~~~~~~~~~~~~~~
-	git clone https://github.com/arq5x/gemini
-	cd gemini
-	sudo python setup.py install
-	sudo python gemini/install-data.py /usr/local/share/
-~~~~~~~~~~~~~~~~~~
 -
 ####4.) LUMPY
 
@@ -280,7 +212,7 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 	sudo cp bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 -
-**For alternative installations and release issues of any of the above tools please consult the website/creator.**
+**For alternative installations and release issues for any of the above tools please consult the website/creator.**
 
 ##Example Usage
 ----------------------
