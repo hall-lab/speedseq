@@ -69,7 +69,7 @@ or
 
 ~~~~~~~~~~~~~~~~~~~
 sudo apt-get update
-sudo apt-get install build-essential cmake gcc-c++ gcc git make python27 python-devel python-yaml ncurses-devel zlib-devel 
+sudo apt-get install build-essential cmake gpp gcc git make python2.7 python-dev python-yaml ncurses-dev zlib1g-dev 
 ~~~~~~~~~~~~~~~~~~~
 
 ###Automatic installation (coming soon)
