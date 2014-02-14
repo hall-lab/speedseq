@@ -26,14 +26,6 @@ There are two modes of analysis supported:
 
 3.) [GEMINI](http://gemini.readthedocs.org/en/latest/content/installation.html#automated-installation)
 
-- samtools
-- tabix
-- grabix
-- python2.7.x
-- bedtools
-- pybedtools
-  * cython
-
 4.) [LUMPY](https://github.com/arq5x/lumpy-sv)
 
 - gnu scientific library
