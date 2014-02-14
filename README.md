@@ -139,7 +139,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	curl -OL ftp://ftp.gnu.org/gnu/gsl/gsl-1.9.tar.gz
 	tar -xvf gsl-1.9.tar.gz
 	cd gsl-1.9
-	./configure && make install
+	./configure && sudo make && sudo make install
 ~~~~~~~~~~~~~~~~~~~
 
 Now that software dependencies have been met, install ``lumpy-sv``:
@@ -159,7 +159,7 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 	curl -OL http://ftp.gnu.org/gnu/parallel/parallel-20100424.tar.bz2
 	tar -xvf parallel-20100424.tar.bz2
 	cd parallel-20100424
-	./configure && make 
+	./configure && sudo make && sudo make install
 	sudo cp src/parallel /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
 -
