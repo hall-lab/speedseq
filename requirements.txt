@@ -1,0 +1,15 @@
+numpy>=1.7.1
+pyparsing>=1.5.6,<=1.5.7
+pysam>=0.6
+cyvcf>=0.1.9.2
+PyYAML>=3.10
+pybedtools>=0.6.2
+jinja2>=2.7.1
+python-graph-core>=1.8.2
+python-graph-dot>=1.8.2
+bottle>=0.11.6
+ipython-cluster-helper>=0.1.9
+bx-python>=0.7.1
+pandas>=0.11.0
+scipy>=0.12.0
+gemini==0.6.4
