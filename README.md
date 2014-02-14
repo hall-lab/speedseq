@@ -20,11 +20,11 @@ There are two modes of analysis supported:
 ##Constitutive Pipeline Tools (Required)
 ------------------------------------------
 
-1.) [BWA](https://github.com/lh3/bwa)
+1.) [BWA](http://bio-bwa.sourceforge.net/)
 
 2.) [FREEBAYES](https://github.com/ekg/freebayes)
 
-3.) [GEMINI](http://gemini.readthedocs.org/en/latest/content/installation.html#automated-installation)
+3.) [GEMINI](http://gemini.readthedocs.org)
 
 4.) [LUMPY](https://github.com/arq5x/lumpy-sv)
 
@@ -36,7 +36,7 @@ There are two modes of analysis supported:
 
 7.) [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
 
-8.) [SNPEFF](https://github.com/CBMi-BiG/snpEff)
+8.) [SNPEFF](http://snpeff.sourceforge.net/)
 
 9.) [VCFLIB](https://github.com/ekg/vcflib)
 
