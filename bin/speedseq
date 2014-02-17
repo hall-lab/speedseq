@@ -90,6 +90,8 @@ global options:
     fi
 
     # set defaults
+    SPEEDSEQ_DIR=`dirname $0`
+    CONFIG="$SPEEDSEQ_DIR/speedseq.config"
     INTERLEAVED=0
     OUTPUT=`basename "$FQ"`
     RG_FMT=""
@@ -182,6 +184,8 @@ global options:
     fi
 
     # Check the for the relevant binaries
+    source_binaries $CONFIG
+
     if [[ -z "$BWA" ]]
     then
 	aln_usage
@@ -274,6 +278,8 @@ options:
     fi
 
     # set defaults
+    SPEEDSEQ_DIR=`dirname $0`
+    CONFIG="$SPEEDSEQ_DIR/speedseq.config"
     REF="${@:(-2):1}"
     IN_BAM="${@:(-1)}"
     OUTPUT=`basename "$IN_BAM"`
@@ -315,6 +321,8 @@ options:
     OPTIND=0
 
     # Check the for the relevant binaries
+    source_binaries $CONFIG
+
     if [[ -z "$FREEBAYES" ]]
     then
 	var_usage
@@ -468,6 +476,8 @@ options:
     fi
 
     # set defaults
+    SPEEDSEQ_DIR=`dirname $0`
+    CONFIG="$SPEEDSEQ_DIR/speedseq.config"
     REF="${@:(-3):1}"
     NORMAL_BAM="${@:(-2):1}"
     TUMOR_BAM="${@:(-1)}"
@@ -522,6 +532,8 @@ options:
     OPTIND=0
 
     # Check the for the relevant binaries
+    source_binaries $CONFIG
+
     if [[ -z "$FREEBAYES" ]]
     then
         somatic_usage
@@ -700,6 +712,8 @@ global options:
     }
 
     # set defaults
+    SPEEDSEQ_DIR=`dirname $0`
+    CONFIG="$SPEEDSEQ_DIR/speedseq.config"
     MIN_WEIGHT=4
     TRIM_THRES="1e-10"
     EXCLUDE_BED=
@@ -758,6 +772,8 @@ global options:
     OPTIND=0
 
     # Check the for the relevant binaries
+    source_binaries $CONFIG
+
     if [[ -z "$LUMPY" ]]
     then
 	lumpy_usage
@@ -859,28 +875,6 @@ do
             ;;
     esac
 done
-
-# set config default
-SPEEDSEQ_DIR=`dirname $0`
-CONFIG="$SPEEDSEQ_DIR/speedseq.config"
-
-# get the config file from arguments
-# (getopts has a problem with skipping the first arg, so have to do this manually
-GET_NEXT=0
-for ARG in "$@"
-do
-    if [[ "$ARG" == "-K" ]]
-    then
-	GET_NEXT=1
-    elif [[ $GET_NEXT == 1 ]]
-    then
-	CONFIG=$ARG
-	break
-    fi
-done
-
-# source the executables
-source_binaries $CONFIG
 
 # call the function
 case "$1" in 
