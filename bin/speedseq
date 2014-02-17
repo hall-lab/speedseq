@@ -76,7 +76,7 @@ mapdups options:
          -m INT   minimum non-overlapping base pairs between two alignments for a read to be included in splitter file [20]
 
 global options:
-         -K       path to speedseq.config file (default: same directory as speedseq)
+         -K FILE  path to speedseq.config file (default: same directory as speedseq)
          -v       verbose
          -h       show this message
 "
@@ -264,7 +264,7 @@ options:
          -t INT   threads [1]
          -T DIR   temp directory [./temp]
          -A BOOL  annotate the vcf with snpEff (true or false) (default: true)
-         -K       path to speedseq.config file (default: same directory as speedseq)
+         -K FILE  path to speedseq.config file (default: same directory as speedseq)
          -v       verbose
          -h       show this message
 "
@@ -462,7 +462,7 @@ options:
          -q QUAL  minimum variant quality to output [1]
          -T DIR   temp directory [./temp]
          -A BOOL  annotate the vcf with snpEff (true or false) (default: true)
-         -K       path to speedseq.config file (default: same directory as speedseq)
+         -K FILE  path to speedseq.config file (default: same directory as speedseq)
          -v       verbose
          -h       show this message
 "
@@ -705,7 +705,7 @@ lumpy options:
                       id:<10>
 
 global options:
-         -K       path to speedseq.config file (default: same directory as speedseq)
+         -K FILE  path to speedseq.config file (default: same directory as speedseq)
          -v       verbose
          -h       show this message
 "
