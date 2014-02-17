@@ -53,10 +53,18 @@ options: -h       show this message
 function aln() {
     function aln_usage() {
 	echo "
-usage:   speedseq aln [options] <reference.fa> <in.fq>
+usage:   speedseq aln [options] <reference.fa> <in1.fq> [in2.fq]
+
+positional args:
+         reference.fa
+                  fasta file (indexed with bwa)
+         in1.fq   paired-end fastq file. if -p flag is used then expected to be
+                    an interleaved paired-end fastq file. (can be gzipped)
+         in2.fq   paired-end fastq file. (can be gzipped)
 
 alignment options:
-         -o STR   output prefix [in.fq]
+         -o STR   output prefix [in1.fq]
+         -p       first fastq file consists of interleaved paired-end sequences
          -R       read group header line such as \"@RG\tID:foo\tSM:bar\" [null]
          -t INT   threads [1]
          -T DIR   temp directory [./temp]
