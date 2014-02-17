@@ -59,7 +59,8 @@ positional args:
          reference.fa
                   fasta file (indexed with bwa)
          in1.fq   paired-end fastq file. if -p flag is used then expected to be
-                    an interleaved paired-end fastq file. (can be gzipped)
+                    an interleaved paired-end fastq file, and in2.fq may be omitted.
+                    (can be gzipped)
          in2.fq   paired-end fastq file. (can be gzipped)
 
 alignment options:
@@ -89,8 +90,7 @@ global options:
     fi
 
     # set defaults
-    REF="${@:(-2):1}"
-    FQ="${@:(-1)}"
+    INTERLEAVED=0
     OUTPUT=`basename "$FQ"`
     RG_FMT=""
     INCLUDE_DUPS="-e"
@@ -100,7 +100,7 @@ global options:
     TEMP_DIR="./temp"
     VERBOSE=0
 
-    while getopts ":hw:o:R:ic:m:t:T:v:K:" OPTION
+    while getopts ":hw:o:R:pic:m:t:T:v:K:" OPTION
     do
 	case "${OPTION}" in
 	    h)
@@ -110,6 +110,9 @@ global options:
 	    R)
 		RG="$OPTARG"
 		RG_FMT="-R '$OPTARG'"
+		;;
+	    p)
+		INTERLEAVED=1
 		;;
 	    o)
 		OUTPUT="$OPTARG"
@@ -139,17 +142,43 @@ global options:
     done
     OPTIND=0
 
-    # Check that the ref and fastq files exist
-    if [[ ! -f $REF ]]
+    if [[ INTERLEAVED -eq 1 ]]
     then
-	aln_usage
-	echo -e "Error: Reference file $REF not found.\n"
-	exit 1
-    elif [[ ! -f $FQ ]]
-    then
-	aln_usage
-	echo -e "Error: Fastq file $FQ not found.\n"
-	exit 1
+	REF="${@:(-2):1}"
+	FQ="${@:(-1)}"
+        # Check that the ref and fastq files exist
+	if [[ ! -f $REF ]]
+	then
+            aln_usage
+            echo -e "Error: Reference file $REF not found.\n"
+            exit 1
+	elif [[ ! -f $FQ ]]
+	then
+            aln_usage
+            echo -e "Error: Fastq file $FQ not found.\n"
+            exit 1
+	fi
+    else
+	REF="${@:(-3):1}"
+	FQ1="${@:(-2):1}"
+	FQ2="${@:(-1):1}"
+        # Check that the ref and fastq files exist
+	if [[ ! -f $REF ]]
+	then
+            aln_usage
+            echo -e "Error: Reference file $REF not found.\n"
+            exit 1
+	elif [[ ! -f $FQ1 ]]
+	then
+            aln_usage
+            echo -e "Error: Fastq file $FQ1 not found.\n"
+            exit 1
+	elif [[ ! -f $FQ2 ]]
+	then
+            aln_usage
+            echo -e "Error: Fastq file $FQ2 not found.\n"
+            exit 1
+	fi
     fi
 
     # Check the for the relevant binaries
@@ -178,19 +207,34 @@ global options:
     mkdir -p $TEMP_DIR/full $TEMP_DIR/spl $TEMP_DIR/disc
     mkfifo $TEMP_DIR/spl_pipe $TEMP_DIR/disc_pipe
 
-    # pipe alignment commands to parallel, so all will finish before moving to index step
-    echo "
-    $BWA mem -t $THREADS -M -p $RG_FMT $REF $FQ | \
-	$SAMBLASTER $INCLUDE_DUPS -c $MAX_SPLIT_COUNT -m $MIN_NON_OVERLAP -s $TEMP_DIR/spl_pipe -d $TEMP_DIR/disc_pipe | \
-	$SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
-	$SAMBAMBA sort -t $THREADS -m 8G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
-    
-    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \
-	$SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
-    $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
-	$SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
-    " | parallel -j 3
+    # alignment command
+    if [[ $INTERLEAVED -eq 1 ]]
+    then
+	echo "
+        $BWA mem -t $THREADS -M -p $RG_FMT $REF $FQ | \
+	    $SAMBLASTER $INCLUDE_DUPS -c $MAX_SPLIT_COUNT -m $MIN_NON_OVERLAP -s $TEMP_DIR/spl_pipe -d $TEMP_DIR/disc_pipe | \
+            $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
+	    $SAMBAMBA sort -t $THREADS -m 8G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
+        
+        $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \
+	    $SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
+        $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
+	    $SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
+        " | parallel -j 3
+    else
+        echo "
+        $BWA mem -t $THREADS -M $RG_FMT $REF $FQ1 $FQ2 | \
+            $SAMBLASTER $INCLUDE_DUPS -c $MAX_SPLIT_COUNT -m $MIN_NON_OVERLAP -s $TEMP_DIR/spl_pipe -d $TEMP_DIR/disc_pipe | \
+            $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
+            $SAMBAMBA sort -t $THREADS -m 8G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
+        $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \
+            $SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
+        $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
+            $SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
+        " | parallel -j 3
+    fi
+    
     # index the files
     echo "
     $SAMBAMBA index $OUTPUT.bam
