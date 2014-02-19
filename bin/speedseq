@@ -65,8 +65,8 @@ positional args:
 
 alignment options:
          -o STR   output prefix [in1.fq]
+         -R       read group header line such as \"@RG\tID:libraryname\tSM:samplename\" (required)
          -p       first fastq file consists of interleaved paired-end sequences
-         -R       read group header line such as \"@RG\tID:foo\tSM:bar\" [null]
          -t INT   threads [1]
          -T DIR   temp directory [./temp]
 
@@ -183,6 +183,14 @@ global options:
 	fi
     fi
 
+    # Check for readgroup flag
+    if [[ -z $RG_FMT ]]
+    then
+	aln_usage
+	echo -e "Error: no readgroup found. Please set a readgroup with the -R flag.\n"
+	exit 1
+    fi
+
     # Check the for the relevant binaries
     source_binaries $CONFIG
 
@@ -256,10 +264,10 @@ global options:
 function var() {
     function var_usage() {
         echo "
-usage:   speedseq var [options] <reference.fa> <input.bam>
+usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 
 options:
-         -o STR   output prefix [input.bam]
+         -o STR   output prefix [input1.bam]
          -w FILE  BED file of windowed genomic intervals
          -t INT   threads [1]
          -T DIR   temp directory [./temp]
@@ -318,6 +326,17 @@ options:
 		;;
         esac
     done
+
+    # parse the positional arguments
+    REF="${@:${OPTIND}:1}"
+    BAM_STRING="${@:$((${OPTIND}+1))}"
+    BAM_LIST=($BAM_STRING)
+    if [[ -z $OUTPUT ]]
+    then
+	OUTPUT=`basename "${BAM_LIST[0]}"`
+    fi
+    OUTBASE=`basename "$OUTPUT"`
+
     OPTIND=0
 
     # Check the for the relevant binaries
@@ -373,23 +392,27 @@ options:
 	exit 1
     fi
 
-    # Check that the ref and fastq files exist
+    # Check that the ref and bam files exist
     if [[ ! -f $REF ]]
     then
 	var_usage
 	echo -e "Error: Reference file $REF not found.\n"
 	exit 1
-    elif [[ ! -f $IN_BAM ]]
-    then
-	var_usage
-	echo -e "Error: BAM file $IN_BAM not found.\n"
-	exit 1
     fi
 
+    for TEST_BAM in ${BAM_LIST[@]}
+    do
+	if [[ ! -f $TEST_BAM ]]
+	then
+	    var_usage
+	    echo -e "Error: BAM file $TEST_BAM not found.\n"
+	    exit 1
+	fi
+    done
+
+    echo $BAM_STRING
 
     echo "Calling variants..."
-
-    OUTBASE=`basename "$OUTPUT"`
 
     # make temporary directory
     mkdir -p $TEMP_DIR
@@ -400,7 +423,7 @@ options:
 	echo "$FREEBAYES \
         -f $REF \
         --region $i \
-        $IN_BAM \
+        $BAM_STRING \
         > ${TEMP_DIR}/$OUTBASE.$i.vcf"
     done > $TEMP_DIR/var_command.txt
 
@@ -529,6 +552,8 @@ options:
 		;;
         esac
     done
+
+    OUTBASE=`basename "$OUTPUT"`
     OPTIND=0
 
     # Check the for the relevant binaries
@@ -584,7 +609,7 @@ options:
 	exit 1
     fi
 
-    # Check that the ref and fastq files exist
+    # Check that the ref and bam files exist
     if [[ ! -f $REF ]]
     then
         somatic_usage
@@ -604,8 +629,6 @@ options:
 
     echo "Calling somatic variants..."
     
-    OUTBASE=`basename "$OUTPUT"`
-
     # make temporary directory
     mkdir -p $TEMP_DIR
 
