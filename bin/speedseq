@@ -323,37 +323,37 @@ options:
     # Check the for the relevant binaries
     source_binaries $CONFIG
 
-    if [[ -z "$FREEBAYES" ]]
+    if [[ ! -f "$FREEBAYES" ]]
     then
 	var_usage
         echo -e "Error: freebayes executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z  "$BEDTOOLS" ]]
+    elif [[ ! -f "$BEDTOOLS" ]]
     then
 	var_usage
         echo -e "Error: bedtools executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$JAVA" ]]
+    elif [[ ! -f "$JAVA" ]]
     then
 	var_usage
         echo -e "Error: java executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$BGZIP" ]]
+    elif [[ ! -f "$BGZIP" ]]
     then
 	var_usage
         echo -e "Error: bgzip executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$TABIX" ]]
+    elif [[ ! -f "$TABIX" ]]
     then
 	var_usage
         echo -e "Error: tabix executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$SNPEFF" ]] && [[ "$ANNOTATE" == "true" ]]
+    elif [[ ! -f "$SNPEFF" ]] && [[ "$ANNOTATE" == "true" ]]
     then
 	var_usage
         echo -e "Error: SnpEff jar not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$SNPEFF_CONFIG" ]] && [[ "$ANNOTATE" == "true" ]]
+    elif [[ ! -f "$SNPEFF_CONFIG" ]] && [[ "$ANNOTATE" == "true" ]]
     then
 	var_usage
         echo -e "Error: SnpEff config file not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -361,7 +361,7 @@ options:
     elif [[ -z "$SNPEFF_GENOME" ]] && [[ "$ANNOTATE" == "true" ]]
     then
 	var_usage
-        echo -e "Error: tabix executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        echo -e "Error: SnpEff genome annotation not specified. Please set annotation in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     fi
 
@@ -534,37 +534,37 @@ options:
     # Check the for the relevant binaries
     source_binaries $CONFIG
 
-    if [[ -z "$FREEBAYES" ]]
+    if [[ ! -f "$FREEBAYES" ]]
     then
         somatic_usage
         echo -e "Error: freebayes executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z  "$BEDTOOLS" ]]
+    elif [[ ! -f "$BEDTOOLS" ]]
     then
         somatic_usage
         echo -e "Error: bedtools executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$JAVA" ]]
+    elif [[ ! -f "$JAVA" ]]
     then
         somatic_usage
         echo -e "Error: java executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$BGZIP" ]]
+    elif [[ ! -f "$BGZIP" ]]
     then
         somatic_usage
         echo -e "Error: bgzip executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$TABIX" ]]
+    elif [[ ! -f "$TABIX" ]]
     then
         somatic_usage
         echo -e "Error: tabix executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$SNPEFF" ]] && [[ "$ANNOTATE" == "true" ]]
+    elif [[ ! -f "$SNPEFF" ]] && [[ "$ANNOTATE" == "true" ]]
     then
         somatic_usage
         echo -e "Error: SnpEff jar not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$SNPEFF_CONFIG" ]] && [[ "$ANNOTATE" == "true" ]]
+    elif [[ ! -f "$SNPEFF_CONFIG" ]] && [[ "$ANNOTATE" == "true" ]]
     then
         somatic_usage
         echo -e "Error: SnpEff config file not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -572,7 +572,7 @@ options:
     elif [[ -z "$SNPEFF_GENOME" ]] && [[ "$ANNOTATE" == "true" ]]
     then
         somatic_usage
-        echo -e "Error: tabix executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        echo -e "Error: SnpEff genome annotation not specified. Please set annotation in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     fi
 
