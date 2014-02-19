@@ -211,7 +211,7 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 
 Use ``speedseq aln`` to align and dedupe the dataset.
 ~~~~~~~~~~~~~~~~~~
-	speedseq aln -o NA12878 human_g1k_v37.fasta NA12878.fq.gz
+	speedseq aln -o NA12878 human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
 ~~~~~~~~~~~~~~~~~~
 
 Use ``speedseq var`` to call SNPs and indels on a single sample.
