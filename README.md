@@ -429,7 +429,7 @@ chr1    34971904    34971945    chr1    34976002    34976043    0x7f9eb0917210  
 
 ##Annotations
 
-For human genome alignment using the GRCh37 build, we recommend using the [annotations/ceph18.b37.include.2014-01-15.bed] BED file to parallelize the variant calling (`speedseq var` and `speedseq somatic`). This BED file excludes regions of the genome where the coverage in the CEPH1463 pedigree was greater than twice the mode coverage plus 5 standard deviations. We believe these extremely high depth regions that we excluded are areas of misassembly in the GRCh37 human reference genome in which variant calling is time-consuming and error-prone.
+For human genome alignment using the GRCh37 build, we recommend using the [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) BED file to parallelize the variant calling (`speedseq var` and `speedseq somatic`). This BED file excludes regions of the genome where the coverage in the CEPH1463 pedigree was greater than twice the mode coverage plus 5 standard deviations. We believe these extremely high depth regions that we excluded are areas of misassembly in the GRCh37 human reference genome in which variant calling is time-consuming and error-prone.
 
 Additionally, the regions in `annotations/ceph18.b37.include.2014-01-15.bed` are variable-width windows which each contain approximately the same coverage depth in the CEPH1463 pedigree, and sorted from highest to lowest depth. This ensures that the parallelization of Freebayes uses approximately the same amount of time per region.
 
