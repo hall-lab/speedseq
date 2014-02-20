@@ -9,42 +9,27 @@ Current support for Linux only
 
 ##Summary
 --------------
-The ``speedseq`` suite is a lightweight, flexible, and open source pipeline that identifies
-genomic variation (Structural Variants, INDELs, and Single Nucleotide Variants). 
-There are two modes of analysis supported: 
-
-**1) Identification of variants in a single sample.**
-
-**2) Comparison of two samples, i.e. tumor and matched normal**
+The `speedseq` suite is a lightweight, flexible, and open source pipeline that identifies
+genomic variation (single nucleotide variants (SNVs), indels, and structural variants (SVs)).
 
 ##Constitutive Pipeline Tools (Required)
 ------------------------------------------
 
 1) [BWA](http://bio-bwa.sourceforge.net/)
-
 2) [FREEBAYES](https://github.com/ekg/freebayes)
-
 3) [GEMINI](http://gemini.readthedocs.org)
-
 4) [LUMPY](https://github.com/arq5x/lumpy-sv)
-
 - gnu scientific library
-
 5) [PARALLEL](http://www.gnu.org/software/parallel/)
-
 6) [SAMBAMBA](https://github.com/lomereiter/sambamba)
-
 7) [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
-
 8) [SNPEFF](http://snpeff.sourceforge.net/)
-
 9) [VCFLIB](https://github.com/ekg/vcflib)
-
 
 ##Installation
 ---------------
 
-There is an automatic (coming soon) and manual installation process for ``speedseq``.
+There is an automatic (coming soon) and manual installation process for `speedseq`.
 
 The following are required for both installations:
 - cmake
@@ -88,7 +73,7 @@ The following instructions for installation assumes that the required tools are 
 It is recommended that the specified versions of each tool is used for this release of ``speedseq``.  
 The use of unspecified versions of any pipeline component is not guaranteed to work. 
 
-``speedseq`` can be installed with the following commands: 
+`speedseq` can be installed with the following commands: 
 ~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/cc2qe/speedseq
 	cd speedseq
@@ -407,7 +392,7 @@ The flags `-s` and `-p` are automatically generated using the defaults below, bu
 
 ####Output
 
-`speedseq lumpy` produces a BEDPE file that is indexed with `tabix` and optionally annotated with [SnpEff](http://snpeff.sourceforge.net/):
+`speedseq lumpy` produces a BEDPE file.
 
 * `outprefix.vcf.gz`
 
@@ -436,20 +421,32 @@ chr1    34971904    34971945    chr1    34976002    34976043    0x7f9eb0917210  
 ##Example Workflow
 ----------------------
 
-Use `speedseq aln` to align and dedupe the dataset.
+###Call variants on a single sample
+
+1. Use `speedseq aln` to produce a sorted, duplicate-marked, BAM alignment of each library.
+
 ~~~~~~~~~~~~~~~~~~
-	speedseq aln -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
+speedseq aln -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
+    human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
 ~~~~~~~~~~~~~~~~~~
 
-Use `speedseq var` to call SNPs and indels on a single sample.
+2. Use `speedseq var` to call SNVs and indels on a single sample.
 ~~~~~~~~~~~~~~~~~~
-	speedseq var -o NA12878 -w annotations/ceph18.b37.include.2014-01-15.bed human_g1k_v37.fasta NA12878.bam
+speedseq var -o NA12878 \
+    -w annotations/ceph18.b37.include.2014-01-15.bed \
+    human_g1k_v37.fasta NA12878.bam
 ~~~~~~~~~~~~~~~~~~
 
-Use `speedseq lumpy` to call structural variants.
+3. Use `speedseq lumpy` to call structural variants.
 ~~~~~~~~~~~~~~~~~~
-	speedseq lumpy -o NA12878 -x annotations/ceph18.b37.exclude.2014-01-15.bed -B NA12878.bam -D NA12878.discordants.bam -S NA12878.splitters.bam
+speedseq lumpy -o NA12878 \
+    -x annotations/ceph18.b37.exclude.2014-01-15.bed \
+    -B NA12878.bam \
+    -D NA12878.discordants.bam \
+    -S NA12878.splitters.bam
 ~~~~~~~~~~~~~~~~~~
+
+
 
 Use `speedseq somatic` to call SNPs and indels on a tumor/normal pair.
 ~~~~~~~~~~~~~~~~~~
