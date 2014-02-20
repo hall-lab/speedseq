@@ -347,6 +347,12 @@ usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
 -h               show help message
 ~~~~~~~~~~~~~~~~~~
 
+####Output
+
+`speedseq somatic` produces a single bgzipped VCF file that is indexed with `tabix` and optionally annotated with [SnpEff](http://snpeff.sourceforge.net/):
+
+* `outprefix.vcf.gz`
+
 -
 ###speedseq lumpy
 
@@ -390,6 +396,34 @@ The flags `-s` and `-p` are automatically generated using the defaults below, bu
                     min_mapping_threshold:<20>,
                     weight:<1>,
                     id:<10>
+~~~~~~~~~~~~~~~~~~
+
+####Output
+
+`speedseq lumpy` produces a BEDPE file that is indexed with `tabix` and optionally annotated with [SnpEff](http://snpeff.sourceforge.net/):
+
+* `outprefix.vcf.gz`
+
+The tab-delimited BEDPE file has the following structure:
+~~~~~~~~~~~~~~~~~~
+1. chromosome 1
+2. interval 1 start
+3. interval 1 end
+4. chromosome 2
+5. interval 2 start
+6. interval 2 end
+7. id
+8. evidence set score
+9. strand 1
+10. strand 2
+11. type
+12. id of samples containing evidence for this breakpoint
+13. strand configurations observed in the evidence set
+~~~~~~~~~~~~~~~~~~
+
+Example:
+~~~~~~~~~~~~~~~~~~
+chr1    34971904    34971945    chr1    34976002    34976043    0x7f9eb0917210  0.0110386   +   -   TYPE:DELETION   IDS:11,1    STRANDS:+-,1
 ~~~~~~~~~~~~~~~~~~
 
 #####Global options
