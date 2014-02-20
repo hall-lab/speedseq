@@ -13,32 +13,32 @@ The ``speedseq`` suite is a lightweight, flexible, and open source pipeline that
 genomic variation (Structural Variants, INDELs, and Single Nucleotide Variants). 
 There are two modes of analysis supported: 
 
-**1.) Identification of variants in a single sample.**
+**1) Identification of variants in a single sample.**
 
-**2.) Comparison of two samples, i.e. tumor and matched normal**
+**2) Comparison of two samples, i.e. tumor and matched normal**
 
 ##Constitutive Pipeline Tools (Required)
 ------------------------------------------
 
-1.) [BWA](http://bio-bwa.sourceforge.net/)
+1) [BWA](http://bio-bwa.sourceforge.net/)
 
-2.) [FREEBAYES](https://github.com/ekg/freebayes)
+2) [FREEBAYES](https://github.com/ekg/freebayes)
 
-3.) [GEMINI](http://gemini.readthedocs.org)
+3) [GEMINI](http://gemini.readthedocs.org)
 
-4.) [LUMPY](https://github.com/arq5x/lumpy-sv)
+4) [LUMPY](https://github.com/arq5x/lumpy-sv)
 
 - gnu scientific library
 
-5.) [PARALLEL](http://www.gnu.org/software/parallel/)
+5) [PARALLEL](http://www.gnu.org/software/parallel/)
 
-6.) [SAMBAMBA](https://github.com/lomereiter/sambamba)
+6) [SAMBAMBA](https://github.com/lomereiter/sambamba)
 
-7.) [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
+7) [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
 
-8.) [SNPEFF](http://snpeff.sourceforge.net/)
+8) [SNPEFF](http://snpeff.sourceforge.net/)
 
-9.) [VCFLIB](https://github.com/ekg/vcflib)
+9) [VCFLIB](https://github.com/ekg/vcflib)
 
 
 ##Installation
@@ -97,7 +97,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 
 ####Obtain each of the pipeline tools and install:
 	
-####1.) BWA
+####1) BWA
 
 ``bwa`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
@@ -108,7 +108,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	sudo cp bwa /usr/local/bin
 ~~~~~~~~~~~~~~~~~~
 -
-####2.) FREEBAYES
+####2) FREEBAYES
 
 ``freebayes`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~~
@@ -118,7 +118,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	sudo cp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
 -
-####3.) GEMINI
+####3) GEMINI
 
 ``gemini`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~~
@@ -130,7 +130,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	gemini update
 ~~~~~~~~~~~~~~~~~~~
 -
-####4.) LUMPY
+####4) LUMPY
 
 ``lumpy-sv`` can be installed and used by ``speedseq`` with the following commands:
 
@@ -152,7 +152,7 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 	sudo cp -r scripts/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
 -
-####5.) PARALLEL
+####5) PARALLEL
 
 ``parallel`` can be installed and used by ``speedseq`` with the following commands:
 ~~~~~~~~~~~~~~~~~~~
@@ -163,7 +163,7 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 	sudo cp src/parallel /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
 -
-####6.) SAMBAMBA
+####6) SAMBAMBA
 
 ``sambamba`` can be installed and used by ``speedseq`` by: 
 ~~~~~~~~~~~~~~~~~~
@@ -172,7 +172,7 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 	sudo cp sambamba_v0.4.4 /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 -
-####7.) SAMBLASTER
+####7) SAMBLASTER
 
 ``samblaster`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
@@ -182,7 +182,7 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 	sudo cp samblaster /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 -
-####8.) SNPEFF
+####8) SNPEFF
 
 ``snpeff`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
@@ -194,7 +194,7 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 	sudp scp -r scripts/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 -
-####9.) VCFLIB
+####9) VCFLIB
 
 ``vcflib`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
