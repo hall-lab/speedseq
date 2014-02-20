@@ -15,16 +15,16 @@ genomic variation (single nucleotide variants (SNVs), indels, and structural var
 ##Constitutive Pipeline Tools (Required)
 ------------------------------------------
 
-1) [BWA](http://bio-bwa.sourceforge.net/)
-2) [FREEBAYES](https://github.com/ekg/freebayes)
-3) [GEMINI](http://gemini.readthedocs.org)
-4) [LUMPY](https://github.com/arq5x/lumpy-sv)
-- gnu scientific library
-5) [PARALLEL](http://www.gnu.org/software/parallel/)
-6) [SAMBAMBA](https://github.com/lomereiter/sambamba)
-7) [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
-8) [SNPEFF](http://snpeff.sourceforge.net/)
-9) [VCFLIB](https://github.com/ekg/vcflib)
+1. [BWA](http://bio-bwa.sourceforge.net/)
+2. [FREEBAYES](https://github.com/ekg/freebayes)
+3. [GEMINI](http://gemini.readthedocs.org)
+4. [LUMPY](https://github.com/arq5x/lumpy-sv)
+..* gnu scientific library
+5. [PARALLEL](http://www.gnu.org/software/parallel/)
+6. [SAMBAMBA](https://github.com/lomereiter/sambamba)
+7. [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
+8. [SNPEFF](http://snpeff.sourceforge.net/)
+9. [VCFLIB](https://github.com/ekg/vcflib)
 
 ##Installation
 ---------------
