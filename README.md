@@ -394,7 +394,7 @@ The flags `-s` and `-p` are automatically generated using the defaults below, bu
 
 `speedseq lumpy` produces a BEDPE file.
 
-* `outprefix.vcf.gz`
+* `outprefix.bedpe`
 
 The tab-delimited BEDPE file has the following structure:
 ~~~~~~~~~~~~~~~~~~
