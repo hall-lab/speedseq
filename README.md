@@ -425,10 +425,10 @@ chr1    34971904    34971945    chr1    34976002    34976043    0x7f9eb0917210  
 
 1. Use `speedseq aln` to produce a sorted, duplicate-marked, BAM alignment of each library.
 
-~~~~~~~~~~~~~~~~~~
-speedseq aln -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
-    human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
-~~~~~~~~~~~~~~~~~~
+  ~~~~~~~~~~~~~~~~~~
+  speedseq aln -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
+      human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
+  ~~~~~~~~~~~~~~~~~~
 
 2. Use `speedseq var` to call SNVs and indels on a single sample.
 
