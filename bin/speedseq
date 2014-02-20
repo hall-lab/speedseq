@@ -487,7 +487,7 @@ options:
          -C INT   Require at least this count of observations supporting
                     an alternate allele within a single individual in order
                     to evaluate the position [2]
-         -q QUAL  minimum variant quality to output [1]
+         -q FLOAT minimum variant quality to output [1]
          -T DIR   temp directory [./temp]
          -A BOOL  annotate the vcf with snpEff (true or false) (default: true)
          -K FILE  path to speedseq.config file (default: same directory as speedseq)
