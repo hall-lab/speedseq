@@ -277,7 +277,7 @@ These options determine the behavior of `samblaster`
 usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 ~~~~~~~~~~~~~~~~~~
 
-####Options
+#####Options
 
 ~~~~~~~~~~~~~~~~~~
 -o STR          output prefix [default: input1.bam]
@@ -304,7 +304,7 @@ usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
 ~~~~~~~~~~~~~~~~~~
 
-####Options
+#####Options
 
 ~~~~~~~~~~~~~~~~~~
 -o STR           output prefix [default: tumor.bam]
@@ -326,6 +326,57 @@ usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
 -q FLOAT         minimum variant quality to output [default: 1]
 -T DIR           temp directory [./temp]
 -A BOOL          annotate the vcf with snpEff (true or false) (default: true)
+-K FILE          path to speedseq.config file (default: same directory as speedseq)
+-h               show help message
+~~~~~~~~~~~~~~~~~~
+
+###lumpy
+
+`speedseq lumpy` runs [lumpy-sv]https://github.com/arq5x/lumpy-sv) on one or more BAM files
+
+#####LUMPY options
+~~~~~~~~~~~~~~~~~~
+-B FILE          full BAM file(s) (comma separated) (required)
+                   example: -B in1.bam,in2.bam,in3.bam
+-S FILE          split reads BAM file(s) (comma separated, order same as in -B) (required)
+                   example: -B in1.splitters.bam,in2.splitters.bam,in3.splitters.bam
+-D FILE          discordant reads BAM files(s) (comma separated, order same as in -B) (required)
+-o STR           output prefix [fullBam.bam]
+-x FILE          BED file to exclude
+-m INT           minimum weight for a call [default: 4]
+-r FLOAT         trim threshold [default: 1e-10]
+-L INT           read length [default: auto-calculate]
+-T DIR           temp directory [default: ./temp]
+~~~~~~~~~~~~~~~~~~
+
+The flags `-s` and `-p` are automatically generated using the defaults below, but may be overridden by the user by explicitly defining them using the following format.
+
+~~~~~~~~~~~~~~~~~~
+-s STR           lumpy split read parameters [auto]
+                    bam_file:<splitreads.bam>,
+                    back_distance:<20>,
+                    min_mapping_threshold:<20>,
+                    weight:<1>,
+                    id:<11>,
+                    min_clip:<20>
+
+-p STR           lumpy discordant read parameters [auto]
+                    bam_file:<discreads.bam>,
+                    histo_file:<auto>,
+                    mean:<auto>,
+                    stdev:<auto>,
+                    read_length:<auto>,
+                    min_non_overlap:<read_length>,
+                    discordant_z:<5>,
+                    back_distance:<20>,
+                    min_mapping_threshold:<20>,
+                    weight:<1>,
+                    id:<10>
+~~~~~~~~~~~~~~~~~~
+
+#####Global options
+
+~~~~~~~~~~~~~~~~~~
 -K FILE          path to speedseq.config file (default: same directory as speedseq)
 -h               show help message
 ~~~~~~~~~~~~~~~~~~
