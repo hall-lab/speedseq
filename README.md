@@ -423,11 +423,18 @@ chr1    34971904    34971945    chr1    34976002    34976043    0x7f9eb0917210  
 
 ###Call variants on a single sample
 
-1. Use `speedseq aln` to produce a sorted, duplicate-marked, BAM alignment of each library.
+1. Use `speedseq aln` to produce a sorted, duplicate-marked, BAM alignment.
 
   ~~~~~~~~~~~~~~~~~~
   speedseq aln -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
       human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
+  ~~~~~~~~~~~~~~~~~~
+
+  Note: if using an interleaved, paired-end fastq file, use the `-p` flag
+
+  ~~~~~~~~~~~~~~~~~~
+  speedseq aln -p -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
+      human_g1k_v37.fasta NA12878.interleaved.fq.gz
   ~~~~~~~~~~~~~~~~~~
 
 2. Use `speedseq var` to call SNVs and indels on a single sample.
@@ -446,6 +453,18 @@ chr1    34971904    34971945    chr1    34976002    34976043    0x7f9eb0917210  
       -B NA12878.bam \
       -D NA12878.discordants.bam \
       -S NA12878.splitters.bam
+  ~~~~~~~~~~~~~~~~~~
+
+###Call variants on a single sample sequenced with multiple libraries
+
+1. Use `speedseq aln` to produce a sorted, duplicate-marked, BAM alignment of each library.
+
+  ~~~~~~~~~~~~~~~~~~
+  speedseq aln -o NA12878_S1 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
+      human_g1k_v37.fasta NA12878.S1.1.fq.gz NA12878.S1.2.fq.gz
+
+  speedseq aln -o NA12878_S2 -R "@RG\tID:NA12878.S2\tSM:NA12878" \
+      human_g1k_v37.fasta NA12878.S2.1.fq.gz NA12878.S2.2.fq.gz
   ~~~~~~~~~~~~~~~~~~
 
 
