@@ -289,10 +289,38 @@ usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
                   time-consuming and error-prone.
 -t INT          number of threads to use [default: 1]
 -T DIR          temp directory [default: ./temp]
--A BOOL         annotate the vcf with snpEff (true or false) (default: true)
--K FILE         path to speedseq.config file (default: same directory as speedseq)
+-A BOOL         annotate the vcf with snpEff (true or false) [default: true]
+-K FILE         path to speedseq.config file [default: same directory as speedseq]
 -h              show help message
 ~~~~~~~~~~~~~~~~~~
+
+###somatic
+
+`speedseq somatic` runs freebayes on a tumor/normal pair of BAM files
+
+~~~~~~~~~~~~~~~~~~
+usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
+~~~~~~~~~~~~~~~~~~
+
+**Options**
+
+~~~~~~~~~~~~~~~~~~
+-o STR           output prefix [default: tumor.bam]
+-w FILE          BED file of windowed genomic intervals
+-t INT           number of threads to use [default: 1]
+-F FLOAT         Require at least this fraction of observations supporting
+                   an alternate allele within a single individual in order
+                   to evaluate the position [0.05]
+-C INT           Require at least this count of observations supporting
+                   an alternate allele within a single individual in order
+                   to evaluate the position [2]
+-q FLOAT         minimum variant quality to output [default: 1]
+-T DIR           temp directory [./temp]
+-A BOOL          annotate the vcf with snpEff (true or false) (default: true)
+-K FILE          path to speedseq.config file (default: same directory as speedseq)
+-h               show help message
+~~~~~~~~~~~~~~~~~~
+
 
 ##Example Usage
 ----------------------
