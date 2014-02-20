@@ -332,7 +332,7 @@ usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
 
 ###lumpy
 
-`speedseq lumpy` runs [lumpy-sv]https://github.com/arq5x/lumpy-sv) on one or more BAM files
+`speedseq lumpy` runs [lumpy-sv](https://github.com/arq5x/lumpy-sv) on one or more BAM files
 
 #####LUMPY options
 ~~~~~~~~~~~~~~~~~~
