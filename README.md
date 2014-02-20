@@ -431,19 +431,25 @@ Example:
 chr1    34971904    34971945    chr1    34976002    34976043    0x7f9eb0917210  0.0110386   +   -   TYPE:DELETION   IDS:11,1    STRANDS:+-,1
 ~~~~~~~~~~~~~~~~~~
 
+##Annotations
+
+a note about the annotations
+
+
+
 ##Example Workflows
 ----------------------
 
 ###Call variants on a single sample
 
-1. Use `speedseq aln` to produce a sorted, duplicate-marked, BAM alignment.
+1. Use `speedseq aln` to produce a sorted, duplicate-marked, BAM alignment from paired-end fastq data.
 
   ~~~~~~~~~~~~~~~~~~
   speedseq aln -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
       human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
   ~~~~~~~~~~~~~~~~~~
 
-  Note: if using an interleaved, paired-end fastq file, use the `-p` flag
+  Note: if using an interleaved paired-end fastq file, use the `-p` flag
 
   ~~~~~~~~~~~~~~~~~~
   speedseq aln -p -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
