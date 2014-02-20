@@ -214,7 +214,7 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 ###aln
 ~~~~~~~~~~~~~~~~~~
 usage:   speedseq aln [options] <reference.fa> <in1.fq> [in2.fq]
-
+~~~~~~~~~~~~~~~~~~
 Positional arguments
 
          reference.fa
