@@ -432,22 +432,21 @@ speedseq aln -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
 
 2. Use `speedseq var` to call SNVs and indels on a single sample.
 
-~~~~~~~~~~~~~~~~~~
-speedseq var -o NA12878 \
-    -w annotations/ceph18.b37.include.2014-01-15.bed \
-    human_g1k_v37.fasta NA12878.bam
-~~~~~~~~~~~~~~~~~~
+  ~~~~~~~~~~~~~~~~~~
+  speedseq var -o NA12878 \
+      -w annotations/ceph18.b37.include.2014-01-15.bed \
+      human_g1k_v37.fasta NA12878.bam
+  ~~~~~~~~~~~~~~~~~~
 
 3. Use `speedseq lumpy` to call structural variants.
 
-~~~~~~~~~~~~~~~~~~
-speedseq lumpy -o NA12878 \
-    -x annotations/ceph18.b37.exclude.2014-01-15.bed \
-    -B NA12878.bam \
-    -D NA12878.discordants.bam \
-    -S NA12878.splitters.bam
-~~~~~~~~~~~~~~~~~~
-
+  ~~~~~~~~~~~~~~~~~~
+  speedseq lumpy -o NA12878 \
+      -x annotations/ceph18.b37.exclude.2014-01-15.bed \
+      -B NA12878.bam \
+      -D NA12878.discordants.bam \
+      -S NA12878.splitters.bam
+  ~~~~~~~~~~~~~~~~~~
 
 
 Use `speedseq somatic` to call SNPs and indels on a tumor/normal pair.
