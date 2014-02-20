@@ -210,7 +210,7 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 ------------
 
 ``speedseq`` has is a modular pipeline with four components: ``aln``, ``var``, ``somatic``, and ``lumpy``.
--
+
 ###aln
 ~~~~~~~~~~~~~~~~~~
 usage:   speedseq aln [options] <reference.fa> <in1.fq> [in2.fq]
