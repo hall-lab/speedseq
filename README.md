@@ -268,9 +268,9 @@ These options determine the behavior of `samblaster`
 * `outprefix.bam`
   * The full, duplicate-marked, sorted BAM file for the library. This file may serve as input for [`speedseq var`](#speedseq-var), [`speedseq somatic`](#speedseq-somatic), and [`speedseq lumpy`](#speedseq-lumpy).
 * `outprefix.splitters.bam`
-  * This BAM file contains split reads called by the BWA-MEM alignment of the library. It may be used as the `-S` flag input to [`speedseq lumpy`](#speedseq-lumpy). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a `speedseq aln` command line parameter.
+  * This BAM file contains split reads called by the BWA-MEM alignment of the library. It may be used as the `-S` flag input to [`speedseq lumpy`](#speedseq-lumpy). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a [`speedseq aln`](#speedseq-aln) command line parameter.
 * `outprefix.discordants.bam`
-  * This BAM file contains discordant read-pairs called by the BWA-MEM alignment of the library. These reads may be discordant by strand orientation, intrachromosomal distance, or interchromosomal mapping. This BAM file may be used as the `-D` flag input to [`speedseq lumpy`](#speedseq-lumpy). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a `speedseq aln` command line parameter.
+  * This BAM file contains discordant read-pairs called by the BWA-MEM alignment of the library. These reads may be discordant by strand orientation, intrachromosomal distance, or interchromosomal mapping. This BAM file may be used as the `-D` flag input to [`speedseq lumpy`](#speedseq-lumpy). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a [`speedseq aln`](#speedseq-aln) command line parameter.
 
 -
 ###speedseq var
