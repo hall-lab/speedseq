@@ -287,7 +287,7 @@ usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 -o STR          output prefix [default: input1.bam]
 -w FILE         BED file of windowed genomic intervals. For human genomes,
                   we recommend using the annotations/ceph18.b37.include.2014-01-15.bed
-                  (see [annotations](#annotations))
+                  (see Annotations)
 -t INT          number of threads to use [default: 1]
 -T DIR          temp directory [default: ./temp]
 -A BOOL         annotate the vcf with snpEff (true or false) [default: true]
@@ -316,7 +316,7 @@ usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
 -o STR           output prefix [default: tumor.bam]
 -w FILE          BED file of windowed genomic intervals. For human genomes,
                    we recommend using the annotations/ceph18.b37.include.2014-01-15.bed
-                   (see [annotations](#annotations))
+                   (see Annotations)
 -t INT           number of threads to use [default: 1]
 -F FLOAT         require at least this fraction of observations supporting
                    an alternate allele within a single individual in order
