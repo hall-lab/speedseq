@@ -7,6 +7,18 @@ Created by Colby Chiang, Ryan Layer, Greg G Faust, Michael R Lindberg, Aaron R Q
 
 Current support for Linux only
 
+##Table of Contents
+---------------------
+
+1. [Summary](#summary)
+2. [Constitutive Pipeline Tools](#constitutive-pipeline-tools-required)
+3. [Installation](#installation)
+  * [Automatic Installation](#automatic-installation-coming-soon)
+  * [Manual Installation](#manual-installation)
+4. [Usage](#usage)
+5. [Example Workflows](#example-workflows)
+
+
 ##Summary
 --------------
 The `speedseq` suite is a lightweight, flexible, and open source pipeline that identifies
