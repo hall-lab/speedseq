@@ -486,13 +486,13 @@ chr1    34971904    34971945    chr1    34976002    34976043    0x7f9eb0917210  
 1. Use `speedseq aln` to produce sorted, duplicate-marked, BAM alignments for each sample.
 
   ~~~~~~~~~~~~~~~~~~
-  speedseq aln -o NA12877 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
+  speedseq aln -o NA12877 -R "@RG\tID:NA12877.S1\tSM:NA12877" \
       human_g1k_v37.fasta NA12877.1.fq.gz NA12877.2.fq.gz
 
   speedseq aln -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
       human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
 
-  speedseq aln -o NA12879 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
+  speedseq aln -o NA12879 -R "@RG\tID:NA12879.S1\tSM:NA12879" \
       human_g1k_v37.fasta NA12879.1.fq.gz NA12879.2.fq.gz
   ~~~~~~~~~~~~~~~~~~
 
