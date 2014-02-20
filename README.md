@@ -211,6 +211,7 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 
 `speedseq` has is a modular pipeline with four components: `aln`, `var`, `somatic`, and `lumpy`.
 
+-
 ###aln
 
 `speedseq aln` takes paired-end fastq sequences as input, and produces a duplicate-marked, sorted, indexed BAM file that can be processed with other `speedseq` modules. Currently, `speedseq aln` does not support single-end reads.
@@ -267,6 +268,7 @@ These options determine the behavior of `samblaster`
 -h              show help message
 ~~~~~~~~~~~~~~~~~~
 
+-
 ###var
 
 `speedseq var` runs freebayes one or more BAM files.
@@ -275,7 +277,7 @@ These options determine the behavior of `samblaster`
 usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 ~~~~~~~~~~~~~~~~~~
 
-**Options**
+####Options
 
 ~~~~~~~~~~~~~~~~~~
 -o STR          output prefix [default: input1.bam]
@@ -302,7 +304,7 @@ usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
 ~~~~~~~~~~~~~~~~~~
 
-**Options**
+####Options
 
 ~~~~~~~~~~~~~~~~~~
 -o STR           output prefix [default: tumor.bam]
