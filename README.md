@@ -1,5 +1,4 @@
 #speedseq         
--------------------------------
 
 **Current version:** 0.0.1a
 
@@ -8,7 +7,6 @@ Created by Colby Chiang, Ryan Layer, Greg G Faust, Michael R Lindberg, Aaron R Q
 Current support for Linux only
 
 ##Table of Contents
----------------------
 
 1. [Summary](#summary)
 2. [Constitutive Pipeline Tools](#constitutive-pipeline-tools-required)
@@ -20,7 +18,7 @@ Current support for Linux only
 
 
 ##Summary
---------------
+
 The `speedseq` suite is a lightweight, flexible, and open source pipeline that identifies
 genomic variation (single nucleotide variants (SNVs), indels, and structural variants (SVs)).
 
@@ -39,7 +37,6 @@ genomic variation (single nucleotide variants (SNVs), indels, and structural var
 9. [VCFLIB](https://github.com/ekg/vcflib)
 
 ##Installation
----------------
 
 There is an automatic (coming soon) and manual installation process for `speedseq`.
 
@@ -71,7 +68,7 @@ sudo apt-get install build-essential cmake gpp gcc git make python2.7 python-dev
 
 ###Automatic installation (coming soon)
 
-``speedseq`` can be installed with the following commands:
+`speedseq` can be installed with the following commands:
 ~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/cc2qe/speedseq
 	cd speedseq
@@ -96,7 +93,7 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	
 ####1) BWA
 
-``bwa`` can be installed and used by ``speedseq`` with the following commands: 
+`bwa` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
 	curl -OL http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.6a.tar.bz2
 	tar -xvf bwa-0.7.6a.tar.bz2
@@ -204,7 +201,6 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 **For alternative installations and release issues for any of the above tools please consult the website/creator.**
 
 ##Usage
-------------
 
 `speedseq` is a modular pipeline with four components: [`aln`](#speedseq-aln), [`var`](#speedseq-var), [`somatic`](#speedseq-somatic), and [`lumpy`](#speedseq-lumpy).
 
@@ -438,7 +434,6 @@ a note about the annotations
 
 
 ##Example Workflows
-----------------------
 
 ###Call variants on a single sample
 
