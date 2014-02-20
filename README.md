@@ -14,7 +14,8 @@ Current support for Linux only
   * [Automatic Installation](#automatic-installation-coming-soon)
   * [Manual Installation](#manual-installation)
 4. [Usage](#usage)
-5. [Example Workflows](#example-workflows)
+5. [Annotations](#annotations)
+6. [Example Workflows](#example-workflows)
 
 
 ##Summary
@@ -23,7 +24,6 @@ The `speedseq` suite is a lightweight, flexible, and open source pipeline that i
 genomic variation (single nucleotide variants (SNVs), indels, and structural variants (SVs)).
 
 ##Constitutive Pipeline Tools (Required)
-------------------------------------------
 
 1. [BWA](http://bio-bwa.sourceforge.net/)
 2. [FREEBAYES](https://github.com/ekg/freebayes)
