@@ -42,7 +42,7 @@ There are two modes of analysis supported:
 
 
 ##Installation
-----------------
+---------------
 
 There is an automatic (coming soon) and manual installation process for ``speedseq``.
 
@@ -205,6 +205,25 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 ~~~~~~~~~~~~~~~~~~
 -
 **For alternative installations and release issues for any of the above tools please consult the website/creator.**
+
+##Usage
+------------
+``speedseq`` has is a modular pipeline with four components: ``aln``, ``var``, ``somatic``, and ``lumpy``.
+-
+###aln
+``usage:   speedseq aln [options] <reference.fa> <in1.fq> [in2.fq]``
+
+Positional arguments
+
+         reference.fa
+                  fasta file (indexed with bwa)
+         in1.fq   paired-end fastq file. if -p flag is used then expected to be
+                    an interleaved paired-end fastq file, and in2.fq may be omitted.
+                    (can be gzipped)
+         in2.fq   paired-end fastq file. (can be gzipped)``
+
+
+
 
 ##Example Usage
 ----------------------
