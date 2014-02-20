@@ -296,6 +296,7 @@ usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 -h              show help message
 ~~~~~~~~~~~~~~~~~~
 
+-
 ###somatic
 
 `speedseq somatic` runs freebayes on a tumor/normal pair of BAM files
@@ -330,6 +331,7 @@ usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
 -h               show help message
 ~~~~~~~~~~~~~~~~~~
 
+-
 ###lumpy
 
 `speedseq lumpy` runs [lumpy-sv](https://github.com/arq5x/lumpy-sv) on one or more BAM files
