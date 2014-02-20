@@ -227,20 +227,20 @@ usage:   speedseq aln [options] <reference.fa> <in1.fq> [in2.fq]
 
 **Positional arguments**
 ~~~~~~~~~~~~~~~~~~
-    reference.fa	fasta file (indexed with bwa)
-    in1.fq   		paired-end fastq file. if -p flag is used then expected to be
-                          an interleaved paired-end fastq file, and in2.fq may be omitted.
-                          (can be gzipped)
-    in2.fq              paired-end fastq file. (can be gzipped)
+reference.fa	genome reference fasta file (indexed with bwa)
+in1.fq		paired-end fastq file. if -p flag is used then expected to be
+                  an interleaved paired-end fastq file, and in2.fq may be omitted.
+                  (may be gzipped)
+in2.fq	        paired-end fastq file. (may be gzipped)
 ~~~~~~~~~~~~~~~~~~
 
 **Alignment options**
 ~~~~~~~~~~~~~~~~~~
-    -o STR		 output prefix that will be  [default: in1.fq]
-         -R       read group header line such as "@RG\tID:libraryname\tSM:samplename" (required)
-         -p       first fastq file consists of interleaved paired-end sequences
-         -t INT   threads [1]
-         -T DIR   temp directory [./temp]
+-o STR		output prefix that will be  [default: in1.fq]
+-R              read group header line such as "@RG\tID:libraryname\tSM:samplename" (required)
+-p       	first fastq file consists of interleaved paired-end sequences
+-t INT          number of threads to use [default: 1]
+-T DIR          temp directory [default: ./temp]
 ~~~~~~~~~~~~~~~~~~
 
 
