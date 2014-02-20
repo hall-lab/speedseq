@@ -215,11 +215,11 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 
 `speedseq aln` takes paired-end fastq sequences as input, and produces a duplicate-marked, sorted, indexed BAM file that can be processed with other `speedseq` modules. Internally, `speedseq aln` runs the following steps:
 
-1. Alignment with BWA-MEM(http://bio-bwa.sourceforge.net/)
-2. Duplicate marking with samblaster(https://github.com/GregoryFaust/samblaster)
-3. Discordant-read and split-read extraction with samblaster(https://github.com/GregoryFaust/samblaster)
-4. Position sorting with sambamba(https://github.com/lomereiter/sambamba)
-5. BAM indexing with sambamba(https://github.com/lomereiter/sambamba)
+1. Alignment with [BWA-MEM](http://bio-bwa.sourceforge.net/)
+2. Duplicate marking with [samblaster](https://github.com/GregoryFaust/samblaster)
+3. Discordant-read and split-read extraction with [samblaster](https://github.com/GregoryFaust/samblaster)
+4. Position sorting with [sambamba](https://github.com/lomereiter/sambamba)
+5. BAM indexing with [sambamba](https://github.com/lomereiter/sambamba)
 
 ~~~~~~~~~~~~~~~~~~
 usage:   speedseq aln [options] <reference.fa> <in1.fq> [in2.fq]
