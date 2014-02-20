@@ -7,6 +7,18 @@ Created by Colby Chiang, Ryan Layer, Greg G Faust, Michael R Lindberg, Aaron R Q
 
 Current support for Linux only
 
+##Table of Contents
+---------------------
+
+1. [Summary](#summary)
+2. [Constitutive Pipeline Tools](#constitutive-pipeline-tools-required)
+3. [Installation](#installation)
+  * [Automatic Installation](#automatic-installation-coming-soon)
+  * [Manual Installation](#manual-installation)
+4. [Usage](#usage)
+5. [Example Workflows](#example-workflows)
+
+
 ##Summary
 --------------
 The `speedseq` suite is a lightweight, flexible, and open source pipeline that identifies
@@ -194,14 +206,14 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 ##Usage
 ------------
 
-`speedseq` has is a modular pipeline with four components: `aln`, `var`, `somatic`, and `lumpy`.
+`speedseq` is a modular pipeline with four components: [`aln`](#speedseq-aln), [`var`](#speedseq-var), [`somatic`](#speedseq-somatic), and [`lumpy`](#speedseq-lumpy).
 
 -
 ###speedseq aln
 
 `speedseq aln` takes paired-end fastq sequences as input, and produces a duplicate-marked, sorted, indexed BAM file that can be processed with other `speedseq` modules. Currently, `speedseq aln` does not support single-end reads.
 
-Internally, `speedseq aln` runs the following steps:
+Internally, `speedseq aln` runs the following steps to produce [three output BAM files](#output):
 
 1. Alignment with [BWA-MEM](http://bio-bwa.sourceforge.net/)
 2. Duplicate marking with [samblaster](https://github.com/GregoryFaust/samblaster)
@@ -255,13 +267,14 @@ These options determine the behavior of `samblaster`
 
 ####Output
 
-`speedseq aln` produces three sorted, indexed BAM files:
+`speedseq aln` produces three sorted, indexed BAM files (plus their corresponding .bai index files):
 
 * `outprefix.bam`
+  * The full, duplicate-marked, sorted BAM file for the library. This file may serve as input for `speedseq var`, `speedseq somatic`, and `speedseq lumpy`.
 * `outprefix.splitters.bam`
+  * This BAM file contains split reads called by the BWA-MEM alignment of the library. This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a `speedseq aln` command line parameter.
 * `outprefix.discordants.bam`
-
-`outprefix.bam` is the full, duplicate-marked, sorted BAM file for the library, which may serve as input for `speedseq var` or `speedseq somatic`. `outprefix.splitters.bam` and `outprefix.discordants.bam` may serve as the `-S` and `-D` parameters respectively for `speedseq lumpy`.
+  * This BAM file contains discordant read-pairs called by the BWA-MEM alignment of the library. They may be discordant by strand orientation, intrachromosomal distance, or interchromosomal mapping. This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a `speedseq aln` command line parameter.
 
 -
 ###speedseq var
