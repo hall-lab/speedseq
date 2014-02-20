@@ -201,7 +201,7 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 
 `speedseq aln` takes paired-end fastq sequences as input, and produces a duplicate-marked, sorted, indexed BAM file that can be processed with other `speedseq` modules. Currently, `speedseq aln` does not support single-end reads.
 
-Internally, `speedseq aln` runs the following steps:
+Internally, `speedseq aln` runs the following steps to produce [three output BAM files](#output):
 
 1. Alignment with [BWA-MEM](http://bio-bwa.sourceforge.net/)
 2. Duplicate marking with [samblaster](https://github.com/GregoryFaust/samblaster)
@@ -255,7 +255,7 @@ These options determine the behavior of `samblaster`
 
 ####Output
 
-`speedseq aln` produces three sorted, indexed BAM files:
+`speedseq aln` produces three sorted, indexed BAM files (plus their corresponding .bai index files):
 
 * `outprefix.bam`
   * The full, duplicate-marked, sorted BAM file for the library. This file may serve as input for `speedseq var`, `speedseq somatic`, and `speedseq lumpy`.
