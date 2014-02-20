@@ -271,7 +271,7 @@ These options determine the behavior of `samblaster`
 -
 ###var
 
-`speedseq var` runs freebayes one or more BAM files.
+`speedseq var` runs [freebayes](https://github.com/ekg/freebayes) one or more BAM files.
 
 ~~~~~~~~~~~~~~~~~~
 usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
@@ -299,7 +299,7 @@ usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 -
 ###somatic
 
-`speedseq somatic` runs freebayes on a tumor/normal pair of BAM files
+`speedseq somatic` runs [freebayes](https://github.com/ekg/freebayes) on a tumor/normal pair of BAM files
 
 ~~~~~~~~~~~~~~~~~~
 usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
