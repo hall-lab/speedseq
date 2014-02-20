@@ -541,7 +541,7 @@ chr1    34971904    34971945    chr1    34976002    34976043    0x7f9eb0917210  
       human_g1k_v37.fasta TCGA-B6-A0I6-01A-11D-A128-09.interleaved.fq.gz
   ~~~~~~~~~~~~~~~~~~
 
-2. Use `speedseq somatic` to call SNPs and indels on the tumor/normal pair.
+2. Use `speedseq somatic` to call SNVs and indels on the tumor/normal pair.
   ~~~~~~~~~~~~~~~~~~
   speedseq somatic -o TCGA-B6-A0I6 \
       -w annotations/ceph18.b37.include.2014-01-15.bed \
