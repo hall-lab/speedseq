@@ -268,6 +268,16 @@ These options determine the behavior of `samblaster`
 -h              show help message
 ~~~~~~~~~~~~~~~~~~
 
+####Output
+
+`speedseq aln` produces three sorted, indexed BAM files:
+
+* outprefix.bam
+* outprefix.splitters.bam
+* outprefix.discordants.bam
+
+outprefix.bam is the full, duplicate-marked, sorted BAM file for the library, which may serve as input for `speedseq var` or `speedseq somatic`. outprefix.splitters.bam and outprefix.discordants.bam may serve as the `-S` and `-D` parameters respectively for `speedseq lumpy`.
+
 -
 ###var
 
@@ -383,26 +393,25 @@ The flags `-s` and `-p` are automatically generated using the defaults below, bu
 -h               show help message
 ~~~~~~~~~~~~~~~~~~
 
-
-##Example Usage
+##Example Workflow
 ----------------------
 
-Use ``speedseq aln`` to align and dedupe the dataset.
+Use `speedseq aln` to align and dedupe the dataset.
 ~~~~~~~~~~~~~~~~~~
 	speedseq aln -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
 ~~~~~~~~~~~~~~~~~~
 
-Use ``speedseq var`` to call SNPs and indels on a single sample.
+Use `speedseq var` to call SNPs and indels on a single sample.
 ~~~~~~~~~~~~~~~~~~
 	speedseq var -o NA12878 -w annotations/ceph18.b37.include.2014-01-15.bed human_g1k_v37.fasta NA12878.bam
 ~~~~~~~~~~~~~~~~~~
 
-Use ``speedseq lumpy`` to call structural variants.
+Use `speedseq lumpy` to call structural variants.
 ~~~~~~~~~~~~~~~~~~
 	speedseq lumpy -o NA12878 -x annotations/ceph18.b37.exclude.2014-01-15.bed -B NA12878.bam -D NA12878.discordants.bam -S NA12878.splitters.bam
 ~~~~~~~~~~~~~~~~~~
 
-Use ``speedseq somatic`` to call SNPs and indels on a tumor/normal pair.
+Use `speedseq somatic` to call SNPs and indels on a tumor/normal pair.
 ~~~~~~~~~~~~~~~~~~
 	speedseq somatic -o TCGA-B6-A0I6 -w annotations/ceph18.b37.include.2014-01-15.bed human_g1k_v37.fasta TCGA-B6-A0I6.normal.bam TCGA-B6-A0I6.tumor.bam
 ~~~~~~~~~~~~~~~~~~
