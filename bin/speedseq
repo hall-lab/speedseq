@@ -415,6 +415,13 @@ options:
     # make temporary directory
     mkdir -p $TEMP_DIR
 
+    # if no windows file, then make naive windows based on the chroms
+    if [[ -z $WINDOWS ]]
+    then
+	$SAMBAMBA view -H ${BAM_LIST[0]} | grep "^@SQ" | cut -f 2- | awk '{ gsub("^SN:","",$1); gsub("^LN:","",$2); print $1"\t0\t"$2; }' > $TEMP_DIR/windows.bed
+	WINDOWS="$TEMP_DIR/windows.bed"
+    fi
+    
     # call variants on each of the windows in parallel
     for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
     do
@@ -629,6 +636,13 @@ options:
     
     # make temporary directory
     mkdir -p $TEMP_DIR
+
+    # if no windows file, then make naive windows based on the chroms
+    if [[ -z $WINDOWS ]]
+    then
+        $SAMBAMBA view -H ${BAM_LIST[0]} | grep "^@SQ" | cut -f 2- | awk '{ gsub("^SN:","",$1); gsub("^LN:","",$2); print $1"\t0\t"$2; }' > $TEMP_DIR/windows.bed
+        WINDOWS="$TEMP_DIR/windows.bed"
+    fi
 
     # write command to call variants on each of the windows in parallel
     for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
