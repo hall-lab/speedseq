@@ -209,11 +209,11 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 ##Usage
 ------------
 
-``speedseq`` has is a modular pipeline with four components: ``aln``, ``var``, ``somatic``, and ``lumpy``.
+`speedseq` has is a modular pipeline with four components: `aln`, `var`, `somatic`, and `lumpy`.
 
 ###aln
 
-``speedseq aln`` takes paired-end fastq sequences as input, and produces a duplicate-marked, sorted, indexed BAM file that can be processed with other ``speedseq`` modules. Internally, ``speedseq aln`` runs the following steps:
+`speedseq aln` takes paired-end fastq sequences as input, and produces a duplicate-marked, sorted, indexed BAM file that can be processed with other ``speedseq`` modules. Internally, ``speedseq aln`` runs the following steps:
 1. Alignment with BWA-MEM
 2. Duplicate marking with ``samblaster``(https://github.com/GregoryFaust/samblaster)
 3. Discordant-read and split-read extraction with ``samblaster``(https://github.com/GregoryFaust/samblaster)
