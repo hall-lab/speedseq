@@ -266,6 +266,13 @@ function var() {
         echo "
 usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 
+positional args:
+         reference.fa
+                  genome reference fasta file
+         input.bam
+                  BAM file(s) to call variants on. Must have readgroup information,
+                    and the SM readgroup tags will be the VCF column header
+
 options:
          -o STR   output prefix [input1.bam]
          -w FILE  BED file of windowed genomic intervals
@@ -476,6 +483,16 @@ function somatic() {
     function somatic_usage() {
         echo "
 usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
+
+positional args:
+         reference.fa
+                  genome reference fasta file
+         normal.bam
+                  germline BAM file. Must have readgroup information,
+                    and the SM readgroup tag will be the VCF column header
+         tumor.bam
+                  tumor BAM file. Must have readgroup information,
+                    and the SM readgroup tag will be the VCF column header
 
 options:
          -o STR   output prefix [tumor.bam]
