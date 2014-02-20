@@ -249,11 +249,14 @@ These options determine the behavior of BWA-MEM
 **Samblaster options**
 
 These options determine the behavior of `samblaster`
-```
--i		include duplicates in splitters and discordants (default: exclude)
--c INT		maximum number of split alignments for a read to be included in splitter file [default: 2]
--m INT		minimum non-overlapping base pairs between two alignments for a read to be included in splitter file [default: 20]
-```
+~~~~~~~~~~~~~~~~~~
+-i		include duplicates in splitters and discordants
+                  (default: exclude duplicates)
+-c INT		maximum number of split alignments for a read to be
+                  included in splitter file [default: 2]
+-m INT		minimum non-overlapping base pairs between two alignments
+                  for a read to be included in splitter file [default: 20]
+~~~~~~~~~~~~~~~~~~
 
 **Global options**
 
