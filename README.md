@@ -272,14 +272,14 @@ These options determine the behavior of `samblaster`
 
 `speedseq aln` produces three sorted, indexed BAM files:
 
-* outprefix.bam
-* outprefix.splitters.bam
-* outprefix.discordants.bam
+* `outprefix.bam`
+* `outprefix.splitters.bam`
+* `outprefix.discordants.bam`
 
-outprefix.bam is the full, duplicate-marked, sorted BAM file for the library, which may serve as input for `speedseq var` or `speedseq somatic`. outprefix.splitters.bam and outprefix.discordants.bam may serve as the `-S` and `-D` parameters respectively for `speedseq lumpy`.
+`outprefix.bam` is the full, duplicate-marked, sorted BAM file for the library, which may serve as input for `speedseq var` or `speedseq somatic`. `outprefix.splitters.bam` and `outprefix.discordants.bam` may serve as the `-S` and `-D` parameters respectively for `speedseq lumpy`.
 
 -
-###var
+###`speedseq var`
 
 `speedseq var` runs [freebayes](https://github.com/ekg/freebayes) one or more BAM files.
 
