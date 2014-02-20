@@ -418,7 +418,7 @@ Example:
 chr1    34971904    34971945    chr1    34976002    34976043    0x7f9eb0917210  0.0110386   +   -   TYPE:DELETION   IDS:11,1    STRANDS:+-,1
 ~~~~~~~~~~~~~~~~~~
 
-##Example Workflow
+##Example Workflows
 ----------------------
 
 ###Call variants on a single sample
@@ -465,14 +465,85 @@ chr1    34971904    34971945    chr1    34976002    34976043    0x7f9eb0917210  
 
   speedseq aln -o NA12878_S2 -R "@RG\tID:NA12878.S2\tSM:NA12878" \
       human_g1k_v37.fasta NA12878.S2.1.fq.gz NA12878.S2.2.fq.gz
+
+  speedseq aln -o NA12878_S3 -R "@RG\tID:NA12878.S3\tSM:NA12878" \
+      human_g1k_v37.fasta NA12878.S3.1.fq.gz NA12878.S3.2.fq.gz
   ~~~~~~~~~~~~~~~~~~
 
+2. Use `speedseq var` to call SNVs and indels. `speedseq var` will automatically recognize libraries with the same SM readgroup tag to be the same sample.
 
-Use `speedseq somatic` to call SNPs and indels on a tumor/normal pair.
-~~~~~~~~~~~~~~~~~~
-	speedseq somatic -o TCGA-B6-A0I6 -w annotations/ceph18.b37.include.2014-01-15.bed human_g1k_v37.fasta TCGA-B6-A0I6.normal.bam TCGA-B6-A0I6.tumor.bam
-~~~~~~~~~~~~~~~~~~
+  ~~~~~~~~~~~~~~~~~~
+  speedseq var -o NA12878 \
+      -w annotations/ceph18.b37.include.2014-01-15.bed \
+      human_g1k_v37.fasta NA12878_S1.bam NA12878_S2.bam NA12878_S3.bam
+  ~~~~~~~~~~~~~~~~~~
+
+3. `speedseq lumpy` does not currently handle BAM files made from multiple libraries but we plan to add this functionality in the future.
 
 
+###Call variants on multiple samples
+
+1. Use `speedseq aln` to produce sorted, duplicate-marked, BAM alignments for each sample.
+
+  ~~~~~~~~~~~~~~~~~~
+  speedseq aln -o NA12877 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
+      human_g1k_v37.fasta NA12877.1.fq.gz NA12877.2.fq.gz
+
+  speedseq aln -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
+      human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
+
+  speedseq aln -o NA12879 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
+      human_g1k_v37.fasta NA12879.1.fq.gz NA12879.2.fq.gz
+  ~~~~~~~~~~~~~~~~~~
+
+2. Use `speedseq var` to call SNVs and indels on multiple samples.
+
+  ~~~~~~~~~~~~~~~~~~
+  speedseq var -o cephtrio \
+      -w annotations/ceph18.b37.include.2014-01-15.bed \
+      human_g1k_v37.fasta NA12877.bam NA12878.bam NA12879.bam
+  ~~~~~~~~~~~~~~~~~~
+
+3. Use `speedseq lumpy` to call structural variants on multiple samples.
+
+  ~~~~~~~~~~~~~~~~~~
+  speedseq lumpy -o cephtrio \
+      -x annotations/ceph18.b37.exclude.2014-01-15.bed \
+      -B NA12877.bam,NA12878.bam,NA12879.bam \
+      -D NA12877.discordants.bam,NA12878.discordants.bam,NA12879.discordants.bam \
+      -S NA12877.splitters.bam,NA12878.splitters.bam,NA12879.splitters.bam
+  ~~~~~~~~~~~~~~~~~~
+
+###Call variants on a tumor/normal pair
+
+1. Use `speedseq aln` to produce sorted, duplicate-marked, BAM alignments for the tumor/normal pair
+
+  ~~~~~~~~~~~~~~~~~~
+  speedseq aln -p -o TCGA-B6-A0I6.normal \
+      -R "@RG\tID:TCGA-B6-A0I6-10A-01D-A128-09\tSM:TCGA-B6-A0I6-10A-01D-A128-09" \
+      human_g1k_v37.fasta TCGA-B6-A0I6-10A-01D-A128-09.interleaved.fq.gz
+
+  speedseq aln -p -o TCGA-B6-A0I6.tumor \
+      -R "@RG\tID:TCGA-B6-A0I6-01A-11D-A128-09\tSM:TCGA-B6-A0I6-01A-11D-A128-09" \
+      human_g1k_v37.fasta TCGA-B6-A0I6-01A-11D-A128-09.interleaved.fq.gz
+  ~~~~~~~~~~~~~~~~~~
+
+2. Use `speedseq somatic` to call SNPs and indels on the tumor/normal pair.
+  ~~~~~~~~~~~~~~~~~~
+  speedseq somatic -o TCGA-B6-A0I6 \
+      -w annotations/ceph18.b37.include.2014-01-15.bed \
+      -F 0.05 \
+      -q 1 \
+      human_g1k_v37.fasta TCGA-B6-A0I6.normal.bam TCGA-B6-A0I6.tumor.bam
+  ~~~~~~~~~~~~~~~~~~
+
+3. Use `speedseq lumpy` to call structural variants on the tumor/normal pair.
+  ~~~~~~~~~~~~~~~~~~
+  speedseq lumpy -o TCGA-B6-A0I6 \
+      -x annotations/ceph18.b37.exclude.2014-01-15.bed \
+      -B TCGA-B6-A0I6.normal.bam,TCGA-B6-A0I6.tumor.bam \
+      -D TCGA-B6-A0I6.normal.discordants.bam,TCGA-B6-A0I6.tumor.discordants.bam \
+      -S TCGA-B6-A0I6.normal.splitters.bam,TCGA-B6-A0I6.tumor.splitters.bam
+  ~~~~~~~~~~~~~~~~~~
 
 
