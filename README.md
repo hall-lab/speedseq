@@ -2,7 +2,7 @@
 
 **Current version:** 0.0.1a
 
-Created by Colby Chiang, Ryan Layer, Greg G Faust, Michael R Lindberg, Aaron R Quinlan, and Ira M Hall.
+Created by Colby Chiang, Ryan M. Layer, Greg G. Faust, Michael R. Lindberg, Aaron R. Quinlan, and Ira M. Hall.
 
 Current support for Linux only
 
