@@ -227,7 +227,7 @@ Internally, `speedseq aln` runs the following steps:
 usage:   speedseq aln [options] <reference.fa> <in1.fq> [in2.fq]
 ~~~~~~~~~~~~~~~~~~
 
-**Positional arguments**
+####Positional arguments
 
 ~~~~~~~~~~~~~~~~~~
 reference.fa	genome reference fasta file (indexed with bwa) (required)
@@ -237,7 +237,7 @@ in1.fq          paired-end fastq file. if -p flag is used then expected to be
 in2.fq	        paired-end fastq file. (may be gzipped) (required)
 ~~~~~~~~~~~~~~~~~~
 
-**Alignment options**
+####Alignment options
 
 These options determine the behavior of BWA-MEM
 ~~~~~~~~~~~~~~~~~~
@@ -248,7 +248,7 @@ These options determine the behavior of BWA-MEM
 -T DIR          temp directory [default: ./temp]
 ~~~~~~~~~~~~~~~~~~
 
-**Samblaster options**
+####Samblaster options
 
 These options determine the behavior of `samblaster`
 ~~~~~~~~~~~~~~~~~~
@@ -260,7 +260,7 @@ These options determine the behavior of `samblaster`
                   for a read to be included in splitter file [default: 20]
 ~~~~~~~~~~~~~~~~~~
 
-**Global options**
+####Global options
 
 ~~~~~~~~~~~~~~~~~~
 -K FILE         path to speedseq.config file (default: same directory as speedseq)
