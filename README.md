@@ -287,12 +287,7 @@ usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 -o STR          output prefix [default: input1.bam]
 -w FILE         BED file of windowed genomic intervals. For human genomes,
                   we recommend using the annotations/ceph18.b37.include.2014-01-15.bed
-                  BED file to parallelize the variant calling. This BED file excludes
-                  regions of the genome where the coverage in the CEPH1463 pedigree
-                  was greater than twice the mode coverage plus 5 standard deviations.
-                  We believe these extremely high depth regions are areas of misassembly
-                  in the GRCh37 human reference genome in which variant calling is
-                  time-consuming and error-prone.
+                  (see [annotations](#annotations))
 -t INT          number of threads to use [default: 1]
 -T DIR          temp directory [default: ./temp]
 -A BOOL         annotate the vcf with snpEff (true or false) [default: true]
@@ -321,12 +316,7 @@ usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
 -o STR           output prefix [default: tumor.bam]
 -w FILE          BED file of windowed genomic intervals. For human genomes,
                    we recommend using the annotations/ceph18.b37.include.2014-01-15.bed
-                   BED file to parallelize the variant calling. This BED file excludes
-                   regions of the genome where the coverage in the CEPH1463 pedigree
-                   was greater than twice the mode coverage plus 5 standard deviations.
-                   We believe these extremely high depth regions are areas of misassembly
-                   in the GRCh37 human reference genome in which variant calling is
-                   time-consuming and error-prone.
+                   (see [annotations](#annotations))
 -t INT           number of threads to use [default: 1]
 -F FLOAT         require at least this fraction of observations supporting
                    an alternate allele within a single individual in order
