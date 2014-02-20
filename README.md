@@ -226,6 +226,7 @@ usage:   speedseq aln [options] <reference.fa> <in1.fq> [in2.fq]
 ~~~~~~~~~~~~~~~~~~
 
 **Positional arguments**
+
 ~~~~~~~~~~~~~~~~~~
 reference.fa	genome reference fasta file (indexed with bwa) (required)
 in1.fq          paired-end fastq file. if -p flag is used then expected to be
@@ -235,6 +236,7 @@ in2.fq	        paired-end fastq file. (may be gzipped) (required)
 ~~~~~~~~~~~~~~~~~~
 
 **Alignment options**
+
 These options determine the behavior of BWA-MEM
 ~~~~~~~~~~~~~~~~~~
 -o STR		output prefix that will be  [default: in1.fq]
@@ -245,11 +247,20 @@ These options determine the behavior of BWA-MEM
 ~~~~~~~~~~~~~~~~~~
 
 **Samblaster options**
+
 These options determine the behavior of `samblaster`
 ~~~~~~~~~~~~~~~~~~
 -i		include duplicates in splitters and discordants (default: exclude)
 -c INT		maximum number of split alignments for a read to be included in splitter file [default: 2]
 -m INT		minimum non-overlapping base pairs between two alignments for a read to be included in splitter file [default: 20]
+~~~~~~~~~~~~~~~~~~
+
+**Global options**
+
+~~~~~~~~~~~~~~~~~~
+-K FILE         path to speedseq.config file (default: same directory as speedseq)
+-h       	show help message
+~~~~~~~~~~~~~~~~~~
 
 ##Example Usage
 ----------------------
