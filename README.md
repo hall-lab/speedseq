@@ -398,6 +398,13 @@ The flags `-s` and `-p` are automatically generated using the defaults below, bu
                     id:<10>
 ~~~~~~~~~~~~~~~~~~
 
+#####Global options
+
+~~~~~~~~~~~~~~~~~~
+-K FILE          path to speedseq.config file (default: same directory as speedseq)
+-h               show help message
+~~~~~~~~~~~~~~~~~~
+
 ####Output
 
 `speedseq lumpy` produces a BEDPE file that is indexed with `tabix` and optionally annotated with [SnpEff](http://snpeff.sourceforge.net/):
@@ -424,13 +431,6 @@ The tab-delimited BEDPE file has the following structure:
 Example:
 ~~~~~~~~~~~~~~~~~~
 chr1    34971904    34971945    chr1    34976002    34976043    0x7f9eb0917210  0.0110386   +   -   TYPE:DELETION   IDS:11,1    STRANDS:+-,1
-~~~~~~~~~~~~~~~~~~
-
-#####Global options
-
-~~~~~~~~~~~~~~~~~~
--K FILE          path to speedseq.config file (default: same directory as speedseq)
--h               show help message
 ~~~~~~~~~~~~~~~~~~
 
 ##Example Workflow
