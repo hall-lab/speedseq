@@ -213,7 +213,9 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 
 ###aln
 
-`speedseq aln` takes paired-end fastq sequences as input, and produces a duplicate-marked, sorted, indexed BAM file that can be processed with other `speedseq` modules. Internally, `speedseq aln` runs the following steps:
+`speedseq aln` takes paired-end fastq sequences as input, and produces a duplicate-marked, sorted, indexed BAM file that can be processed with other `speedseq` modules. Currently, `speedseq aln` does not support single-end reads.
+
+Internally, `speedseq aln` runs the following steps:
 
 1. Alignment with [BWA-MEM](http://bio-bwa.sourceforge.net/)
 2. Duplicate marking with [samblaster](https://github.com/GregoryFaust/samblaster)
@@ -250,7 +252,7 @@ These options determine the behavior of BWA-MEM
 
 These options determine the behavior of `samblaster`
 ~~~~~~~~~~~~~~~~~~
--i		include duplicates in splitters and discordants
+-i              include duplicates in splitters and discordants
                   (default: exclude duplicates)
 -c INT		maximum number of split alignments for a read to be
                   included in splitter file [default: 2]
@@ -262,7 +264,34 @@ These options determine the behavior of `samblaster`
 
 ~~~~~~~~~~~~~~~~~~
 -K FILE         path to speedseq.config file (default: same directory as speedseq)
--h       	show help message
+-h              show help message
+~~~~~~~~~~~~~~~~~~
+
+###var
+
+`speedseq var` runs freebayes one or more BAM files.
+
+~~~~~~~~~~~~~~~~~~
+usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
+~~~~~~~~~~~~~~~~~~
+
+**Options**
+
+~~~~~~~~~~~~~~~~~~
+-o STR          output prefix [default: input1.bam]
+-w FILE         BED file of windowed genomic intervals. For human genomes,
+                  we recommend using the annotations/ceph18.b37.include.2014-01-15.bed
+                  BED file to parallelize the variant calling. This BED file excludes
+                  regions of the genome where the coverage in the CEPH1463 pedigree
+                  was greater than twice the mode coverage plus 5 standard deviations.
+                  We believe these extremely high depth regions are areas of misassembly
+                  in the GRCh37 human reference genome in which variant calling is
+                  time-consuming and error-prone.
+-t INT          number of threads to use [default: 1]
+-T DIR          temp directory [default: ./temp]
+-A BOOL         annotate the vcf with snpEff (true or false) (default: true)
+-K FILE         path to speedseq.config file (default: same directory as speedseq)
+-h              show help message
 ~~~~~~~~~~~~~~~~~~
 
 ##Example Usage
