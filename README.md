@@ -89,6 +89,10 @@ The use of unspecified versions of any pipeline component is not guaranteed to w
 	sudo cp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 
+#####Configuration
+
+Configure the paths to the `speedseq` dependencies by modifying the [speedseq.config](bin/speedseq.config) file. The [speedseq.config](bin/speedseq.config) file should reside in the same directory as the `speedseq` executable. By default, `speedseq` attempts to source the dependencies from the $PATH.
+
 ####Obtain each of the pipeline tools and install:
 	
 ####1) BWA
