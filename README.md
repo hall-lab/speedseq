@@ -279,7 +279,7 @@ These options determine the behavior of `samblaster`
 `outprefix.bam` is the full, duplicate-marked, sorted BAM file for the library, which may serve as input for `speedseq var` or `speedseq somatic`. `outprefix.splitters.bam` and `outprefix.discordants.bam` may serve as the `-S` and `-D` parameters respectively for `speedseq lumpy`.
 
 -
-###`speedseq var`
+###var
 
 `speedseq var` runs [freebayes](https://github.com/ekg/freebayes) one or more BAM files.
 
@@ -305,6 +305,12 @@ usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 -K FILE         path to speedseq.config file [default: same directory as speedseq]
 -h              show help message
 ~~~~~~~~~~~~~~~~~~
+
+####Output
+
+`speedseq var` produces a single bgzipped VCF file that is indexed with `tabix` and optionally annotated with [SnpEff](http://snpeff.sourceforge.net/):
+
+* `outprefix.vcf.gz`
 
 -
 ###somatic
