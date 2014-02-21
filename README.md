@@ -208,6 +208,15 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 
 `speedseq` is a modular pipeline with four components: [`aln`](#speedseq-aln), [`var`](#speedseq-var), [`somatic`](#speedseq-somatic), and [`lumpy`](#speedseq-lumpy).
 
+* [`speedseq aln`](#speedseq-aln)
+  * take paired-end fastq sequences as input, and produce a duplicate-marked, sorted, indexed BAM file that can be processed with other speedseq modules. Currently, speedseq aln does not support single-end reads.
+* [`speedseq var`](#speedseq-var)
+  * run freebayes one or more BAM files
+* [`speedseq somatic`](#speedseq-somatic)
+  * run freebayes on a tumor/normal pair of BAM files
+* [`speedseq lumpy`](#speedseq-lumpy)
+  * run lumpy-sv on one or more BAM files
+
 -
 ###speedseq aln
 
