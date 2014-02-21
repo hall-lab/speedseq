@@ -148,12 +148,12 @@ global options:
 	REF="${@:${OPTIND}:1}"
 	FQ="${@:$((${OPTIND}+1))}"
         # Check that the ref and fastq files exist
-	if [[ ! -f $REF ]]
+	if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
 	then
             aln_usage
             echo -e "Error: Reference file $REF not found.\n"
             exit 1
-	elif [[ ! -f $FQ ]]
+	elif [[ -z "$FQ" ]] || [[ ! -f "$FQ" ]]
 	then
             aln_usage
             echo -e "Error: Fastq file $FQ not found.\n"
@@ -164,20 +164,20 @@ global options:
 	FQ1="${@:$((${OPTIND}+1))}"
 	FQ2="${@:$((${OPTIND}+2))}"
         # Check that the ref and fastq files exist
-	if [[ ! -f $REF ]]
+	if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
 	then
             aln_usage
             echo -e "Error: Reference file $REF not found.\n"
             exit 1
-	elif [[ ! -f $FQ1 ]]
+	elif [[ -z "$FQ1" ]] || [[ ! -f "$FQ1" ]]
 	then
             aln_usage
             echo -e "Error: Fastq file $FQ1 not found.\n"
             exit 1
-	elif [[ ! -z $FQ2 ]] && [[ ! -f $FQ2 ]]
+	elif [[ -z "$FQ2" ]] || [[ ! -f "$FQ2" ]]
 	then
             aln_usage
-            echo -e "Error: Fastq file $FQ2 not found.\n"
+            echo -e "Error: Fastq file $FQ2 not found. (single-end reads not supported)\n"
             exit 1
 	fi
     fi
@@ -396,7 +396,7 @@ options:
     fi
 
     # Check that the ref and bam files exist
-    if [[ ! -f $REF ]]
+    if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
     then
 	var_usage
 	echo -e "Error: Reference file $REF not found.\n"
@@ -628,17 +628,17 @@ options:
     fi
 
     # Check that the ref and bam files exist
-    if [[ ! -f $REF ]]
+    if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
     then
         somatic_usage
         echo -e "Error: Reference file $REF not found.\n"
         exit 1
-    elif [[ ! -f $NORMAL_BAM ]]
+    elif [[ -z "$NORMAL_BAM" ]] || [[ ! -f "$NORMAL_BAM" ]]
     then
         somatic_usage
         echo -e "Error: BAM file $NORMAL_BAM not found.\n"
         exit 1
-    elif [[ ! -f $TUMOR_BAM ]]
+    elif [[ -z "$TUMOR_BAM" ]] || [[ ! -f "$TUMOR_BAM" ]]
     then
         somatic_usage
         echo -e "Error: BAM file $TUMOR_BAM not found.\n"
