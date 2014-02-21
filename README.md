@@ -357,7 +357,7 @@ usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
                    example: -B in1.bam,in2.bam,in3.bam
 -S FILE          split reads BAM file(s) (comma separated, order same as in -B) (required)
                    example: -S in1.splitters.bam,in2.splitters.bam,in3.splitters.bam
--D FILE          discordant reads BAM files(s) (comma separated, order same as in -B) (required)
+-D FILE          discordant reads BAM file(s) (comma separated, order same as in -B) (required)
                    example: -D in1.discordants.bam,in2.discordants.bam,in3.discordants.bam
 -o STR           output prefix [fullBam.bam]
 -x FILE          BED file to exclude
