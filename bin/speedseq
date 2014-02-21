@@ -142,12 +142,11 @@ global options:
 		;;
 	esac
     done
-    OPTIND=0
 
     if [[ INTERLEAVED -eq 1 ]]
     then
-	REF="${@:(-2):1}"
-	FQ="${@:(-1)}"
+	REF="${@:${OPTIND}:1}"
+	FQ="${@:$((${OPTIND}+1))}"
         # Check that the ref and fastq files exist
 	if [[ ! -f $REF ]]
 	then
@@ -161,9 +160,9 @@ global options:
             exit 1
 	fi
     else
-	REF="${@:(-3):1}"
-	FQ1="${@:(-2):1}"
-	FQ2="${@:(-1):1}"
+	REF="${@:${OPTIND}:1}"
+	FQ1="${@:$((${OPTIND}+1))}"
+	FQ2="${@:$((${OPTIND}+2))}"
         # Check that the ref and fastq files exist
 	if [[ ! -f $REF ]]
 	then
@@ -175,7 +174,7 @@ global options:
             aln_usage
             echo -e "Error: Fastq file $FQ1 not found.\n"
             exit 1
-	elif [[ ! -f $FQ2 ]]
+	elif [[ ! -z $FQ2 ]] && [[ ! -f $FQ2 ]]
 	then
             aln_usage
             echo -e "Error: Fastq file $FQ2 not found.\n"
@@ -295,9 +294,6 @@ options:
     # set defaults
     SPEEDSEQ_DIR=`dirname $0`
     CONFIG="$SPEEDSEQ_DIR/speedseq.config"
-    REF="${@:(-2):1}"
-    IN_BAM="${@:(-1)}"
-    OUTPUT=`basename "$IN_BAM"`
     THREADS=1
     TEMP_DIR="./temp"
     ANNOTATE="true"
