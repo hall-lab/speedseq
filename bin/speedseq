@@ -158,7 +158,7 @@ global options:
             aln_usage
             echo -e "Error: Reference file $REF not found.\n"
             exit 1
-	elif [[ -z "$FQ" ]] || [[ ! -f "$FQ" ]]
+	elif [[ -z "$FQ" ]] || [[ ! -e "$FQ" ]]
 	then
             aln_usage
             echo -e "Error: Fastq file $FQ not found.\n"
@@ -179,12 +179,12 @@ global options:
             aln_usage
             echo -e "Error: Reference file $REF not found.\n"
             exit 1
-	elif [[ -z "$FQ1" ]] || [[ ! -f "$FQ1" ]]
+	elif [[ -z "$FQ1" ]] || [[ ! -e "$FQ1" ]]
 	then
             aln_usage
             echo -e "Error: Fastq file $FQ1 not found.\n"
             exit 1
-	elif [[ -z "$FQ2" ]] || [[ ! -f "$FQ2" ]]
+	elif [[ -z "$FQ2" ]] || [[ ! -e "$FQ2" ]]
 	then
             aln_usage
             echo -e "Error: Fastq file $FQ2 not found. (single-end reads not supported)\n"
