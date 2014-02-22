@@ -161,8 +161,9 @@ global options:
 	fi
     else
 	REF="${@:${OPTIND}:1}"
-	FQ1="${@:$((${OPTIND}+1))}"
-	FQ2="${@:$((${OPTIND}+2))}"
+	FQ1="${@:$((${OPTIND}+1)):1}"
+	FQ2="${@:$((${OPTIND}+2)):1}"
+
         # Check that the ref and fastq files exist
 	if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
 	then
