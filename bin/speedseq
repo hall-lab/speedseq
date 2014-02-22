@@ -93,8 +93,8 @@ global options:
     SPEEDSEQ_DIR=`dirname $0`
     CONFIG="$SPEEDSEQ_DIR/speedseq.config"
     INTERLEAVED=0
-    OUTPUT=`basename "$FQ"`
     RG_FMT=""
+    OUTPUT=""
     INCLUDE_DUPS="-e"
     MAX_SPLIT_COUNT=2
     MIN_NON_OVERLAP=20
@@ -147,6 +147,11 @@ global options:
     then
 	REF="${@:${OPTIND}:1}"
 	FQ="${@:$((${OPTIND}+1)):1}"
+	if [[ -z "$OUTPUT" ]]
+	then
+	    OUTPUT=`basename "$FQ"`
+	fi
+
         # Check that the ref and fastq files exist
 	if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
 	then
@@ -163,6 +168,10 @@ global options:
 	REF="${@:${OPTIND}:1}"
 	FQ1="${@:$((${OPTIND}+1)):1}"
 	FQ2="${@:$((${OPTIND}+2)):1}"
+	if [[ -z "$OUTPUT" ]]
+	then
+	    OUTPUT=`basename "$FQ1"`
+	fi
 
         # Check that the ref and fastq files exist
 	if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
@@ -182,6 +191,8 @@ global options:
             exit 1
 	fi
     fi
+
+    OUTBASE=`basename "$OUTPUT"`
 
     # Check for readgroup flag
     if [[ -z $RG_FMT ]]
@@ -212,8 +223,6 @@ global options:
     fi
 
     echo "Aligning..."
-
-    OUTBASE=`basename "$OUTPUT"`
 
     # create temp files
     mkdir -p $TEMP_DIR/full $TEMP_DIR/spl $TEMP_DIR/disc
