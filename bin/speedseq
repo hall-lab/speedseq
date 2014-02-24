@@ -778,7 +778,7 @@ global options:
     TEMP_DIR="./temp"
     VERBOSE=0
 
-    while getopts ":hB:S:D:o:m:r:x:s:p:T:vK:" OPTION
+    while getopts ":hB:S:D:o:m:r:L:x:s:p:T:vK:" OPTION
     do
 	case "${OPTION}" in
             h)
