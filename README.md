@@ -143,7 +143,7 @@ Configure the paths to the `speedseq` dependencies by modifying the [speedseq.co
 Now that software dependencies have been met, install ``lumpy-sv``:
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL https://github.com/arq5x/lumpy-sv/archive/v0.1.5.tar.gz
-	tar -xvf v0.1.5.tar.gz
+	tar -xvf lumpy-sv-0.1.5.tar.gz
 	cd lumpy-sv-0.1.5
 	make 
 	sudo cp -r bin/* /usr/local/bin/
