@@ -111,7 +111,7 @@ Configure the paths to the `speedseq` dependencies by modifying the [speedseq.co
 ``freebayes`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~~
 	git clone --recursive git://github.com/ekg/freebayes.git
-	cd freebayes
+	cd freebayes-0.9.13
 	make
 	sudo cp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~~
