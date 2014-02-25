@@ -187,9 +187,9 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 	wget http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip
 	unzip snpEff_latest_core.zip
 	cd snpEff
-	sudo scp *jar /usr/local/bin/
-	sudo scp snpEff.config /usr/local/bin
-	sudo scp -r scripts/* /usr/local/bin/
+	sudo cp *jar /usr/local/bin/
+	sudo cp snpEff.config /usr/local/bin
+	sudo cp -r scripts/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 -
 ####9) VCFLIB
