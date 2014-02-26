@@ -181,7 +181,7 @@ def main(args):
 		freebayes.download("git", url)
 		freebayes.install("make", "freebayes")
 		freebayes.cp_bin("freebayes/bin", args.targetbin)
-    
+    	#gemini install
 	gemini = INSTALLER("gemini", args.quiet)
 	gemini.check_install("gemini")
 	if (gemini.isInstalled):
@@ -191,7 +191,7 @@ def main(args):
 		gemini.download("wget", url)
 		gemini.install("python2.7", "/usr/local/share/gemini")
 		gemini.cp_bin("/usr/local/gemini/bin", args.targetbin)
-	#
+	#gsl install
 	gsl = INSTALLER("gsl", args.quiet)
 	gsl.check_install("gsl-config")
 	if (gsl.isInstalled):
@@ -202,7 +202,7 @@ def main(args):
 		gsl.unpack("tar")
 		os.chdir("gsl-1.9")
 		gsl.install("confmake", "gsl-1.9")
-
+	#lumpy install
 	lumpy = INSTALLER("lumpy", args.quiet)
 	lumpy.check_install("lumpy")
 	if (lumpy.isInstalled):
@@ -214,7 +214,7 @@ def main(args):
 		lumpy.install("make", "lumpy-sv-0.1.5")
 		lumpy.cp_bin("lumpy-sv-0.1.5/bin", args.targetbin)
 		lumpy.cp_bin("lumpy-sv-0.1.5/scripts", args.targetbin)
-
+	#parallel install
 	parallel = INSTALLER("parallel", args.quiet)
 	parallel.check_install("parallel")
 	if (parallel.isInstalled):
@@ -225,7 +225,7 @@ def main(args):
 		parallel.unpack("tar")
 		parallel.install("confmake", "parallel-20100424")
 		parallel.cp_bin("parallel-20100424/src/parallel", args.targetbin)
-
+	#sambamba install
 	sambamba = INSTALLER("sambamba_v0.4.4", args.quiet)
 	sambamba.check_install("sambamba_v0.4.4")
 	if (sambamba.isInstalled):
@@ -235,7 +235,7 @@ def main(args):
 		sambamba.download("curl", url)
 		sambamba.unpack("tar")
 		sambamba.cp_bin("sambamba_v0.4.4", args.targetbin)
-		
+	#samblaster install	
 	samblaster = INSTALLER("samblaster", args.quiet)
 	samblaster.check_install("samblaster")
 	if (samblaster.isInstalled):
@@ -245,7 +245,7 @@ def main(args):
 		samblaster.download("git", url)
 		samblaster.install("make", "samblaster")
 		samblaster.cp_bin("samblaster/samblaster", args.targetbin)
-
+	#snpeff install
 	snpeff = INSTALLER("snpeff", args.quiet)
 	snpeff.check_install("snpeff")
 	if (snpeff.isInstalled):
@@ -259,7 +259,7 @@ def main(args):
 		snpeff.cp_bin("snpEff/snpEff.config", args.targetbin)
 		snpeff.cp_bin("snpEff/snpEff.jar", args.targetbin)
 		snpeff.cp_bin("snpEff/scripts", args.targetbin)
-
+	#vcflib install
 	vcflib = INSTALLER("vcflib", args.quiet)
 	if (vcflib.isInstalled):
 		vcflib.get_update()
@@ -283,6 +283,7 @@ def main(args):
 	snpeff.check_install("snpeff")
 	vcflib.check_install("bgzip")
 	vcflib.check_install("tabix")
+	
 
 def check_dependencies():
 		"""Ensure required tools for installation are present.
