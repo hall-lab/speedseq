@@ -66,7 +66,7 @@ sudo apt-get update
 sudo apt-get install build-essential cmake gpp gcc git make python2.7 python-dev python-yaml ncurses-dev zlib1g-dev 
 ~~~~~~~~~~~~~~~~~~~
 
-###Automatic installation (coming soon)
+###Automatic installation
 
 `speedseq` can be installed with the following commands:
 ~~~~~~~~~~~~~~~~~~
