@@ -98,7 +98,7 @@ class INSTALLER(object):
 			self.installcmd = "./configure && sudo make && sudo make install"
 		elif (method == "python2.7"):
 			#This only applies to gemini, uses pip install
-			self.installcmd =  "python2.7 gemini_install.py /usr/local " + self.installdir
+			self.installcmd =  "python2.7 gemini_install.py /usr/local " + self.installdir + " && gemini update"
 		else:
 			self.installcmd = 'echo "snpEff is java"'
 		if not self.quiet:
