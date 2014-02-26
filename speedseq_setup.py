@@ -127,7 +127,7 @@ class INSTALLER(object):
 	def get_update(self):
 		needInput = True
 		while needInput:
-			s = raw_input(self.name + " was found. Do you want to install/update anyway? (y/N)\n")
+			s = raw_input(self.name + " was found. Do you want to install/update anyway? [y/N]\n")
 			s = s.lower()
 			if ((s == "n") or (s == "no")):
 				print "\nNot installing/updating " + self.name + "...\nWARNING: speedseq may not properly" + \
@@ -139,7 +139,7 @@ class INSTALLER(object):
 				self.update = True
 				needInput = False
 			else:
-				print "\nUnrecognized input, please input y/N"
+				print "\nUnrecognized input, please input yes or no [y/N]"
 				needInput = True
 
 def which(prgm):
