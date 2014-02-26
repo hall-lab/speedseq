@@ -72,7 +72,7 @@ sudo apt-get install build-essential cmake gpp gcc git make python2.7 python-dev
 ~~~~~~~~~~~~~~~~~~
 	git clone https://github.com/cc2qe/speedseq
 	cd speedseq
-	sudo python setup.py install
+	python speedseq_setup.py install
 	sudo cp -r bin/* /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 
