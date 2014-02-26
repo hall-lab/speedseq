@@ -127,7 +127,7 @@ class INSTALLER(object):
 	def get_update(self):
 		needInput = True
 		while needInput:
-			s =  raw_input(self.name + " was found. Do you want to install/update anyway? (y/N)\n")
+			s = raw_input(self.name + " was found. Do you want to install/update anyway? (y/N)\n")
 			s = s.lower()
 			if ((s == "n") or (s == "no")):
 				print "\nNot installing/updating " + self.name + "...\nWARNING: speedseq may not properly" + \
