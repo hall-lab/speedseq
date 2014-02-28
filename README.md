@@ -38,7 +38,7 @@ genomic variation (single nucleotide variants (SNVs), indels, and structural var
 
 ##Installation
 
-There is an automatic (coming soon) and manual installation process for `speedseq`.
+There is an automatic and manual installation process for `speedseq`.
 
 The following are required for both installations:
 - cmake
