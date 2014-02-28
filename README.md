@@ -11,7 +11,7 @@ Current support for Linux only
 1. [Summary](#summary)
 2. [Constitutive Pipeline Tools](#constitutive-pipeline-tools-required)
 3. [Installation](#installation)
-  * [Automatic Installation](#automatic-installation-coming-soon)
+  * [Automatic Installation](#automatic-installation)
   * [Manual Installation](#manual-installation)
 4. [Usage](#usage)
 5. [Annotations](#annotations)
@@ -46,7 +46,7 @@ The following are required for both installations:
 - gcc
 - git
 - make
-- python27
+- python2.7
 - python-devel
 - python-yaml
 - ncurses-devel
