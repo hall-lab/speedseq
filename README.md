@@ -42,7 +42,7 @@ There is an automatic and manual installation process for `speedseq`.
 
 The following are required for both installations:
 - cmake
-- g++
+- g++ 4.3 or later
 - gcc
 - git
 - make
