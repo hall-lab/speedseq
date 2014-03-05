@@ -939,7 +939,13 @@ global options:
 	echo "done"
     fi
 
-    echo -n "Running LUMPY... "
+    echo "Running LUMPY... "
+    if [[ "$VERBOSE" -eq 1 ]]
+    then
+	echo "
+$LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FMT $LUMPY_DISC_STRING $LUMPY_SPL_STRING > $OUTPUT.bedpe
+        "
+    fi
     # call lumpy
     $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES \
 	$EXCLUDE_BED_FMT \
