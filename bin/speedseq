@@ -102,7 +102,7 @@ global options:
     TEMP_DIR="./temp"
     VERBOSE=0
 
-    while getopts ":hw:o:R:pic:m:t:T:v:K:" OPTION
+    while getopts ":hw:o:R:pic:m:t:T:vK:" OPTION
     do
 	case "${OPTION}" in
 	    h)
@@ -224,13 +224,41 @@ global options:
 
     echo "Aligning..."
 
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo "
+        mkdir -p $TEMP_DIR/full $TEMP_DIR/spl $TEMP_DIR/disc
+        mkfifo $TEMP_DIR/spl_pipe $TEMP_DIR/disc_pipe"
+    fi
+
     # create temp files
     mkdir -p $TEMP_DIR/full $TEMP_DIR/spl $TEMP_DIR/disc
-    mkfifo $TEMP_DIR/spl_pipe $TEMP_DIR/disc_pipe
+    if [[ ! -e $TEMP_DIR/spl_pipe ]]
+    then
+	mkfifo $TEMP_DIR/spl_pipe
+    fi
+    if [[ ! -e $TEMP_DIR/disc_pipe ]]
+    then
+	mkfifo $TEMP_DIR/disc_pipe
+    fi
 
     # alignment command
     if [[ $INTERLEAVED -eq 1 ]]
     then
+	if [[ $VERBOSE -eq 1 ]]
+	then
+	    echo -e "
+        $BWA mem -t $THREADS -M -p $RG_FMT $REF $FQ | \\
+            $SAMBLASTER $INCLUDE_DUPS -c $MAX_SPLIT_COUNT -m $MIN_NON_OVERLAP -s $TEMP_DIR/spl_pipe -d $TEMP_DIR/disc_pipe | \\
+            $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
+            $SAMBAMBA sort -t $THREADS -m 8G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
+
+        $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \\
+            $SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
+        $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \\
+            $SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin"
+	fi
+
 	echo "
         $BWA mem -t $THREADS -M -p $RG_FMT $REF $FQ | \
 	    $SAMBLASTER $INCLUDE_DUPS -c $MAX_SPLIT_COUNT -m $MIN_NON_OVERLAP -s $TEMP_DIR/spl_pipe -d $TEMP_DIR/disc_pipe | \
@@ -243,6 +271,20 @@ global options:
 	    $SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
         " | parallel -j 3
     else
+	if [[ $VERBOSE -eq 1 ]]
+	then
+        echo -e "
+        $BWA mem -t $THREADS -M $RG_FMT $REF $FQ1 $FQ2 | \\
+            $SAMBLASTER $INCLUDE_DUPS -c $MAX_SPLIT_COUNT -m $MIN_NON_OVERLAP -s $TEMP_DIR/spl_pipe -d $TEMP_DIR/disc_pipe | \\
+            $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
+            $SAMBAMBA sort -t $THREADS -m 8G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
+
+        $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \\
+            $SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
+        $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \\
+            $SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin"
+	fi
+
         echo "
         $BWA mem -t $THREADS -M $RG_FMT $REF $FQ1 $FQ2 | \
             $SAMBLASTER $INCLUDE_DUPS -c $MAX_SPLIT_COUNT -m $MIN_NON_OVERLAP -s $TEMP_DIR/spl_pipe -d $TEMP_DIR/disc_pipe | \
@@ -257,6 +299,14 @@ global options:
     fi
     
     # index the files
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo -e "
+        $SAMBAMBA index $OUTPUT.bam
+            $SAMBAMBA index $OUTPUT.discordants.bam
+            $SAMBAMBA index $OUTPUT.splitters.bam"
+    fi
+
     echo "
     $SAMBAMBA index $OUTPUT.bam
     $SAMBAMBA index $OUTPUT.discordants.bam
@@ -265,6 +315,8 @@ global options:
 
     # clean up
     rm -r $TEMP_DIR
+
+    echo "Done"
 
     # exit cleanly
     exit 0
