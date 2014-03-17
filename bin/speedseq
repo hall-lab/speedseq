@@ -824,6 +824,11 @@ options:
 
     # make vcf header
     i=`head -n 1 $WINDOWS | awk '{print $1":"$2".."$3}'`
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo -e "
+        grep \"^#\" $TEMP_DIR/$OUTBASE.$i.vcf > $TEMP_DIR/header.txt"
+    fi
     grep "^#" $TEMP_DIR/$OUTBASE.$i.vcf > $TEMP_DIR/header.txt
 
     # get the tumor and normal readgroups
@@ -833,6 +838,14 @@ options:
     if [[ "$ANNOTATE" == "true" ]]
     then
         # merge the vcf region files, with snpEff annotation
+	if [[ $VERBOSE -eq 1 ]]
+	then
+	    echo -e "
+        cat $TEMP_DIR/$OUTBASE.\"\$chrom:\$start..\$end\".vcf | grep -v \"^#\" \\
+            | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \\
+            | $JAVA -jar $SNPEFF -t -c $SNPEFF_CONFIG -v $SNPEFF_GENOME \\
+            | $BGZIP -c > $OUTPUT.vcf.gz"
+	fi    
 	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
 	do
             # if this fails then it bails out the script, unless || true present
@@ -843,6 +856,13 @@ options:
             | $BGZIP -c > $OUTPUT.vcf.gz
     else
         # merge the vcf region files, without snpEff annotation
+	if [[ $VERBOSE -eq 1 ]]
+	then
+	    echo -e "
+        cat $TEMP_DIR/$OUTBASE.\"\$chrom:\$start..\$end\".vcf | grep -v \"^#\" \\
+            | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \\
+            | $BGZIP -c > $OUTPUT.vcf.gz"
+	fi    
 	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
 	do
             # if this fails then it bails out the script
@@ -853,10 +873,22 @@ options:
     fi
 
     # index the vcf
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo -e "
+        $TABIX -f -p vcf $OUTPUT.vcf.gz"
+    fi
     $TABIX -f -p vcf $OUTPUT.vcf.gz
 
     # clean up
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo -e "
+        rm -r $TEMP_DIR"
+    fi
     rm -r $TEMP_DIR
+
+    echo "Done"
 
     # exit cleanly
     exit 0
