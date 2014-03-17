@@ -478,16 +478,37 @@ options:
     echo "Calling variants..."
 
     # make temporary directory
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo "
+        mkdir -p $TEMP_DIR"
+    fi
     mkdir -p $TEMP_DIR
 
     # if no windows file, then make naive windows based on the chroms
     if [[ -z $WINDOWS ]]
     then
+	if [[ $VERBOSE -eq 1 ]]
+	then
+	    echo -e "
+        $SAMBAMBA view -H ${BAM_LIST[0]} | grep \"^@SQ\" | cut -f 2- | awk '{ gsub(\"^SN:\",\"\",\$1); gsub(\"^LN:\",\"\",\$2); print \$1\"\\\t0\\\t\"\$2; }' > $TEMP_DIR/windows.bed"
+	fi
+
 	$SAMBAMBA view -H ${BAM_LIST[0]} | grep "^@SQ" | cut -f 2- | awk '{ gsub("^SN:","",$1); gsub("^LN:","",$2); print $1"\t0\t"$2; }' > $TEMP_DIR/windows.bed
 	WINDOWS="$TEMP_DIR/windows.bed"
     fi
     
     # call variants on each of the windows in parallel
+    if [[ $VERBOSE ]]
+    then
+	echo -e "
+        $FREEBAYES \\
+            -f $REF \\
+            --region \$chrom:\$start..\$end \\
+            $BAM_STRING \\
+            > ${TEMP_DIR}/$OUTBASE.$i.vcf"
+    fi
+
     for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
     do
 	echo "$FREEBAYES \
@@ -498,25 +519,50 @@ options:
     done > $TEMP_DIR/var_command.txt
 
     # run the parallel freebayes command
+    if [[ $VERBOSE ]]
+    then
+	echo "
+        cat $TEMP_DIR/var_command.txt | parallel -j $THREADS"
+    fi
     cat $TEMP_DIR/var_command.txt | parallel -j $THREADS
 
     # make vcf header
     i=`head -n 1 $WINDOWS | awk '{print $1":"$2".."$3}'`
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo -e "
+        grep \"^#\" $TEMP_DIR/$OUTBASE.$i.vcf > $TEMP_DIR/header.txt"
+    fi
     grep "^#" $TEMP_DIR/$OUTBASE.$i.vcf > $TEMP_DIR/header.txt
 
     if [[ "$ANNOTATE" == "true" ]]
     then
 	# merge the vcf region files, with snpEff annotation
+	if [[ $VERBOSE -eq 1 ]]
+	then
+	    echo -e "
+        cat $TEMP_DIR/$OUTBASE.\"\$chrom:\$start..\$end\".vcf | grep -v \"^#\" \\
+            | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \\
+            | $JAVA -jar $SNPEFF -c $SNPEFF_CONFIG -v $SNPEFF_GENOME \\
+            | $BGZIP -c > $OUTPUT.vcf.gz"
+	fi
 	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
         do
             # if this fails then it bails out the script unless || true present
-	        cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
+	    cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
         done \
             | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \
 	    | $JAVA -jar $SNPEFF -c $SNPEFF_CONFIG -v $SNPEFF_GENOME \
             | $BGZIP -c > $OUTPUT.vcf.gz
     else
         # merge the vcf region files, without snpEff annotation
+	if [[ $VERBOSE -eq 1 ]]
+	then
+	    echo -e "
+        cat $TEMP_DIR/$OUTBASE.\"$chrom:\$start..\$end\".vcf | grep -v \"^#\" \\
+            | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \\
+            | $BGZIP -c > $OUTPUT.vcf.gz"
+	fi
         for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
 	do
             # if this fails then it bails out the script
@@ -527,10 +573,22 @@ options:
     fi
 
     # index the vcf
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo -e "
+	$TABIX -f -p vcf $OUTPUT.vcf.gz"
+    fi
     $TABIX -f -p vcf $OUTPUT.vcf.gz
 
     # clean up
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo -e "
+        rm -r $TEMP_DIR"
+    fi
     rm -r $TEMP_DIR
+
+    echo "Done"
 
     # exit cleanly
     exit 0
@@ -710,16 +768,39 @@ options:
     echo "Calling somatic variants..."
     
     # make temporary directory
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo -e "
+        mkdir -p $TEMP_DIR"
+    fi
     mkdir -p $TEMP_DIR
 
     # if no windows file, then make naive windows based on the chroms
     if [[ -z $WINDOWS ]]
     then
-        $SAMBAMBA view -H ${BAM_LIST[0]} | grep "^@SQ" | cut -f 2- | awk '{ gsub("^SN:","",$1); gsub("^LN:","",$2); print $1"\t0\t"$2; }' > $TEMP_DIR/windows.bed
+	if [[ $VERBOSE -eq 1 ]]
+	then
+	    echo -e "
+        $SAMBAMBA view -H ${NORMAL_BAM} | grep \"^@SQ\" | cut -f 2- | awk '{ gsub(\"^SN:\",\"\",\$1); gsub(\"^LN:\",\"\",\$2); print \$1\"\\\t0\\\t\"\$2; }' > $TEMP_DIR/windows.bed"
+	fi
+        $SAMBAMBA view -H ${NORMAL_BAM} | grep "^@SQ" | cut -f 2- | awk '{ gsub("^SN:","",$1); gsub("^LN:","",$2); print $1"\t0\t"$2; }' > $TEMP_DIR/windows.bed
         WINDOWS="$TEMP_DIR/windows.bed"
     fi
 
     # write command to call variants on each of the windows in parallel
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo -e "
+        $FREEBAYES -f $REF \\
+            --pooled-discrete \\
+            --genotype-qualities \\
+            --min-alternate-fraction ${MIN_ALT_FRACTION} \\
+            --min-alternate-count ${MIN_ALT_COUNT} \\
+            --region \$chrom:\$start..\$end \\
+            $NORMAL_BAM $TUMOR_BAM \\
+            | awk '\$6>=$QUAL' \\
+            > ${TEMP_DIR}/$OUTBASE.\$chrom:\$start..\$end.vcf"
+    fi
     for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
     do
 	echo "$FREEBAYES -f $REF \
@@ -734,6 +815,11 @@ options:
     done > $TEMP_DIR/var_command.txt
 
     # run the freebayes command in parallel
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo -e "
+        cat $TEMP_DIR/var_command.txt | parallel -j $THREADS"
+    fi
     cat $TEMP_DIR/var_command.txt | parallel -j $THREADS
 
     # make vcf header
