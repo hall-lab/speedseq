@@ -278,7 +278,7 @@ def main(args):
 	gsl.check_install("gsl-config")
 	lumpy.check_install("lumpy")
 	parallel.check_install("parallel")
-	sambamba.check_install("sambamba_v0.4.4")
+	sambamba.check_install("sambamba_v0.4.6")
 	samblaster.check_install("samblaster")
 	snpeff.check_install("snpeff")
 	vcflib.check_install("bgzip")
