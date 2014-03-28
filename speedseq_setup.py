@@ -211,7 +211,7 @@ def main(args):
 		url="https://github.com/arq5x/lumpy-sv/archive/0.1.6.tar.gz"
 		lumpy.download("curl", url)
 		lumpy.unpack("tar")
-		lumpy.install("make", "0.1.6.tar.gz")
+		lumpy.install("make", "lumpy-sv-0.1.6.tar.gz")
 		lumpy.cp_bin("lumpy-sv-0.1.6/bin", args.targetbin)
 		lumpy.cp_bin("lumpy-sv-0.1.6/scripts", args.targetbin)
 	#parallel install
