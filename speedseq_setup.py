@@ -192,28 +192,28 @@ def main(args):
 		gemini.install("python2.7", "/usr/local/share/gemini")
 		gemini.cp_bin("/usr/local/gemini/bin", args.targetbin)
 	#gsl install
-	gsl = INSTALLER("gsl", args.quiet)
-	gsl.check_install("gsl-config")
-	if (gsl.isInstalled):
-		gsl.get_update()
-	if (gsl.notInstalled or gsl.update):
-		url = "ftp://ftp.gnu.org/gnu/gsl/gsl-1.9.tar.gz"
-		gsl.download("curl", url)
-		gsl.unpack("tar")
-		os.chdir("gsl-1.9")
-		gsl.install("confmake", "gsl-1.9")
+	#gsl = INSTALLER("gsl", args.quiet)
+	#gsl.check_install("gsl-config")
+	#if (gsl.isInstalled):
+	#	gsl.get_update()
+	#if (gsl.notInstalled or gsl.update):
+	#	url = "ftp://ftp.gnu.org/gnu/gsl/gsl-1.9.tar.gz"
+	#	gsl.download("curl", url)
+	#	gsl.unpack("tar")
+	#	os.chdir("gsl-1.9")
+	#	gsl.install("confmake", "gsl-1.9")
 	#lumpy install
 	lumpy = INSTALLER("lumpy", args.quiet)
 	lumpy.check_install("lumpy")
 	if (lumpy.isInstalled):
 		lumpy.get_update()
 	if (lumpy.notInstalled or lumpy.update):
-		url="https://github.com/arq5x/lumpy-sv/archive/v0.1.5.tar.gz"
+		url="https://github.com/arq5x/lumpy-sv/archive/v0.1.6.tar.gz"
 		lumpy.download("curl", url)
 		lumpy.unpack("tar")
-		lumpy.install("make", "lumpy-sv-0.1.5")
-		lumpy.cp_bin("lumpy-sv-0.1.5/bin", args.targetbin)
-		lumpy.cp_bin("lumpy-sv-0.1.5/scripts", args.targetbin)
+		lumpy.install("make", "lumpy-sv-0.1.6")
+		lumpy.cp_bin("lumpy-sv-0.1.6/bin", args.targetbin)
+		lumpy.cp_bin("lumpy-sv-0.1.6/scripts", args.targetbin)
 	#parallel install
 	parallel = INSTALLER("parallel", args.quiet)
 	parallel.check_install("parallel")
