@@ -255,7 +255,6 @@ def main(args):
 		snpeff.download("wget", url)
 		snpeff.unpack("unzip")
 		snpeff.install(None, "snpEff")
-		snpeff.cp_bin("snpEff/snpeff", args.targetbin)
 		snpeff.cp_bin("snpEff/snpEff.config", args.targetbin)
 		snpeff.cp_bin("snpEff/snpEff.jar", args.targetbin)
 		snpeff.cp_bin("snpEff/scripts", args.targetbin)
