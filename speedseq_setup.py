@@ -231,10 +231,10 @@ def main(args):
 	if (sambamba.isInstalled):
 		sambamba.get_update()
 	if (sambamba.notInstalled or sambamba.update):
-		url = "https://github.com/lomereiter/sambamba/releases/download/v0.4.4/sambamba_v0.4.4_centos5.tar.bz2"
+		url = "https://github.com/lomereiter/sambamba/releases/download/v0.4.6-beta/sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2"
 		sambamba.download("curl", url)
 		sambamba.unpack("tar")
-		sambamba.cp_bin("sambamba_v0.4.4", args.targetbin)
+		sambamba.cp_bin("sambamba_v0.4.6", args.targetbin)
 	#samblaster install	
 	samblaster = INSTALLER("samblaster", args.quiet)
 	samblaster.check_install("samblaster")
