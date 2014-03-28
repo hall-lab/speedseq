@@ -212,8 +212,8 @@ def main(args):
 		lumpy.download("curl", url)
 		lumpy.unpack("tar")
 		lumpy.install("make", "v0.1.6.tar.gz")
-		lumpy.cp_bin("v0.1.6.tar.gz/bin", args.targetbin)
-		lumpy.cp_bin("v0.1.6.tar.gz/scripts", args.targetbin)
+		lumpy.cp_bin("lumpy-sv-0.1.6/bin", args.targetbin)
+		lumpy.cp_bin("lumpy-sv-0.1.6/scripts", args.targetbin)
 	#parallel install
 	parallel = INSTALLER("parallel", args.quiet)
 	parallel.check_install("parallel")
