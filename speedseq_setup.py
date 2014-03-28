@@ -191,17 +191,6 @@ def main(args):
 		gemini.download("wget", url)
 		gemini.install("python2.7", "/usr/local/share/gemini")
 		gemini.cp_bin("/usr/local/gemini/bin", args.targetbin)
-	#gsl install
-	#gsl = INSTALLER("gsl", args.quiet)
-	#gsl.check_install("gsl-config")
-	#if (gsl.isInstalled):
-	#	gsl.get_update()
-	#if (gsl.notInstalled or gsl.update):
-	#	url = "ftp://ftp.gnu.org/gnu/gsl/gsl-1.9.tar.gz"
-	#	gsl.download("curl", url)
-	#	gsl.unpack("tar")
-	#	os.chdir("gsl-1.9")
-	#	gsl.install("confmake", "gsl-1.9")
 	#lumpy install
 	lumpy = INSTALLER("lumpy", args.quiet)
 	lumpy.check_install("lumpy")
@@ -226,8 +215,8 @@ def main(args):
 		parallel.install("confmake", "parallel-20100424")
 		parallel.cp_bin("parallel-20100424/src/parallel", args.targetbin)
 	#sambamba install
-	sambamba = INSTALLER("sambamba_v0.4.4", args.quiet)
-	sambamba.check_install("sambamba_v0.4.4")
+	sambamba = INSTALLER("sambamba_v0.4.6", args.quiet)
+	sambamba.check_install("sambamba_v0.4.6")
 	if (sambamba.isInstalled):
 		sambamba.get_update()
 	if (sambamba.notInstalled or sambamba.update):
@@ -274,7 +263,6 @@ def main(args):
 	bwa.check_install("bwa")
 	freebayes.check_install("freebayes")
 	gemini.check_install("gemini")
-	gsl.check_install("gsl-config")
 	lumpy.check_install("lumpy")
 	parallel.check_install("parallel")
 	sambamba.check_install("sambamba_v0.4.6")
