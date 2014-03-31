@@ -95,7 +95,7 @@ global options:
     INTERLEAVED=0
     RG_FMT=""
     OUTPUT=""
-    INCLUDE_DUPS="-e"
+    INCLUDE_DUPS="--excludeDups"
     MAX_SPLIT_COUNT=2
     MIN_NON_OVERLAP=20
     THREADS=1
@@ -249,7 +249,7 @@ global options:
 	then
 	    echo -e "
         $BWA mem -t $THREADS -M -p $RG_FMT $REF $FQ | \\
-            $SAMBLASTER $INCLUDE_DUPS -c $MAX_SPLIT_COUNT -m $MIN_NON_OVERLAP -s $TEMP_DIR/spl_pipe -d $TEMP_DIR/disc_pipe | \\
+            $SAMBLASTER $INCLUDE_DUPS --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t $THREADS -m 8G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
@@ -261,7 +261,7 @@ global options:
 
 	echo "
         $BWA mem -t $THREADS -M -p $RG_FMT $REF $FQ | \
-	    $SAMBLASTER $INCLUDE_DUPS -c $MAX_SPLIT_COUNT -m $MIN_NON_OVERLAP -s $TEMP_DIR/spl_pipe -d $TEMP_DIR/disc_pipe | \
+	    $SAMBLASTER $INCLUDE_DUPS --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
 	    $SAMBAMBA sort -t $THREADS -m 8G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
         
@@ -275,7 +275,7 @@ global options:
 	then
         echo -e "
         $BWA mem -t $THREADS -M $RG_FMT $REF $FQ1 $FQ2 | \\
-            $SAMBLASTER $INCLUDE_DUPS -c $MAX_SPLIT_COUNT -m $MIN_NON_OVERLAP -s $TEMP_DIR/spl_pipe -d $TEMP_DIR/disc_pipe | \\
+            $SAMBLASTER $INCLUDE_DUPS --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t $THREADS -m 8G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
@@ -287,7 +287,7 @@ global options:
 
         echo "
         $BWA mem -t $THREADS -M $RG_FMT $REF $FQ1 $FQ2 | \
-            $SAMBLASTER $INCLUDE_DUPS -c $MAX_SPLIT_COUNT -m $MIN_NON_OVERLAP -s $TEMP_DIR/spl_pipe -d $TEMP_DIR/disc_pipe | \
+            $SAMBLASTER $INCLUDE_DUPS --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
             $SAMBAMBA sort -t $THREADS -m 8G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
