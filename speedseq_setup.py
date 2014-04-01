@@ -230,10 +230,11 @@ def main(args):
 	if (samblaster.isInstalled):
 		samblaster.get_update()
 	if (samblaster.notInstalled or samblaster.update):
-		url = "git://github.com/GregoryFaust/samblaster.git"
-		samblaster.download("git", url)
-		samblaster.install("make", "samblaster")
-		samblaster.cp_bin("samblaster/samblaster", args.targetbin)
+		url = "https://github.com/GregoryFaust/samblaster/archive/0.1.14.tar.gz"
+		samblaster.download("curl", url)
+		samblaster.unpack("tar")
+		samblaster.install("make", "samblaster-0.1.14")
+		samblaster.cp_bin("samblaster-0.1.14/samblaster", args.targetbin)
 	#snpeff install
 	snpeff = INSTALLER("snpeff", args.quiet)
 	snpeff.check_install("snpeff")
