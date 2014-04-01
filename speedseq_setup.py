@@ -177,11 +177,10 @@ def main(args):
 	if (freebayes.isInstalled):
 		freebayes.get_update()
 	if (freebayes.notInstalled or freebayes.update):
-		url="https://github.com/ekg/freebayes/archive/v0.9.14.tar.gz"
-		freebayes.download("curl", url)
-		freebayes.unpack("tar")
-		freebayes.install("make", "freebayes-0.9.14")
-		freebayes.cp_bin("freebayes-0.9.14/bin", args.targetbin)
+		url="git://github.com/ekg/freebayes"
+		freebayes.download("git", url)
+		freebayes.install("make", "freebayes")
+		freebayes.cp_bin("freebayes/bin", args.targetbin)
     	#gemini install
 	gemini = INSTALLER("gemini", args.quiet)
 	gemini.check_install("gemini")
