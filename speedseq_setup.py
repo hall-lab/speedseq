@@ -260,7 +260,7 @@ def main(args):
 		vcflib.cp_bin("vcflib/tabixpp/tabix", args.targetbin)
 		vcflib.cp_bin("vcflib/bin", args.targetbin)
 	
-	print "Checking speedseq installations...\n"
+	print "Checking installations...\n"
 	bwa.check_install("bwa")
 	freebayes.check_install("freebayes")
 	gemini.check_install("gemini")
@@ -270,8 +270,7 @@ def main(args):
 	samblaster.check_install("samblaster")
 	snpeff.check_install("snpeff")
 	vcflib.check_install("bgzip")
-	vcflib.check_install("tabix")
-	
+
 
 def check_dependencies():
 		"""Ensure required tools for installation are present.
