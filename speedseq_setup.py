@@ -9,7 +9,7 @@ Handles installation of:
 
 Requires: 
 Linux packages: cmake gcc-c++ gcc git make python27 python-devel python-yaml ncurses-devel zlib-devel 
-Bioinformatics software: BWA, FREEBAYES, GEMINI (bedtools, samtools, pybedtools), LUMPY (GSL), PARALLEL, SAMBAMBA, SAMBLASTER, SNPEFF, VCFLIB
+Bioinformatics software: BWA, FREEBAYES, GEMINI (bedtools, samtools, pybedtools), LUMPY, PARALLEL, SAMBAMBA, SAMBLASTER, SNPEFF, VCFLIB
 
 Run speedseq_install.py -h for usage.
 """
@@ -81,7 +81,7 @@ class INSTALLER(object):
 	def unpack(self, method):
 		if (method == "tar"):
 			self.unpackcmd = "tar -xvf " + self.filename
-			#get the directory things were unpacked into, tar has 2 extentions, use basname
+			#get the directory things were unpacked into, tar has 2 extentions, use basename
 		elif (method == "unzip"):
 			self.unpackcmd = "unzip " + self.filename
 			#get the directory things were unpacked into, zip has 1 extension, use basename
@@ -197,12 +197,12 @@ def main(args):
 	if (lumpy.isInstalled):
 		lumpy.get_update()
 	if (lumpy.notInstalled or lumpy.update):
-		url="https://github.com/arq5x/lumpy-sv/archive/0.1.6.tar.gz"
+		url="https://github.com/arq5x/lumpy-sv/archive/0.2.1.tar.gz"
 		lumpy.download("curl", url)
 		lumpy.unpack("tar") 
-		lumpy.install("make", "lumpy-sv-0.1.6")
-		lumpy.cp_bin("lumpy-sv-0.1.6/bin", args.targetbin)
-		lumpy.cp_bin("lumpy-sv-0.1.6/scripts", args.targetbin)
+		lumpy.install("make", "lumpy-sv-0.2.1")
+		lumpy.cp_bin("lumpy-sv-0.2.1/bin", args.targetbin)
+		lumpy.cp_bin("lumpy-sv-0.2.1/scripts", args.targetbin)
 	#parallel install
 	parallel = INSTALLER("parallel", args.quiet)
 	parallel.check_install("parallel")
