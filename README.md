@@ -461,7 +461,7 @@ In the [`speedseq lumpy`](#speedseq-lumpy) module, we recommend excluding the ge
 
   ~~~~~~~~~~~~~~~~~~
   speedseq lumpy -o NA12878 \
-      -x annotations/ceph18.b37.exclude.2014-01-15.bed \
+      -x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
       -B NA12878.bam \
       -D NA12878.discordants.bam \
       -S NA12878.splitters.bam
@@ -520,7 +520,7 @@ In the [`speedseq lumpy`](#speedseq-lumpy) module, we recommend excluding the ge
 
   ~~~~~~~~~~~~~~~~~~
   speedseq lumpy -o cephtrio \
-      -x annotations/ceph18.b37.exclude.2014-01-15.bed \
+      -x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
       -B NA12877.bam,NA12878.bam,NA12879.bam \
       -D NA12877.discordants.bam,NA12878.discordants.bam,NA12879.discordants.bam \
       -S NA12877.splitters.bam,NA12878.splitters.bam,NA12879.splitters.bam
@@ -552,7 +552,7 @@ In the [`speedseq lumpy`](#speedseq-lumpy) module, we recommend excluding the ge
 3. Use `speedseq lumpy` to call structural variants on the tumor/normal pair.
   ~~~~~~~~~~~~~~~~~~
   speedseq lumpy -o TCGA-B6-A0I6 \
-      -x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed\
+      -x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
       -B TCGA-B6-A0I6.normal.bam,TCGA-B6-A0I6.tumor.bam \
       -D TCGA-B6-A0I6.normal.discordants.bam,TCGA-B6-A0I6.tumor.discordants.bam \
       -S TCGA-B6-A0I6.normal.splitters.bam,TCGA-B6-A0I6.tumor.splitters.bam
