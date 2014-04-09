@@ -947,6 +947,7 @@ global options:
     EXCLUDE_BED=
     TEMP_DIR="./temp"
     VERBOSE=0
+    OUTPUT=""
 
     while getopts ":hB:S:D:o:m:r:L:x:s:p:T:vK:" OPTION
     do
@@ -1051,7 +1052,7 @@ global options:
     # default OUTPUT if not provided
     if test -z "$OUTPUT"
     then
-	OUTPUT=`basename "$FULL_BAM"`
+	OUTPUT=`basename "${FULL_BAM_LIST[0]}"`
     fi
     OUTBASE=`basename "$OUTPUT"`
 
