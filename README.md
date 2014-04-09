@@ -130,17 +130,7 @@ Configure the paths to the `speedseq` dependencies by modifying the [speedseq.co
 -
 ####4) LUMPY
 
-``lumpy-sv`` can be installed and used by ``speedseq`` with the following commands:
-
-- gnu scientific library
-~~~~~~~~~~~~~~~~~~~
-	curl -OL ftp://ftp.gnu.org/gnu/gsl/gsl-1.9.tar.gz
-	tar -xvf gsl-1.9.tar.gz
-	cd gsl-1.9
-	./configure && sudo make && sudo make install
-~~~~~~~~~~~~~~~~~~~
-
-Now that software dependencies have been met, install ``lumpy-sv``:
+`lumpy-sv` can be installed and used by ``speedseq`` with the following commands:
 ~~~~~~~~~~~~~~~~~~~
 	curl -OL https://github.com/arq5x/lumpy-sv/archive/v0.2.1.tar.gz
 	tar -xvf lumpy-sv-0.2.1.tar.gz
@@ -165,9 +155,9 @@ Now that software dependencies have been met, install ``lumpy-sv``:
 
 ``sambamba`` can be installed and used by ``speedseq`` by: 
 ~~~~~~~~~~~~~~~~~~
-	curl -OL https://github.com/lomereiter/sambamba/releases/download/v0.4.4/sambamba_v0.4.4_centos5.tar.bz2
-	tar -xvf sambamba_v0.4.4_centos5.tar.bz2 
-	sudo cp sambamba_v0.4.4 /usr/local/bin/
+	curl -OL https://github.com/lomereiter/sambamba/releases/download/v0.4.6-beta/sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2
+	tar -xvf sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2
+	sudo cp sambamba_v0.4.6 /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 -
 ####7) SAMBLASTER
