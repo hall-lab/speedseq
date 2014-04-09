@@ -165,11 +165,11 @@ def main(args):
 	if (bwa.isInstalled):
 		bwa.get_update()
 	if (bwa.notInstalled or bwa.update):
-		url = "http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.6a.tar.bz2"
+		url = "http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.8.tar.bz2"
 		bwa.download("curl", url)
 		bwa.unpack("tar")
-		bwa.install("make", "bwa-0.7.6a")
-		bwa.cp_bin("bwa-0.7.6a/bwa", args.targetbin)
+		bwa.install("make", "bwa-0.7.8")
+		bwa.cp_bin("bwa-0.7.8/bwa", args.targetbin)
 		
 	#freebayes install
 	freebayes = INSTALLER("freebayes", args.quiet)

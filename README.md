@@ -98,9 +98,9 @@ Configure the paths to the `speedseq` dependencies by modifying the [speedseq.co
 
 `bwa` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
-	curl -OL http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.6a.tar.bz2
-	tar -xvf bwa-0.7.6a.tar.bz2
-	cd bwa-0.7.6a
+	curl -OL http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.8.tar.bz2
+	tar -xvf bwa-0.7.8.tar.bz2
+	cd bwa-0.7.8
 	make
 	sudo cp bwa /usr/local/bin
 ~~~~~~~~~~~~~~~~~~
