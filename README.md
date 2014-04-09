@@ -164,9 +164,10 @@ Configure the paths to the `speedseq` dependencies by modifying the [speedseq.co
 
 ``samblaster`` can be installed and used by ``speedseq`` with the following commands: 
 ~~~~~~~~~~~~~~~~~~
-	git clone git://github.com/GregoryFaust/samblaster.git
-	cd samblaster
-	make
+	curl -OL https://github.com/GregoryFaust/samblaster/archive/0.1.14.tar.gz
+	tar -xvf 0.1.14.tar.gz
+	cd samblaster-0.1.14
+	make samblaster-0.1.14
 	sudo cp samblaster /usr/local/bin/
 ~~~~~~~~~~~~~~~~~~
 -
