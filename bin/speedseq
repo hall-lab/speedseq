@@ -907,7 +907,7 @@ lumpy options:
          -o STR   output prefix [fullBam.bam]
          -x FILE  BED file to exclude
          -m INT   minimum weight for a call [4]
-         -r FLOAT trim threshold [1e-10]
+         -r FLOAT trim threshold [0]
          -L INT   read length [auto]
          -T DIR   temp directory [./temp]
 
@@ -943,7 +943,7 @@ global options:
     SPEEDSEQ_DIR=`dirname $0`
     CONFIG="$SPEEDSEQ_DIR/speedseq.config"
     MIN_WEIGHT=4
-    TRIM_THRES="1e-10"
+    TRIM_THRES=0
     EXCLUDE_BED=
     TEMP_DIR="./temp"
     VERBOSE=0
@@ -1099,13 +1099,13 @@ global options:
             # calculate stats
             $SAMBAMBA view -F "not secondary_alignment" $FULL_BAM \
 		| head -n 10000000 | tail -n 5000000 \
-		| $PAIREND_DISTRO -rl $READ_LENGTH -X 3 -N 1000000 -o ${TEMP_DIR}/$FULL_BASE.x3.histo \
+		| $PAIREND_DISTRO -rl $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$FULL_BASE.x4.histo \
 		> ${TEMP_DIR}/$FULL_BASE.insert.stats
 	    
             MEAN=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^mean" | sed 's/mean\://g'`
             STDEV=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^stdev" | sed 's/stdev\://g'`
 
-	    LUMPY_DISC_STRING="$LUMPY_DISC_STRING -pe bam_file:${DISC_BAM},histo_file:${TEMP_DIR}/${FULL_BASE}.x3.histo,mean:${MEAN},stdev:${STDEV},read_length:${READ_LENGTH},min_non_overlap:${READ_LENGTH},discordant_z:5,back_distance:20,weight:1,id:$(($i+1))0,min_mapping_threshold:20"
+	    LUMPY_DISC_STRING="$LUMPY_DISC_STRING -pe bam_file:${DISC_BAM},histo_file:${TEMP_DIR}/${FULL_BASE}.x4.histo,mean:${MEAN},stdev:${STDEV},read_length:${READ_LENGTH},min_non_overlap:${READ_LENGTH},discordant_z:5,back_distance:20,weight:1,id:$(($i+1))0,min_mapping_threshold:20"
 	done
 	echo "done"
     fi
