@@ -913,7 +913,7 @@ lumpy options:
 
          -s STR   lumpy split read parameters [auto]
                       bam_file:<splitreads.bam>,
-                      back_distance:<20>,
+                      back_distance:<10>,
                       min_mapping_threshold:<20>,
                       weight:<1>,
                       id:<11>,
@@ -927,7 +927,7 @@ lumpy options:
                       read_length:<auto>,
                       min_non_overlap:<read_length>,
                       discordant_z:<5>,
-                      back_distance:<20>,
+                      back_distance:<10>,
                       min_mapping_threshold:<20>,
                       weight:<1>,
                       id:<10>
@@ -1072,7 +1072,7 @@ global options:
             SPL_BASE=`basename "$SPL_BAM"`
             DISC_BASE=`basename "$DISC_BAM"`
 
-	    LUMPY_SPL_STRING="$LUMPY_SPL_STRING -sr bam_file:${SPL_BAM},back_distance:20,min_mapping_threshold:20,weight:1,id:$(($i+1))1,min_clip:20"
+	    LUMPY_SPL_STRING="$LUMPY_SPL_STRING -sr bam_file:${SPL_BAM},back_distance:10,min_mapping_threshold:20,weight:1,id:$(($i+1))1,min_clip:20"
 	done
     fi
 
@@ -1105,7 +1105,7 @@ global options:
             MEAN=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^mean" | sed 's/mean\://g'`
             STDEV=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^stdev" | sed 's/stdev\://g'`
 
-	    LUMPY_DISC_STRING="$LUMPY_DISC_STRING -pe bam_file:${DISC_BAM},histo_file:${TEMP_DIR}/${FULL_BASE}.x4.histo,mean:${MEAN},stdev:${STDEV},read_length:${READ_LENGTH},min_non_overlap:${READ_LENGTH},discordant_z:5,back_distance:20,weight:1,id:$(($i+1))0,min_mapping_threshold:20"
+	    LUMPY_DISC_STRING="$LUMPY_DISC_STRING -pe bam_file:${DISC_BAM},histo_file:${TEMP_DIR}/${FULL_BASE}.x4.histo,mean:${MEAN},stdev:${STDEV},read_length:${READ_LENGTH},min_non_overlap:${READ_LENGTH},discordant_z:5,back_distance:10,weight:1,id:$(($i+1))0,min_mapping_threshold:20"
 	done
 	echo "done"
     fi
