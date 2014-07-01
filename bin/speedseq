@@ -101,6 +101,7 @@ global options:
     THREADS=1
     TEMP_DIR="./temp"
     VERBOSE=0
+    SORT_MEM=40 # amount of memory for sorting, in gigabytes
 
     while getopts ":hw:o:R:pic:m:t:T:vK:" OPTION
     do
@@ -251,24 +252,24 @@ global options:
         $BWA mem -t $THREADS -M -p $RG_FMT $REF $FQ | \\
             $SAMBLASTER $INCLUDE_DUPS --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
-            $SAMBAMBA sort -t $THREADS -m 8G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
+            $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
         $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \\
-            $SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
+            $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
         $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \\
-            $SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin"
+            $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin"
 	fi
 
 	echo "
         $BWA mem -t $THREADS -M -p $RG_FMT $REF $FQ | \
 	    $SAMBLASTER $INCLUDE_DUPS --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
-	    $SAMBAMBA sort -t $THREADS -m 8G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
+	    $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
         
         $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \
-	    $SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
+	    $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
         $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
-	    $SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
+	    $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
         " | parallel -j 3
     else
 	if [[ $VERBOSE -eq 1 ]]
@@ -277,24 +278,24 @@ global options:
         $BWA mem -t $THREADS -M $RG_FMT $REF $FQ1 $FQ2 | \\
             $SAMBLASTER $INCLUDE_DUPS --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
-            $SAMBAMBA sort -t $THREADS -m 8G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
+            $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
         $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \\
-            $SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
+            $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
         $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \\
-            $SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin"
+            $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin"
 	fi
 
         echo "
         $BWA mem -t $THREADS -M $RG_FMT $REF $FQ1 $FQ2 | \
             $SAMBLASTER $INCLUDE_DUPS --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
-            $SAMBAMBA sort -t $THREADS -m 8G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
+            $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
         $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \
-            $SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
+            $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
         $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
-            $SAMBAMBA sort -t 4 -m 8G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
+            $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
         " | parallel -j 3
     fi
     
