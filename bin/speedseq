@@ -605,10 +605,12 @@ positional args:
          reference.fa
                   genome reference fasta file
          normal.bam
-                  germline BAM file. Must have readgroup information,
-                    and the SM readgroup tag will be the VCF column header
+                  germline BAM file(s) (comma separated BAMs from multiple libraries).
+                  Must have readgroup information, and the SM readgroup tag will
+                  be the VCF column header
          tumor.bam
-                  tumor BAM file. Must have readgroup information,
+                  tumor BAM file(s) (comma separated BAMs for multiple libraries).
+                    Must have readgroup information,
                     and the SM readgroup tag will be the VCF column header
 
 options:
@@ -641,8 +643,10 @@ options:
     SPEEDSEQ_DIR=`dirname $0`
     CONFIG="$SPEEDSEQ_DIR/speedseq.config"
     REF="${@:(-3):1}"
-    NORMAL_BAM="${@:(-2):1}"
-    TUMOR_BAM="${@:(-1)}"
+    NORMAL_BAM_STRING="${@:$((${OPTIND}+1))}"
+    TUMOR_BAM_STRING="${@:$((${OPTIND}+2))}"
+    # NORMAL_BAM="${@:(-2):1}"
+    # TUMOR_BAM="${@:(-1)}"
     OUTPUT=`basename "$TUMOR_BAM"`
     THREADS=1
     MIN_ALT_FRACTION=0.05
@@ -692,6 +696,14 @@ options:
         esac
     done
 
+    # parse the BAM strings
+    TUMOR_BAM_LIST=(`echo $TUMOR_BAM_STRING | tr "," " "`)
+    NORMAL_BAM_LIST=`echo $NORMAL_BAM_STRING | tr "," " "`
+
+    if [[ -z $OUTPUT ]]
+    then
+	OUTPUT=`basename "${TUMOR_BAM_LIST[0]}"`
+    fi
     OUTBASE=`basename "$OUTPUT"`
     OPTIND=0
 
@@ -754,17 +766,16 @@ options:
         somatic_usage
         echo -e "Error: Reference file $REF not found.\n"
         exit 1
-    elif [[ -z "$NORMAL_BAM" ]] || [[ ! -f "$NORMAL_BAM" ]]
-    then
-        somatic_usage
-        echo -e "Error: BAM file $NORMAL_BAM not found.\n"
-        exit 1
-    elif [[ -z "$TUMOR_BAM" ]] || [[ ! -f "$TUMOR_BAM" ]]
-    then
-        somatic_usage
-        echo -e "Error: BAM file $TUMOR_BAM not found.\n"
-        exit 1
     fi
+    for TEST_BAM in ${NORMAL_BAM_LIST[@]} ${TUMOR_BAM_LIST[@]}
+    do
+        if [[ ! -f $TEST_BAM ]]
+        then
+            somatic_usage
+            echo -e "Error: BAM file $TEST_BAM not found.\n"
+            exit 1
+        fi
+    done
 
     echo "Calling somatic variants..."
     
@@ -782,13 +793,15 @@ options:
 	if [[ $VERBOSE -eq 1 ]]
 	then
 	    echo -e "
-        $SAMBAMBA view -H ${NORMAL_BAM} | grep \"^@SQ\" | cut -f 2- | awk '{ gsub(\"^SN:\",\"\",\$1); gsub(\"^LN:\",\"\",\$2); print \$1\"\\\t0\\\t\"\$2; }' > $TEMP_DIR/windows.bed"
+        $SAMBAMBA view -H ${NORMAL_BAM_LIST[0]} | grep \"^@SQ\" | cut -f 2- | awk '{ gsub(\"^SN:\",\"\",\$1); gsub(\"^LN:\",\"\",\$2); print \$1\"\\\t0\\\t\"\$2; }' > $TEMP_DIR/windows.bed"
 	fi
-        $SAMBAMBA view -H ${NORMAL_BAM} | grep "^@SQ" | cut -f 2- | awk '{ gsub("^SN:","",$1); gsub("^LN:","",$2); print $1"\t0\t"$2; }' > $TEMP_DIR/windows.bed
+        $SAMBAMBA view -H ${NORMAL_BAM_LIST[0]} | grep "^@SQ" | cut -f 2- | awk '{ gsub("^SN:","",$1); gsub("^LN:","",$2); print $1"\t0\t"$2; }' > $TEMP_DIR/windows.bed
         WINDOWS="$TEMP_DIR/windows.bed"
     fi
 
     # write command to call variants on each of the windows in parallel
+    NORMAL_BAM_FMT=`echo $NORMAL_BAM_STRING | tr "," " "`
+    TUMOR_BAM_FMT=`echo $TUMOR_BAM_STRING | tr "," " "`
     if [[ $VERBOSE -eq 1 ]]
     then
 	echo -e "
@@ -798,7 +811,7 @@ options:
             --min-alternate-fraction ${MIN_ALT_FRACTION} \\
             --min-alternate-count ${MIN_ALT_COUNT} \\
             --region \$chrom:\$start..\$end \\
-            $NORMAL_BAM $TUMOR_BAM \\
+            $NORMAL_BAM_FMT $TUMOR_BAM_FMT \\
             | awk '\$6>=$QUAL' \\
             > ${TEMP_DIR}/$OUTBASE.\$chrom:\$start..\$end.vcf"
     fi
@@ -810,7 +823,7 @@ options:
         --min-alternate-fraction ${MIN_ALT_FRACTION} \
         --min-alternate-count ${MIN_ALT_COUNT} \
         --region $i \
-        $NORMAL_BAM $TUMOR_BAM \
+        $NORMAL_BAM_FMT $TUMOR_BAM_FMT \
         | awk '\$6>=$QUAL' \
         > ${TEMP_DIR}/$OUTBASE.$i.vcf"
     done > $TEMP_DIR/var_command.txt
