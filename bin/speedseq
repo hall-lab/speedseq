@@ -610,8 +610,8 @@ positional args:
                   be the VCF column header
          tumor.bam
                   tumor BAM file(s) (comma separated BAMs for multiple libraries).
-                    Must have readgroup information,
-                    and the SM readgroup tag will be the VCF column header
+                    Must have readgroup information, and the SM readgroup tag will
+                    be the VCF column header
 
 options:
          -o STR   output prefix [tumor.bam]
