@@ -643,10 +643,6 @@ options:
     SPEEDSEQ_DIR=`dirname $0`
     CONFIG="$SPEEDSEQ_DIR/speedseq.config"
     REF="${@:(-3):1}"
-    NORMAL_BAM_STRING="${@:$((${OPTIND}+1))}"
-    TUMOR_BAM_STRING="${@:$((${OPTIND}+2))}"
-    # NORMAL_BAM="${@:(-2):1}"
-    # TUMOR_BAM="${@:(-1)}"
     OUTPUT=`basename "$TUMOR_BAM"`
     THREADS=1
     MIN_ALT_FRACTION=0.05
@@ -697,6 +693,8 @@ options:
     done
 
     # parse the BAM strings
+    NORMAL_BAM_STRING="${@:$((${OPTIND}+1))}"
+    TUMOR_BAM_STRING="${@:$((${OPTIND}+2))}"
     TUMOR_BAM_LIST=(`echo $TUMOR_BAM_STRING | tr "," " "`)
     NORMAL_BAM_LIST=`echo $NORMAL_BAM_STRING | tr "," " "`
 
