@@ -887,14 +887,30 @@ options:
 
     if [[ "$ANNOTATE" == "true" ]]
     then
-        # merge the vcf region files, with snpEff annotation
+        # merge the vcf region files, with VEP annotation
 	if [[ $VERBOSE -eq 1 ]]
 	then
 	    echo -e "
-        cat $TEMP_DIR/$OUTBASE.\"\$chrom:\$start..\$end\".vcf | grep -v \"^#\" \\
-            | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \\
-            | $JAVA -jar $SNPEFF -t -c $SNPEFF_CONFIG -v $SNPEFF_GENOME \\
-            | $BGZIP -c > $OUTPUT.vcf.gz"
+            cat $TEMP_DIR/$OUTBASE.\"\$chrom:\$start..\$end\".vcf | grep -v \"^#\" \\
+                | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \\
+                | $VEP \\
+                --fork $THREADS \\
+                -o /dev/stdout \\
+                --force_overwrite \\
+                --offline \\
+                --no_stats \\
+                --cache \\
+                --dir_cache $VEP_CACHE_DIR \\
+                --species homo_sapiens \\
+                --sift b \\
+                --polyphen b \\
+                --symbol \\
+                --numbers \\
+                --biotype \\
+                --total_length \\
+                --vcf \\
+                --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE \\
+                | $BGZIP -c > $OUTPUT.vcf.gz"
 	fi    
 	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
 	do
@@ -902,7 +918,23 @@ options:
             cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
 	done \
             | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \
-            | $JAVA -jar $SNPEFF -t -c $SNPEFF_CONFIG -v $SNPEFF_GENOME \
+            | $VEP \
+            --fork $THREADS \
+            -o /dev/stdout \
+	    --force_overwrite \
+            --offline \
+            --no_stats \
+            --cache \
+            --dir_cache $VEP_CACHE_DIR \
+            --species homo_sapiens \
+            --sift b \
+            --polyphen b \
+            --symbol \
+            --numbers \
+            --biotype \
+            --total_length \
+            --vcf \
+            --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE
             | $BGZIP -c > $OUTPUT.vcf.gz
     else
         # merge the vcf region files, without snpEff annotation
