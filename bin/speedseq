@@ -934,7 +934,7 @@ options:
             --biotype \
             --total_length \
             --vcf \
-            --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE
+            --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE \
             | $BGZIP -c > $OUTPUT.vcf.gz
     else
         # merge the vcf region files, without snpEff annotation
