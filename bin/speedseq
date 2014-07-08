@@ -501,78 +501,25 @@ options:
 	WINDOWS="$TEMP_DIR/windows.bed"
     fi
     
-    # call variants on each of the windows in parallel
-    if [[ "$ANNOTATE" == "true" ]]
+    # construct the parallel command over windows
+    if [[ $VERBOSE ]]
     then
-
-	if [[ $VERBOSE ]]
-	then
-	    echo -e "
-            $FREEBAYES \\
-                -f $REF \\
-                --region \$chrom:\$start..\$end \\
-                $BAM_STRING \\
-                | $VEP \\
-                -o ${TEMP_DIR}/$OUTBASE.$i.vcf \\
-                --offline \\
-                --no_stats \\
-                --cache \\
-                --dir_cache $VEP_CACHE_DIR \
-                --species homo_sapiens \\
-                --sift b \\
-                --polyphen b \\
-                --symbol \\
-                --numbers \\
-                --biotype \\
-                --total_length \\
-                --vcf \\
-                --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE"
-	fi
-	
-	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
-	do
-	    echo "$FREEBAYES \
-            -f $REF \
-            --region $i \
-            $BAM_STRING \
-            | $VEP \
-            -o ${TEMP_DIR}/$OUTBASE.$i.vcf \
-            --offline \
-            --no_stats \
-            --cache \
-            --dir_cache $VEP_CACHE_DIR \
-            --species homo_sapiens \
-            --sift b \
-            --polyphen b \
-            --symbol \
-            --numbers \
-            --biotype \
-            --total_length \
-            --vcf \
-            --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE"
-	done > $TEMP_DIR/var_command.txt
-
-    # if annotate is false:
-    else
-	if [[ $VERBOSE ]]
-	then
-            echo -e "
-            $FREEBAYES \\
-                -f $REF \\
-                --region \$chrom:\$start..\$end \\
-                $BAM_STRING \\
-                > ${TEMP_DIR}/$OUTBASE.$i.vcf"
-	fi
-
-	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
-	do
-            echo "$FREEBAYES \
-            -f $REF \
-            --region $i \
-            $BAM_STRING \
+        echo -e "
+        $FREEBAYES \\
+            -f $REF \\
+            --region \$chrom:\$start..\$end \\
+            $BAM_STRING \\
             > ${TEMP_DIR}/$OUTBASE.$i.vcf"
-	done > $TEMP_DIR/var_command.txt
     fi
+    
+    for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
+    do
+        echo "$FREEBAYES \
+        -f $REF \
+        --region $i \
+        $BAM_STRING \
+        > ${TEMP_DIR}/$OUTBASE.$i.vcf"
+    done > $TEMP_DIR/var_command.txt
 
     # run the parallel freebayes command
     if [[ $VERBOSE ]]
@@ -592,20 +539,75 @@ options:
     grep "^#" $TEMP_DIR/$OUTBASE.$i.vcf > $TEMP_DIR/header.txt
 
     # merge the vcf region files
-    if [[ $VERBOSE -eq 1 ]]
+
+    if [[ "$ANNOTATE" == "true" ]]
     then
-	echo -e "
-        cat $TEMP_DIR/$OUTBASE.\"$chrom:\$start..\$end\".vcf | grep -v \"^#\" \\
-            | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \\
-            | $BGZIP -c > $OUTPUT.vcf.gz"
+        # merge the vcf region files, with VEP annotation
+	if [[ $VERBOSE -eq 1 ]]
+	then
+	    echo -e "
+            cat $TEMP_DIR/$OUTBASE.\"$chrom:\$start..\$end\".vcf | grep -v \"^#\" \\
+                | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \\
+                | $VEP \\
+                -o /dev/stdout \\
+                --force_overwrite \
+                --offline \\
+                --no_stats \\
+                --cache \\
+                --dir_cache $VEP_CACHE_DIR \\
+                --species homo_sapiens \\
+                --sift b \\
+                --polyphen b \\
+                --symbol \\
+                --numbers \\
+                --biotype \\
+                --total_length \\
+                --vcf \\
+                --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE \\
+                | $BGZIP -c > $OUTPUT.vcf.gz"
+	fi
+
+	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
+	do
+            # add "|| true" so it doesn't bail upon failure.
+	    cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
+	done \
+	    | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \
+	    | $VEP \
+            -o /dev/stdout \
+	    --force_overwrite \
+            --offline \
+            --no_stats \
+            --cache \
+            --dir_cache $VEP_CACHE_DIR \
+            --species homo_sapiens \
+            --sift b \
+            --polyphen b \
+            --symbol \
+            --numbers \
+            --biotype \
+            --total_length \
+            --vcf \
+            --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE \
+	    | $BGZIP -c > $OUTPUT.vcf.gz
+
+    else
+	if [[ $VERBOSE -eq 1 ]]
+        then
+            echo -e "
+            cat $TEMP_DIR/$OUTBASE.\"$chrom:\$start..\$end\".vcf | grep -v \"^#\" \\
+                | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \\
+                | $BGZIP -c > $OUTPUT.vcf.gz"
+        fi
+
+	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
+	do
+            # if this fails then it bails out the script
+	    cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
+	done \
+	    | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \
+	    | $BGZIP -c > $OUTPUT.vcf.gz
     fi
-    for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
-    do
-        # if this fails then it bails out the script
-	cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
-    done \
-	| $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \
-	| $BGZIP -c > $OUTPUT.vcf.gz
 
     # index the vcf
     if [[ $VERBOSE -eq 1 ]]
