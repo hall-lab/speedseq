@@ -551,7 +551,7 @@ options:
                 | $VEP \\
                 --fork $THREADS \\
                 -o /dev/stdout \\
-                --force_overwrite \
+                --force_overwrite \\
                 --offline \\
                 --no_stats \\
                 --cache \\
