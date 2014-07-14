@@ -28,9 +28,8 @@ function source_binaries() {
 	BGZIP=`which bgzip || true`
 	TABIX=`which tabix || true`
 	LUMPY=`which lumpy || true`
-	PAIREND_DISTRO=`which pairend_distro.pl || true`
+	PAIREND_DISTRO=`which pairend_distro.py || true`
     fi
-
 }
 
 ## global usage
@@ -1122,7 +1121,7 @@ global options:
     elif [[ -z  "$PAIREND_DISTRO" ]]
     then
 	lumpy_usage
-        echo -e "Error: pairend_distro.pl executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        echo -e "Error: pairend_distro.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z  "$SAMBAMBA" ]]
     then
@@ -1181,7 +1180,7 @@ global options:
             # calculate stats
             $SAMBAMBA view -F "not secondary_alignment" $FULL_BAM \
 		| head -n 10000000 | tail -n 5000000 \
-		| $PAIREND_DISTRO -rl $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$FULL_BASE.x4.histo \
+		| $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$FULL_BASE.x4.histo \
 		> ${TEMP_DIR}/$FULL_BASE.insert.stats
 	    
             MEAN=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^mean" | sed 's/mean\://g'`
