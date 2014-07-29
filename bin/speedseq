@@ -434,20 +434,15 @@ options:
 	var_usage
         echo -e "Error: tabix executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ ! -f "$SNPEFF" ]] && [[ "$ANNOTATE" == "true" ]]
+    elif [[ ! -f "$VEP" ]] && [[ "$ANNOTATE" == "true" ]]
     then
 	var_usage
-        echo -e "Error: SnpEff jar not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        echo -e "Error: VEP not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ ! -f "$SNPEFF_CONFIG" ]] && [[ "$ANNOTATE" == "true" ]]
+    elif [[ ! -f "$VEP_CACHE_DIR" ]] && [[ "$ANNOTATE" == "true" ]]
     then
 	var_usage
-        echo -e "Error: SnpEff config file not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ -z "$SNPEFF_GENOME" ]] && [[ "$ANNOTATE" == "true" ]]
-    then
-	var_usage
-        echo -e "Error: SnpEff genome annotation not specified. Please set annotation in $SPEEDSEQ_DIR/speedseq.config file\n"
+        echo -e "Error: VEP cache directory not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     fi
 
@@ -662,7 +657,7 @@ options:
                     to evaluate the position [2]
          -q FLOAT minimum variant quality to output [1]
          -T DIR   temp directory [./temp]
-         -A BOOL  annotate the vcf with snpEff (true or false) (default: true)
+         -A BOOL  annotate the vcf with VEP (true or false) (default: true)
          -K FILE  path to speedseq.config file (default: same directory as speedseq)
          -v       verbose
          -h       show this message
@@ -770,20 +765,15 @@ options:
         somatic_usage
         echo -e "Error: tabix executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ ! -f "$SNPEFF" ]] && [[ "$ANNOTATE" == "true" ]]
+    elif [[ ! -f "$VEP" ]] && [[ "$ANNOTATE" == "true" ]]
     then
         somatic_usage
-        echo -e "Error: SnpEff jar not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        echo -e "Error: VEP not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ ! -f "$SNPEFF_CONFIG" ]] && [[ "$ANNOTATE" == "true" ]]
+    elif [[ ! -f "$VEP_CACHE_DIR" ]] && [[ "$ANNOTATE" == "true" ]]
     then
         somatic_usage
-        echo -e "Error: SnpEff config file not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ -z "$SNPEFF_GENOME" ]] && [[ "$ANNOTATE" == "true" ]]
-    then
-        somatic_usage
-        echo -e "Error: SnpEff genome annotation not specified. Please set annotation in $SPEEDSEQ_DIR/speedseq.config file\n"
+        echo -e "Error: VEP cache directory not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     fi
 
@@ -936,7 +926,7 @@ options:
             --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE \
             | $BGZIP -c > $OUTPUT.vcf.gz
     else
-        # merge the vcf region files, without snpEff annotation
+        # merge the vcf region files, without VEP annotation
 	if [[ $VERBOSE -eq 1 ]]
 	then
 	    echo -e "
