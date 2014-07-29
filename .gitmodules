@@ -1,0 +1,3 @@
+[submodule "sv-tools"]
+	path = sv-tools
+	url = https://github.com/hall-lab/sv-tools.git
