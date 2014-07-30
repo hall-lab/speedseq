@@ -1,0 +1,559 @@
+#!/usr/bin/env python
+
+import pysam
+import argparse, sys
+import math, time, re
+import multiprocessing
+from collections import Counter
+from argparse import RawTextHelpFormatter
+
+__author__ = "Colby Chiang (cc2qe@virginia.edu)"
+__version__ = "$Revision: 0.0.1 $"
+__date__ = "$Date: 2014-04-28 14:31 $"
+
+# --------------------------------------
+# define functions
+
+def get_args():
+    parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter, description="\
+svgt\n\
+author: " + __author__ + "\n\
+version: " + __version__ + "\n\
+description: Compute genotype of structural variants based on breakpoint depth")
+    parser.add_argument('-f', '--splflank', type=int, required=False, default=20, help='min number of split read query bases flanking breakpoint on either side [20]')
+    parser.add_argument('-F', '--discflank', type=int, required=False, default=20, help='min number of discordant read query bases flanking breakpoint on either side. (should not exceed read length) [20]')
+    parser.add_argument('-z', '--z', type=float, required=False, default=3, help='z-score of inner-span to be considered discordant for pairs (default: 3)')
+    parser.add_argument('-v', '--input_vcf', type=argparse.FileType('r'), default=None, help='VCF input (default: stdin)')
+    parser.add_argument('-s', '--sample_list', type=str, default=None, help='name of sample(s) to genotype')
+    parser.add_argument('-B', '--bam', type=str, required=True, help='BAM file(s), comma-separated if genotyping multiple BAMs')
+    parser.add_argument('-S', '--split_bam', type=str, required=False, default=None, help='split-read bam file for sample')
+    parser.add_argument('-m', '--mean_frag_size', type=float, required=True, help='mean fragment size of library')
+    parser.add_argument('-sd', '--sd_frag_size', type=float, required=True, help='standard deviation of fragment size of library')
+    parser.add_argument('--split_weight', type=float, required=False, default=1, help='weight for split reads [1]')
+    parser.add_argument('--disc_weight', type=float, required=False, default=1, help='weight for discordant reads [1]')
+    parser.add_argument('--booster', type=float, required=False, default=1.5, help='multiplier for weights with more than one type of support [1.5]')
+    parser.add_argument('-o', '--output_vcf', type=argparse.FileType('w'), default=sys.stdout, help='output VCF to write (default: stdout)')
+    parser.add_argument('--debug', action='store_true', help='debugging verbosity')
+
+    # parse the arguments
+    args = parser.parse_args()
+
+    # if no input, check if part of pipe and if so, read stdin.
+    if args.input_vcf == None:
+        if sys.stdin.isatty():
+            parser.print_help()
+            exit(1)
+        else:
+            args.input_vcf = sys.stdin
+    # send back the user input
+    return args
+
+class Vcf(object):
+    def __init__(self):
+        self.file_format = 'VCFv4.2'
+        #self.fasta = fasta
+        self.reference = ''
+        self.sample_list = []
+        self.info_list = []
+        self.format_list = []
+        self.alt_list = []
+        self.add_format('GT', 1, 'String', 'Genotype')
+
+    def add_header(self, header):
+        for line in header:
+            if line.split('=')[0] == '##fileformat':
+                self.file_format = line.rstrip().split('=')[1]
+            elif line.split('=')[0] == '##reference':
+                self.reference = line.rstrip().split('=')[1]
+            elif line.split('=')[0] == '##INFO':
+                a = line[line.find('<')+1:line.find('>')]
+                r = re.compile(r'(?:[^,\"]|\"[^\"]*\")+')
+                self.add_info(*[b.split('=')[1] for b in r.findall(a)])
+            elif line.split('=')[0] == '##ALT':
+                a = line[line.find('<')+1:line.find('>')]
+                r = re.compile(r'(?:[^,\"]|\"[^\"]*\")+')
+                self.add_alt(*[b.split('=')[1] for b in r.findall(a)])
+            elif line.split('=')[0] == '##FORMAT':
+                a = line[line.find('<')+1:line.find('>')]
+                r = re.compile(r'(?:[^,\"]|\"[^\"]*\")+')
+                self.add_format(*[b.split('=')[1] for b in r.findall(a)])
+            elif line[0] == '#' and line[1] != '#':
+                self.sample_list = line.rstrip().split('\t')[9:]
+
+    # return the VCF header
+    def get_header(self):
+        header = '\n'.join(['##fileformat=' + self.file_format,
+                            '##fileDate=' + time.strftime('%Y%m%d'),
+                            '##reference=' + self.reference] + \
+                           [i.hstring for i in self.info_list] + \
+                           [a.hstring for a in self.alt_list] + \
+                           [f.hstring for f in self.format_list] + \
+                           ['\t'.join([
+                               '#CHROM',
+                               'POS',
+                               'ID',
+                               'REF',
+                               'ALT',
+                               'QUAL',
+                               'FILTER',
+                               'INFO',
+                               'FORMAT'] + \
+                                      self.sample_list
+                                  )])
+        return header
+
+    def add_info(self, id, number, type, desc):
+        if id not in [i.id for i in self.info_list]:
+            inf = self.Info(id, number, type, desc)
+            self.info_list.append(inf)
+
+    def add_alt(self, id, desc):
+        if id not in [a.id for a in self.alt_list]:
+            alt = self.Alt(id, desc)
+            self.alt_list.append(alt)
+
+    def add_format(self, id, number, type, desc):
+        if id not in [f.id for f in self.format_list]:
+            fmt = self.Format(id, number, type, desc)
+            self.format_list.append(fmt)
+
+    def add_sample(self, name):
+        self.sample_list.append(name)
+
+    class Info(object):
+        def __init__(self, id, number, type, desc):
+            self.id = str(id)
+            self.number = str(number)
+            self.type = str(type)
+            self.desc = str(desc)
+            # strip the double quotes around the string if present
+            if self.desc.startswith('"') and self.desc.endswith('"'):
+                self.desc = self.desc[1:-1]
+            self.hstring = '##INFO=<ID=' + self.id + ',Number=' + self.number + ',Type=' + self.type + ',Description=\"' + self.desc + '\">'
+
+    class Alt(object):
+        def __init__(self, id, desc):
+            self.id = str(id)
+            self.desc = str(desc)
+            # strip the double quotes around the string if present
+            if self.desc.startswith('"') and self.desc.endswith('"'):
+                self.desc = self.desc[1:-1]
+            self.hstring = '##ALT=<ID=' + self.id + ',Description=\"' + self.desc + '\">'
+
+    class Format(object):
+        def __init__(self, id, number, type, desc):
+            self.id = str(id)
+            self.number = str(number)
+            self.type = str(type)
+            self.desc = str(desc)
+            # strip the double quotes around the string if present
+            if self.desc.startswith('"') and self.desc.endswith('"'):
+                self.desc = self.desc[1:-1]
+            self.hstring = '##FORMAT=<ID=' + self.id + ',Number=' + self.number + ',Type=' + self.type + ',Description=\"' + self.desc + '\">'
+
+class Variant(object):
+    def __init__(self, var_list, vcf):
+        self.chrom = var_list[0]
+        self.pos = int(var_list[1])
+        self.var_id = var_list[2]
+        self.ref = var_list[3]
+        self.alt = var_list[4]
+        self.qual = float(var_list[5])
+        self.filter = var_list[6]
+        self.sample_list = vcf.sample_list
+        self.info_list = vcf.info_list
+        self.info = dict()
+        self.format_list = vcf.format_list
+        self.active_formats = list()
+        self.gts = dict()
+        # make a genotype for each sample at variant
+        for i in xrange(len(self.sample_list)):
+            s_gt = var_list[9+i].split(':')[0]
+            s = self.sample_list[i]
+            self.gts[s] = Genotype(self, s, s_gt)
+        # import the existing fmt fields
+        for i in xrange(len(self.sample_list)):
+            s = self.sample_list[i]
+            for j in zip(var_list[8].split(':'), var_list[9+i].split(':')):
+                self.gts[s].set_format(j[0], j[1])
+
+        self.info = dict()
+        i_split = [a.split('=') for a in var_list[7].split(';')] # temp list of split info column
+        for i in i_split:
+            if len(i) == 1:
+                i.append(True)
+            self.info[i[0]] = i[1]
+
+    def set_info(self, field, value):
+        if field in [i.id for i in self.info_list]:
+            self.info[field] = value
+        else:
+            sys.stderr.write('\nError: invalid INFO field, \"' + field + '\"\n')
+            exit(1)
+
+    def get_info(self, field):
+        return self.info[field]
+
+    def get_info_string(self):
+        i_list = list()
+        for info_field in self.info_list:
+            if info_field.id in self.info.keys():
+                if info_field.type == 'Flag':
+                    i_list.append(info_field.id)
+                else:
+                    i_list.append('%s=%s' % (info_field.id, self.info[info_field.id]))
+        return ';'.join(i_list)
+
+    def get_format_string(self):
+        f_list = list()
+        for f in self.format_list:
+            if f.id in self.active_formats:
+                f_list.append(f.id)
+        return ':'.join(f_list)
+
+    def genotype(self, sample_name):
+        if sample_name in self.sample_list:
+            return self.gts[sample_name]
+        else:
+            sys.stderr.write('\nError: invalid sample name, \"' + sample_name + '\"\n')
+
+    def get_var_string(self):
+        s = '\t'.join(map(str,[
+            self.chrom,
+            self.pos,
+            self.var_id,
+            self.ref,
+            self.alt,
+            '%0.2f' % self.qual,
+            self.filter,
+            self.get_info_string(),
+            self.get_format_string(),
+            '\t'.join(self.genotype(s).get_gt_string() for s in self.sample_list)
+        ]))
+        return s
+
+class Genotype(object):
+    def __init__(self, variant, sample_name, gt):
+        self.format = dict()
+        self.variant = variant
+        self.set_format('GT', gt)
+
+    def set_format(self, field, value):
+        if field in [i.id for i in self.variant.format_list]:
+            self.format[field] = value
+            if field not in self.variant.active_formats:
+                self.variant.active_formats.append(field)
+                # sort it to be in the same order as the format_list in header
+                self.variant.active_formats.sort(key=lambda x: [f.id for f in self.variant.format_list].index(x))
+        else:
+            sys.stderr.write('\nError: invalid FORMAT field, \"' + field + '\"\n')
+            exit(1)
+
+    def get_format(self, field):
+        return self.format[field]
+
+    def get_gt_string(self):
+        g_list = list()
+        for f in self.variant.active_formats:
+            if f in self.format:
+                if type(self.format[f]) == float:
+                    g_list.append('%0.2f' % self.format[f])
+                else:
+                    g_list.append(self.format[f])
+            else:
+                g_list.append('.')
+        return ':'.join(map(str,g_list))
+
+
+def log_choose(n, k):
+    r = 0.0
+    # swap for efficiency if k is more than half of n
+    if k * 2 > n:
+        k = n - k
+
+    for  d in xrange(1,k+1):
+        r += math.log(n, 10)
+        r -= math.log(d, 10)
+        n -= 1
+
+    return r
+
+# return the genotype and log10 p-value
+def bayes_gt(ref, alt):
+    # prob seeing an alt read with true genotype of of hom_ref, het, hom_alt respectively
+    p_alt = [0.2, 0.4, 0.8]
+
+    total = ref + alt
+    
+    lp_homref = log_choose(total, alt) + alt * math.log(p_alt[0], 10) + ref * math.log(1 - p_alt[0], 10)
+    lp_het = log_choose(total, alt) + alt * math.log(p_alt[1], 10) + ref * math.log(1 - p_alt[1], 10)
+    lp_homalt = log_choose(total, alt) + alt * math.log(p_alt[2], 10) + ref * math.log(1 - p_alt[2], 10)
+
+    return (lp_homref, lp_het, lp_homalt)
+
+def count_concordant(chrom, pos, min_frag, max_frag, discflank, mybam):
+    conc_count =  0
+    read_length = 100
+    # discflank = 20
+    for read in mybam.fetch(chrom, pos - max_frag, pos):
+        if read.is_reverse or not read.mate_is_reverse or read.is_secondary or read.is_unmapped or read.mate_is_unmapped or read.is_duplicate or read.mapq == 0 or read.pos + discflank > pos or read.pnext + read_length - discflank < pos:
+            continue
+        else:
+            mate = mybam.mate(read)
+            ispan1 = read.pos + discflank
+            ispan2 = mate.aend - discflank - 1
+            ispan = ispan2 - ispan1
+            if ispan2 > pos and ispan < max_frag:
+                #print mate.aend - discflank
+                conc_count += 1-1/10**read.mapq
+                #print mate
+    return conc_count
+
+def count_discordant(chrom, pos, o1, o2, min_frag, max_frag, discflank, mybam):
+    disc_counter = 0
+    read_length = 100
+    # discflank = 20
+    if o1 == '+':
+        for read in mybam.fetch(chrom, pos - max_frag, pos):
+            if read.is_reverse or read.is_secondary or read.is_unmapped or read.mate_is_unmapped or read.is_duplicate or read.mapq == 0 or read.pnext + read_length - discflank < pos:
+                continue
+
+            # +/- deletion
+            elif o2 == '-':
+                if not read.mate_is_reverse or read.pnext + read_length - discflank < pos:
+                    continue
+                else:
+                    mate = mybam.mate(read)
+                    ispan1 = read.pos + discflank
+                    ispan2 = mate.aend - discflank - 1
+                    ispan = ispan2 - ispan1
+                    if ispan > max_frag - 2*discflank:
+                        disc_counter += 1-1/10**read.mapq
+
+            # +/+ inversion
+            elif o2 == '+':
+                if not read.mate_is_reverse:
+                    # restrict this
+                    disc_counter += 1-1/10**read.mapq
+
+    if o1 == '-':
+        for read in mybam.fetch(chrom, pos, pos + max_frag):
+            if not read.is_reverse or read.is_secondary or read.is_unmapped or read.mate_is_unmapped or read.is_duplicate or read.mapq == 0 or read.pnext + read_length - discflank > pos:
+                continue
+
+            # -/+ tandem duplication
+            elif o2 == '+':
+                if not read.mate_is_reverse:
+                    disc_counter += 1-1/10**read.mapq
+
+            # -/- inversion
+            elif o2 == '-':
+                if read.mate_is_reverse:
+                    disc_counter += 1-1/10**read.mapq
+
+    return disc_counter
+
+
+
+
+# primary function
+def sv_genotype(vcf_file, sample_list, bam_list, spl_list, vcf_out, splflank, discflank, z, mean_ospan, sd_ospan, split_weight, disc_weight, booster, debug):
+    read_length = 100
+    padding = 30
+    bam = bam_list[0]
+    spl_bam = spl_list[0]
+    in_header = True
+    header = []
+    vcf = Vcf()
+
+    # spanning coverage variables
+    #mean_ospan = 320
+    #sd_ospan = 80
+    mean_ispan = mean_ospan - (2 * discflank)
+    sd_ispan = sd_ospan
+
+    for line in vcf_file:
+        if in_header:
+            if line[0] == '#':
+                header.append(line) 
+                #vcf_out.write(line)
+                if line[1] != '#':
+                    vcf_samples = line.rstrip().split('\t')[9:]
+                continue
+            else:
+                in_header = False
+                vcf.add_header(header)
+                vcf.add_format('RO', 1, 'Integer', 'Reference allele observation count, with partial observations recorded fractionally')
+                vcf.add_format('AO', 'A', 'Integer', 'Alternate allele observations, with partial observations recorded fractionally')
+                vcf_out.write(vcf.get_header() + '\n')
+                #sample = vcf.sample_list[0]
+                sample = sample_list
+
+        v = line.rstrip().split('\t')
+        var = Variant(v, vcf)
+
+        # don't try to genotype breakends
+        if var.info['SVTYPE']=='BND':
+            vcf_out.write(var.get_var_string() + '\n')
+            continue
+
+        o1, o2 =  list(var.info['STR'].split(',')[0].split(':')[0])
+        end = int(var.get_info('END'))
+
+        '''
+        Breakend A
+        '''
+        ref_counter_a = Counter()
+        spl_counter_a = Counter()
+
+        for ref_read in bam.fetch(var.chrom, var.pos - padding, var.pos + padding + 1):
+            if not ref_read.is_duplicate and not ref_read.is_unmapped and ref_read.mapq > 0:
+                for p in range(ref_read.pos + 1, ref_read.aend + 1):
+                    if p - ref_read.pos >= splflank and ref_read.aend - p >= splflank:
+                        ref_counter_a[p] += 1
+
+        for spl_read in spl_bam.fetch(var.chrom, var.pos - padding, var.pos + padding + 1):
+            if not spl_read.is_duplicate and not spl_read.is_unmapped and spl_read.mapq >0:
+                # if debug:
+                #     print spl_read.pos + 1, spl_read.aend, spl_read
+                if o1 == '+' and spl_read.cigar[0][0] == 0: # and split_read.pnext > startB - readlength:
+                    spl_counter_a[spl_read.aend] += 1
+                elif o1 == '-' and spl_read.cigar[-1][0] == 0:
+                    spl_counter_a[spl_read.pos + 1] += 1
+
+        # check whether the lumpy base matches my base
+        # vcf_out.write('%s\t' % var.pos)
+
+        '''
+        Breakend B
+        '''
+        ref_counter_b = Counter()
+        spl_counter_b = Counter()
+
+        for ref_read in bam.fetch(var.chrom, end - padding, end + padding + 1):
+            if not ref_read.is_duplicate and not ref_read.is_unmapped and ref_read.mapq > 0:
+                for p in range(ref_read.pos + 1, ref_read.aend + 1):
+                    if p - ref_read.pos >= splflank and ref_read.aend - p >= splflank:
+                        ref_counter_b[p] += 1
+
+        for spl_read in spl_bam.fetch(var.chrom, end - padding, end + padding + 1):
+            if not spl_read.is_duplicate and not spl_read.is_unmapped and ref_read.mapq > 0:
+                # if debug:
+                #     print spl_read.pos + 1, spl_read.aend, spl_read
+                if o2 == '+' and spl_read.cigar[0][0] == 0: # and split_read.pnext > startB - readlength:
+                    spl_counter_b[spl_read.aend] += 1
+                elif o2 == '-' and spl_read.cigar[-1][0] == 0:
+                    spl_counter_b[spl_read.pos + 1] += 1
+
+        #print spl_counter_a.most_common(1)[0]
+        #print spl_counter_b.most_common(1)[0]
+
+        # check whether the lumpy base matches my base
+        # vcf_out.write('%s\t' % var.pos)
+
+        # conc_counter_a = count_concordant(var.chrom, var.pos, 0, 300, bam)
+        # disc_counter_a = 0
+
+        # conc_counter_b = count_concordant(var.chrom, int(var.get_info('END')), 0, 300, bam)
+        # disc_counter_b = 0
+
+        #span_cov(var.chrom, var.pos, 220, o1, o2, bam)
+
+
+        if len(spl_counter_a) > 0:
+            var.pos = spl_counter_a.most_common(1)[0][0]
+            #print '\t'.join(map(str,(var.chrom, var.pos, ref_counter[breakend], spl_counter[breakend])))
+
+        if len(spl_counter_b) > 0:
+            var.set_info('END', int(spl_counter_b.most_common(1)[0][0]))
+
+
+
+        conc_counter_a = count_concordant(var.chrom, var.pos, 0, mean_ospan + sd_ospan * z, discflank, bam)
+        disc_counter_a = count_discordant(var.chrom, var.pos, o1, o2, 0, mean_ospan + sd_ospan * z, discflank, bam)
+
+        conc_counter_b = count_concordant(var.chrom, int(var.get_info('END')), 0, mean_ospan + sd_ospan * z, discflank, bam)
+        disc_counter_b = count_discordant(var.chrom, int(var.get_info('END')), o2, o1, 0, mean_ospan + sd_ospan * z, discflank, bam)
+
+        # print var.genotype(sample).get_format('GT')
+
+        if debug:
+            print 'pe_a', conc_counter_a, disc_counter_a
+            print 'pe_b', conc_counter_b, disc_counter_b
+            print 'sr_a', ref_counter_a[var.pos], spl_counter_a[var.pos]
+            print 'sr_b', ref_counter_b[var.get_info('END')], spl_counter_b[var.get_info('END')]
+
+        if len(spl_counter_a) + len(spl_counter_b) + disc_counter_a + disc_counter_b > 0:
+
+            split_ref = int(split_weight * (ref_counter_a[var.pos] + ref_counter_b[var.get_info('END')]))
+            split_alt = int(split_weight * (spl_counter_a[var.pos] + spl_counter_b[var.get_info('END')]))
+
+            disc_ref = int(disc_weight * (conc_counter_a + conc_counter_b))
+            disc_alt = int(disc_weight * (disc_counter_a + disc_counter_b))
+
+            # if both types of evidence, boost it.
+            if split_alt > 0 and disc_alt > 0:
+                split_ref = int(booster * split_ref)
+                split_alt = int(booster * split_alt)
+                disc_ref = int(booster * disc_ref)
+                disc_alt = int(booster * disc_alt)
+
+            gt_lplist = bayes_gt(split_ref + disc_ref, split_alt + disc_alt)
+            gt_idx = gt_lplist.index(max(gt_lplist[1:]))
+
+            if debug:
+                print gt_lplist
+
+            #var.qual = phred(gt_plist[0]/sum(gt_plist))
+            var.qual = -10 * (gt_lplist[0] - sum(10**x for x in gt_lplist))
+
+            var.genotype(sample).set_format('GQ', -10 * (gt_lplist[0] - sum(10**x for x in gt_lplist)))
+            var.genotype(sample).set_format('DP', spl_counter_a[var.pos] + ref_counter_a[var.pos] + spl_counter_b[var.get_info('END')] + ref_counter_b[var.get_info('END')] + conc_counter_a + disc_counter_a + conc_counter_b + disc_counter_b)
+            var.genotype(sample).set_format('AO', spl_counter_a[var.pos] + spl_counter_b[var.get_info('END')] + disc_counter_a + disc_counter_b)
+            var.genotype(sample).set_format('RO', ref_counter_a[var.pos] + ref_counter_b[var.get_info('END')] + conc_counter_a + conc_counter_b)
+
+            # don't genotype if LUMPY call is reference
+            if var.genotype(sample).get_format('GT') == '0/0':
+                print var.get_var_string()
+                continue
+            if gt_idx == 1:
+                var.genotype(sample).set_format('GT', '0/1')
+            elif gt_idx == 2:
+                var.genotype(sample).set_format('GT', '1/1')
+        else:
+            var.genotype(sample).set_format('GT', './.')
+            var.qual = 0
+
+        vcf_out.write(var.get_var_string() + '\n')
+    vcf_out.close()
+    
+    return
+
+# --------------------------------------
+# main function
+
+def main():
+    # parse the command line args
+    args = get_args()
+    bam_filenames = args.bam.split(',')
+    bam_list = list()
+    for bfile in bam_filenames:
+        bam_list.append(pysam.Samfile(bfile, 'rb'))
+    spl_filenames = args.split_bam.split(',')
+    spl_list = list()
+    for sfile in spl_filenames:
+        spl_list.append(pysam.Samfile(sfile, 'rb'))
+
+    # call primary function
+    sv_genotype(args.input_vcf, args.sample_list, bam_list, spl_list, args.output_vcf, args.splflank, args.discflank, args.z, args.mean_frag_size, args.sd_frag_size, args.split_weight, args.disc_weight, args.booster, args.debug)
+
+    # close the files
+    args.input_vcf.close()
+
+# initialize the script
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except IOError, e:
+        if e.errno != 32:  # ignore SIGPIPE
+            raise 

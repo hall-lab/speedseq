@@ -14,6 +14,7 @@ function source_binaries() {
 	source $1
     else
 	echo "Config file $1 not found. Attempting to auto-source executables"
+	SPEEDSEQ_HOME=$( dirname `which speedseq` )
 	BWA=`which bwa || true`
 	SAMBLASTER=`which samblaster || true`
 	SAMBAMBA=`which sambamba || true`
@@ -44,7 +45,7 @@ usage:   speedseq <command> [options]
 command: aln      align fastq files with BWA-MEM
          var      call variants with freebayes
          somatic  call somatic variants in a tumor/normal pair with freebayes
-         lumpy    call SVs with lumpy
+         sv       call SVs with lumpy
 
 options: -h       show this message
 "
@@ -966,16 +967,17 @@ options:
 
 }
 
-function lumpy() {
-    function lumpy_usage() {
+function sv() {
+    function sv_usage() {
         echo "
-usage:   speedseq lumpy [options]
+usage:   speedseq sv [options]
 
-lumpy options:
+sv options:
          -B FILE  full BAM file(s) (comma separated) (required)
          -S FILE  split reads BAM file(s) (comma separated, order as in -B) (required)
          -D FILE  discordant reads BAM files(s) (comma separated, order as in -B) (required)
          -o STR   output prefix [fullBam.bam]
+         -t INT   threads [1] 
          -x FILE  BED file to exclude
          -m INT   minimum weight for a call [4]
          -r FLOAT trim threshold [0]
@@ -1013,6 +1015,7 @@ global options:
     # set defaults
     SPEEDSEQ_DIR=`dirname $0`
     CONFIG="$SPEEDSEQ_DIR/speedseq.config"
+    THREADS=1
     MIN_WEIGHT=4
     TRIM_THRES=0
     EXCLUDE_BED=
@@ -1020,11 +1023,11 @@ global options:
     VERBOSE=0
     OUTPUT=""
 
-    while getopts ":hB:S:D:o:m:r:L:x:s:p:T:vK:" OPTION
+    while getopts ":hB:S:D:o:m:r:L:x:s:p:T:t:vK:" OPTION
     do
 	case "${OPTION}" in
             h)
-                lumpy_usage
+                sv_usage
                 exit 1
                 ;;
 	    B)
@@ -1061,6 +1064,9 @@ global options:
             T)
                 TEMP_DIR="$OPTARG"
                 ;;
+	    t)
+		THREADS="$OPTARG"
+		;;
             v)
                 VERBOSE=1
 		;;
@@ -1080,13 +1086,14 @@ global options:
     # Check that the bam files exist
     if [[ ${#FULL_BAM_LIST[@]} -eq 0 ]] || [[ ${#SPL_BAM_LIST[@]} -eq 0 ]] || [[ ${#DISC_BAM_LIST[@]} -eq 0 ]]
     then
-	lumpy_usage
+	sv_usage
+	echo "hi"
 	echo -e "Error: -B, -S, and -D are required\n"
 	exit 1
     fi
     if [[ ! ${#FULL_BAM_LIST[@]} -eq ${#SPL_BAM_LIST[@]} ]] || [[ ! ${#FULL_BAM_LIST[@]} -eq ${#DISC_BAM_LIST[@]} ]]
     then
-	lumpy_usage
+	sv_usage
 	echo -e "Error: -B, -S, and -D arguments have different lengths\n"
 	exit 1
     fi
@@ -1094,7 +1101,7 @@ global options:
     do
         if [[ ! -f $TEST_BAM ]]
         then
-            lumpy_usage
+            sv_usage
             echo -e "Error: BAM file $TEST_BAM not found.\n"
             exit 1
         fi
@@ -1105,17 +1112,17 @@ global options:
 
     if [[ -z "$LUMPY" ]]
     then
-	lumpy_usage
+	sv_usage
         echo -e "Error: lumpy executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z  "$PAIREND_DISTRO" ]]
     then
-	lumpy_usage
+	sv_usage
         echo -e "Error: pairend_distro.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z  "$SAMBAMBA" ]]
     then
-	lumpy_usage
+	sv_usage
         echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     fi
@@ -1238,8 +1245,8 @@ case "$1" in
     'somatic')
 	somatic "${@:2}"
 	;;
-    'lumpy')
-	lumpy "${@:2}"
+    'sv')
+	sv "${@:2}"
 	;;
     *)
 	usage
