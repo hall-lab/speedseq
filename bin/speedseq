@@ -976,6 +976,7 @@ sv options:
          -B FILE  full BAM file(s) (comma separated) (required)
          -S FILE  split reads BAM file(s) (comma separated, order as in -B) (required)
          -D FILE  discordant reads BAM files(s) (comma separated, order as in -B) (required)
+         -R FILE  indexed reference genome fasta file (required)
          -o STR   output prefix [fullBam.bam]
          -t INT   threads [1] 
          -x FILE  BED file to exclude
@@ -983,6 +984,7 @@ sv options:
          -r FLOAT trim threshold [0]
          -L INT   read length [auto]
          -T DIR   temp directory [./temp]
+         -k       keep temporary files
 
          -s STR   lumpy split read parameters [auto]
                       bam_file:<splitreads.bam>,
@@ -1020,10 +1022,12 @@ global options:
     TRIM_THRES=0
     EXCLUDE_BED=
     TEMP_DIR="./temp"
+    GENOTYPE=0
     VERBOSE=0
+    KEEP=0
     OUTPUT=""
 
-    while getopts ":hB:S:D:o:m:r:L:x:s:p:T:t:vK:" OPTION
+    while getopts ":hB:S:D:R:o:m:r:L:x:s:p:T:t:g:kvK:" OPTION
     do
 	case "${OPTION}" in
             h)
@@ -1038,6 +1042,9 @@ global options:
 		;;
 	    D)
 		DISC_BAM_STRING="$OPTARG"
+		;;
+	    R)
+		REF="$OPTARG"
 		;;
             o)
                 OUTPUT="$OPTARG"
@@ -1067,8 +1074,14 @@ global options:
 	    t)
 		THREADS="$OPTARG"
 		;;
+	    g)
+		GENOTYPE=1
+		;;
             v)
                 VERBOSE=1
+		;;
+	    k)
+		KEEP=1
 		;;
 	    K)
 		CONFIG="$OPTARG"
@@ -1082,30 +1095,6 @@ global options:
     DISC_BAM_LIST=(`echo $DISC_BAM_STRING | tr "," " "`)
 
     OPTIND=0
-
-    # Check that the bam files exist
-    if [[ ${#FULL_BAM_LIST[@]} -eq 0 ]] || [[ ${#SPL_BAM_LIST[@]} -eq 0 ]] || [[ ${#DISC_BAM_LIST[@]} -eq 0 ]]
-    then
-	sv_usage
-	echo "hi"
-	echo -e "Error: -B, -S, and -D are required\n"
-	exit 1
-    fi
-    if [[ ! ${#FULL_BAM_LIST[@]} -eq ${#SPL_BAM_LIST[@]} ]] || [[ ! ${#FULL_BAM_LIST[@]} -eq ${#DISC_BAM_LIST[@]} ]]
-    then
-	sv_usage
-	echo -e "Error: -B, -S, and -D arguments have different lengths\n"
-	exit 1
-    fi
-    for TEST_BAM in ${FULL_BAM_LIST[@]} ${SPL_BAM_LIST[@]} ${DISC_BAM_LIST[@]}
-    do
-        if [[ ! -f $TEST_BAM ]]
-        then
-            sv_usage
-            echo -e "Error: BAM file $TEST_BAM not found.\n"
-            exit 1
-        fi
-    done
 
     # Check the for the relevant binaries
     source_binaries $CONFIG
@@ -1127,6 +1116,41 @@ global options:
         exit 1
     fi
 
+    # Check that the required files exist
+    if [[ ! -f $REF ]]
+    then
+	sv_usage
+	echo -e "Error: reference fasta file $REF not found\n"
+	exit 1
+    fi
+    if [[ ! -f $REF.fai && ! -f $(echo ${REF%*.*}).fai ]]
+    then
+	sv_usage
+	echo -e "Error: reference fasta file $REF not indexed\n"
+	exit 1
+    fi
+    if [[ ${#FULL_BAM_LIST[@]} -eq 0 ]] || [[ ${#SPL_BAM_LIST[@]} -eq 0 ]] || [[ ${#DISC_BAM_LIST[@]} -eq 0 ]]
+    then
+	sv_usage
+	echo -e "Error: -B, -S, and -D are required\n"
+	exit 1
+    fi
+    if [[ ! ${#FULL_BAM_LIST[@]} -eq ${#SPL_BAM_LIST[@]} ]] || [[ ! ${#FULL_BAM_LIST[@]} -eq ${#DISC_BAM_LIST[@]} ]]
+    then
+	sv_usage
+	echo -e "Error: -B, -S, and -D arguments have different lengths\n"
+	exit 1
+    fi
+    for TEST_BAM in ${FULL_BAM_LIST[@]} ${SPL_BAM_LIST[@]} ${DISC_BAM_LIST[@]}
+    do
+        if [[ ! -f $TEST_BAM ]]
+        then
+            sv_usage
+            echo -e "Error: BAM file $TEST_BAM not found.\n"
+            exit 1
+        fi
+    done
+
     # default OUTPUT if not provided
     if test -z "$OUTPUT"
     then
@@ -1136,6 +1160,13 @@ global options:
 
     # make temporary directory
     mkdir -p ${TEMP_DIR}
+
+    # create the LUMPY config file for generating the VCF
+    for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
+    do
+        TEST_BAM=${FULL_BAM_LIST[$i]}
+	$SAMBAMBA view -H $TEST_BAM | grep "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j,i+1"0","PE" ; print $j,i+1"1","SR"; } } }' OFS="\t"
+    done > $TEMP_DIR/$OUTBASE.lumpy.config
 
     # if LUMPY_SPL_STRING not provided, make one
     if test -z "$LUMPY_SPL_STRING"
@@ -1200,15 +1231,24 @@ $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FM
 	$EXCLUDE_BED_FMT \
 	$LUMPY_DISC_STRING \
 	$LUMPY_SPL_STRING \
-	> $OUTPUT.bedpe
+	| bedpeToVcf -t LUMPY -c $TEMP_DIR/$OUTBASE.lumpy.config -f $REF \
+	> $TEMP_DIR/$OUTBASE.vcf
     echo "done"
 
+    # # genotype
+    # if [[ GENOTYPE -eq 1 ]]
+    # then
+    # 	svgt -v $TEMP_DIR/$OUTBASE.vcf -s NA12878 -B /mnt/hall14_local/cc2qe/platinum/bam/NA12878_S1/NA12878_S1.bam -S /mnt/hall14_local/cc2qe/platinum/bam/NA12878_S1/NA12878_S1.splitters.bam -m 320 -sd 75 -v $v.vcf
+    # fi
+
     # clean up
-    rm -r ${TEMP_DIR}
+    if [[ $KEEP -eq 0 ]]
+    then
+	rm -r ${TEMP_DIR}
+    fi
 
     # exit cleanly
     exit 0
-
 }
 
 # Show usage when there are no arguments.
