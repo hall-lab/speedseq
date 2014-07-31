@@ -24,7 +24,6 @@ description: Compute genotype of structural variants based on breakpoint depth")
     parser.add_argument('-F', '--discflank', type=int, required=False, default=20, help='min number of discordant read query bases flanking breakpoint on either side. (should not exceed read length) [20]')
     parser.add_argument('-z', '--z', type=float, required=False, default=3, help='z-score of inner-span to be considered discordant for pairs (default: 3)')
     parser.add_argument('-v', '--input_vcf', type=argparse.FileType('r'), default=None, help='VCF input (default: stdin)')
-    parser.add_argument('-s', '--sample_list', type=str, default=None, help='name of sample(s) to genotype')
     parser.add_argument('-B', '--bam', type=str, required=True, help='BAM file(s), comma-separated if genotyping multiple BAMs')
     parser.add_argument('-S', '--split_bam', type=str, required=False, default=None, help='split-read bam file for sample')
     parser.add_argument('-m', '--mean_frag_size', type=float, required=True, help='mean fragment size of library')
@@ -357,7 +356,7 @@ def count_discordant(chrom, pos, o1, o2, min_frag, max_frag, discflank, mybam):
 
 
 # primary function
-def sv_genotype(vcf_file, sample_list, bam_list, spl_list, vcf_out, splflank, discflank, z, mean_ospan, sd_ospan, split_weight, disc_weight, booster, debug):
+def sv_genotype(vcf_file, bam_list, spl_list, vcf_out, splflank, discflank, z, mean_ospan, sd_ospan, split_weight, disc_weight, booster, debug):
     read_length = 100
     padding = 30
     bam = bam_list[0]
@@ -365,6 +364,9 @@ def sv_genotype(vcf_file, sample_list, bam_list, spl_list, vcf_out, splflank, di
     in_header = True
     header = []
     vcf = Vcf()
+
+    # first get the sample name from the bam file
+    sample = bam.header['RG'][0]['SM']
 
     # spanning coverage variables
     #mean_ospan = 320
@@ -386,8 +388,6 @@ def sv_genotype(vcf_file, sample_list, bam_list, spl_list, vcf_out, splflank, di
                 vcf.add_format('RO', 1, 'Integer', 'Reference allele observation count, with partial observations recorded fractionally')
                 vcf.add_format('AO', 'A', 'Integer', 'Alternate allele observations, with partial observations recorded fractionally')
                 vcf_out.write(vcf.get_header() + '\n')
-                #sample = vcf.sample_list[0]
-                sample = sample_list
 
         v = line.rstrip().split('\t')
         var = Variant(v, vcf)
@@ -545,7 +545,7 @@ def main():
         spl_list.append(pysam.Samfile(sfile, 'rb'))
 
     # call primary function
-    sv_genotype(args.input_vcf, args.sample_list, bam_list, spl_list, args.output_vcf, args.splflank, args.discflank, args.z, args.mean_frag_size, args.sd_frag_size, args.split_weight, args.disc_weight, args.booster, args.debug)
+    sv_genotype(args.input_vcf, bam_list, spl_list, args.output_vcf, args.splflank, args.discflank, args.z, args.mean_frag_size, args.sd_frag_size, args.split_weight, args.disc_weight, args.booster, args.debug)
 
     # close the files
     args.input_vcf.close()

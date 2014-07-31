@@ -1027,7 +1027,7 @@ global options:
     KEEP=0
     OUTPUT=""
 
-    while getopts ":hB:S:D:R:o:m:r:L:x:s:p:T:t:g:kvK:" OPTION
+    while getopts ":hB:S:D:R:o:m:r:L:x:s:p:T:t:gkvK:" OPTION
     do
 	case "${OPTION}" in
             h)
@@ -1164,9 +1164,20 @@ global options:
     # create the LUMPY config file for generating the VCF
     for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
     do
-        TEST_BAM=${FULL_BAM_LIST[$i]}
-	$SAMBAMBA view -H $TEST_BAM | grep "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j,i+1"0","PE" ; print $j,i+1"1","SR"; } } }' OFS="\t"
-    done > $TEMP_DIR/$OUTBASE.lumpy.config
+        FULL_BAM=${FULL_BAM_LIST[$i]}
+        SPL_BAM=${SPL_BAM_LIST[$i]}
+        DISC_BAM=${DISC_BAM_LIST[$i]}
+
+	FULL_SAMPLE=`$SAMBAMBA view -H $FULL_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
+	SPL_SAMPLE=`$SAMBAMBA view -H $SPL_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
+	DISC_SAMPLE=`$SAMBAMBA view -H $DISC_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
+
+	echo -e "$DISC_SAMPLE\t$(($i+1))0\tPE\t$DISC_BAM"
+	echo -e "$SPL_SAMPLE\t$(($i+1))1\tSR\t$SPL_BAM"
+	echo -e "$FULL_SAMPLE\t$(($i+1))2\tRD\t$FULL_BAM"
+	echo -e "$FULL_SAMPLE\t$(($i+1))3\tFULL\t$FULL_BAM"
+	
+    done > $TEMP_DIR/$OUTBASE.sample.config
 
     # if LUMPY_SPL_STRING not provided, make one
     if test -z "$LUMPY_SPL_STRING"
@@ -1231,15 +1242,38 @@ $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FM
 	$EXCLUDE_BED_FMT \
 	$LUMPY_DISC_STRING \
 	$LUMPY_SPL_STRING \
-	| bedpeToVcf -t LUMPY -c $TEMP_DIR/$OUTBASE.lumpy.config -f $REF \
+	> $TEMP_DIR/$OUTBASE.bedpe
+
+    cat $TEMP_DIR/$OUTBASE.bedpe \
+	| bedpeToVcf -t LUMPY -c $TEMP_DIR/$OUTBASE.sample.config -f $REF \
 	> $TEMP_DIR/$OUTBASE.vcf
+
+    # make header
+    cat $TEMP_DIR/$OUTBASE.vcf | awk '$0!~"^#" {exit}; 1' > $TEMP_DIR/header.txt
     echo "done"
 
-    # # genotype
-    # if [[ GENOTYPE -eq 1 ]]
-    # then
-    # 	svgt -v $TEMP_DIR/$OUTBASE.vcf -s NA12878 -B /mnt/hall14_local/cc2qe/platinum/bam/NA12878_S1/NA12878_S1.bam -S /mnt/hall14_local/cc2qe/platinum/bam/NA12878_S1/NA12878_S1.splitters.bam -m 320 -sd 75 -v $v.vcf
-    # fi
+    # genotype in parallel
+    if [[ GENOTYPE -eq 1 ]]
+    then
+	mkdir -p $TEMP_DIR/gt
+	cat $TEMP_DIR/$OUTBASE.vcf | split -a 5 -d -l 100 - $TEMP_DIR/gt/spl
+	for s in $TEMP_DIR/gt/spl*
+	do
+	    cat $TEMP_DIR/header.txt $s > $s.vcf
+	done
+
+	for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
+	do
+	    FULL_BAM=${FULL_BAM_LIST[$i]}
+	    SPL_BAM=${SPL_BAM_LIST[$i]}
+
+	    for vcf in $TEMP_DIR/gt/spl*.vcf
+	    do
+    		echo "svgt -v $vcf -B $FULL_BAM -S $SPL_BAM -m $MEAN -sd $STDEV > $vcf.gt ; mv $vcf.gt $vcf"
+	    done | parallel -j $THREADS
+	done
+	cat $TEMP_DIR/gt/*.vcf | grep -v "^#" | cat $TEMP_DIR/header.txt - > $TEMP_DIR/$OUTBASE.vcf
+    fi
 
     # clean up
     if [[ $KEEP -eq 0 ]]
