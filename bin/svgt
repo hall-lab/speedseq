@@ -20,6 +20,7 @@ svgt\n\
 author: " + __author__ + "\n\
 version: " + __version__ + "\n\
 description: Compute genotype of structural variants based on breakpoint depth")
+    parser.add_argument('-e', '--exclude', type=argparse.FileType('r'), default=None, help='BED file to exclude')
     parser.add_argument('-f', '--splflank', type=int, required=False, default=20, help='min number of split read query bases flanking breakpoint on either side [20]')
     parser.add_argument('-F', '--discflank', type=int, required=False, default=20, help='min number of discordant read query bases flanking breakpoint on either side. (should not exceed read length) [20]')
     parser.add_argument('-z', '--z', type=float, required=False, default=3, help='z-score of inner-span to be considered discordant for pairs (default: 3)')
@@ -263,7 +264,14 @@ class Genotype(object):
                 g_list.append('.')
         return ':'.join(map(str,g_list))
 
-
+class Bed(object):
+    def __init__(self, bedList):
+        self.chrom = bedList[0]
+        self.start = int(bedList[1])
+        self.end = int(bedList[2])
+        if len(bedList) > 4:
+            self.misc = bedList[3:]
+        
 def log_choose(n, k):
     r = 0.0
     # swap for efficiency if k is more than half of n
@@ -290,15 +298,34 @@ def bayes_gt(ref, alt):
 
     return (lp_homref, lp_het, lp_homalt)
 
-def count_concordant(chrom, pos, min_frag, max_frag, discflank, mybam):
+def count_concordant(chrom, pos, min_frag, max_frag, discflank, mybam, exclude_regions):
     conc_count =  0
     read_length = 100
     # discflank = 20
+
+
+    fetch_left = pos - max_frag
+    fetch_right = pos
+
+    exclude_olap = [e for e in exclude_regions if e.chrom == chrom and e.end > fetch_left and e.start < fetch_left]
+    print exclude_olap
+    print fetch_left, fetch_right
+
+
+
+    counter = 0
+    keepcounter = 0
     for read in mybam.fetch(chrom, pos - max_frag, pos):
+
         if read.is_reverse or not read.mate_is_reverse or read.is_secondary or read.is_unmapped or read.mate_is_unmapped or read.is_duplicate or read.mapq == 0 or read.pos + discflank > pos or read.pnext + read_length - discflank < pos:
+            counter += 1
+            print 'discard', counter
             continue
         else:
+            keepcounter += 1
+            print 'keep', keepcounter
             mate = mybam.mate(read)
+            print 'found mate', mate
             ispan1 = read.pos + discflank
             ispan2 = mate.aend - discflank - 1
             ispan = ispan2 - ispan1
@@ -306,9 +333,11 @@ def count_concordant(chrom, pos, min_frag, max_frag, discflank, mybam):
                 #print mate.aend - discflank
                 conc_count += 1-1/10**read.mapq
                 #print mate
+
+    exit(1)
     return conc_count
 
-def count_discordant(chrom, pos, o1, o2, min_frag, max_frag, discflank, mybam):
+def count_discordant(chrom, pos, o1, o2, min_frag, max_frag, discflank, mybam, exclude_regions):
     disc_counter = 0
     read_length = 100
     # discflank = 20
@@ -352,11 +381,8 @@ def count_discordant(chrom, pos, o1, o2, min_frag, max_frag, discflank, mybam):
 
     return disc_counter
 
-
-
-
 # primary function
-def sv_genotype(vcf_file, bam_list, spl_list, vcf_out, splflank, discflank, z, mean_ospan, sd_ospan, split_weight, disc_weight, booster, debug):
+def sv_genotype(vcf_file, exclude, bam_list, spl_list, vcf_out, splflank, discflank, z, mean_ospan, sd_ospan, split_weight, disc_weight, booster, debug):
     read_length = 100
     padding = 30
     bam = bam_list[0]
@@ -364,6 +390,14 @@ def sv_genotype(vcf_file, bam_list, spl_list, vcf_out, splflank, discflank, z, m
     in_header = True
     header = []
     vcf = Vcf()
+
+    # read the exclude file into memory
+    exclude_regions = []
+    for line in exclude:
+        v = line.rstrip().split('\t')
+        if len(v) >= 3:
+            exclude_regions.append(Bed(v))
+    exclude_regions.sort(key=lambda x: (x.chrom, x.start, x.end))
 
     # first get the sample name from the bam file
     sample = bam.header['RG'][0]['SM']
@@ -406,23 +440,30 @@ def sv_genotype(vcf_file, bam_list, spl_list, vcf_out, splflank, discflank, z, m
         ref_counter_a = Counter()
         spl_counter_a = Counter()
 
-        for ref_read in bam.fetch(var.chrom, var.pos - padding, var.pos + padding + 1):
-            if not ref_read.is_duplicate and not ref_read.is_unmapped and ref_read.mapq > 0:
-                for p in range(ref_read.pos + 1, ref_read.aend + 1):
-                    if p - ref_read.pos >= splflank and ref_read.aend - p >= splflank:
-                        ref_counter_a[p] += 1
+        # fetch_left = var.pos - padding
+        # fetch_right = var.pos + padding + 1
 
-        for spl_read in spl_bam.fetch(var.chrom, var.pos - padding, var.pos + padding + 1):
-            if not spl_read.is_duplicate and not spl_read.is_unmapped and spl_read.mapq >0:
-                # if debug:
-                #     print spl_read.pos + 1, spl_read.aend, spl_read
-                if o1 == '+' and spl_read.cigar[0][0] == 0: # and split_read.pnext > startB - readlength:
-                    spl_counter_a[spl_read.aend] += 1
-                elif o1 == '-' and spl_read.cigar[-1][0] == 0:
-                    spl_counter_a[spl_read.pos + 1] += 1
+        # for ref_read in bam.fetch(var.chrom, fetch_left, fetch_right):
+        #     if debug:
+        #         print "%s\t%s" % (var.var_id, ref_read)
+        #     if not ref_read.is_duplicate and not ref_read.is_unmapped and ref_read.mapq > 0:
+        #         for p in range(ref_read.pos + 1, ref_read.aend + 1):
+        #             if p - ref_read.pos >= splflank and ref_read.aend - p >= splflank:
+        #                 ref_counter_a[p] += 1
 
-        # check whether the lumpy base matches my base
-        # vcf_out.write('%s\t' % var.pos)
+        # for spl_read in spl_bam.fetch(var.chrom, var.pos - padding, var.pos + padding + 1):
+        #     if debug:
+        #         print "%s\t%s" % (var.var_id, spl_read)
+        #     if not spl_read.is_duplicate and not spl_read.is_unmapped and spl_read.mapq >0:
+        #         # if debug:
+        #         #     print spl_read.pos + 1, spl_read.aend, spl_read
+        #         if o1 == '+' and spl_read.cigar[0][0] == 0: # and split_read.pnext > startB - readlength:
+        #             spl_counter_a[spl_read.aend] += 1
+        #         elif o1 == '-' and spl_read.cigar[-1][0] == 0:
+        #             spl_counter_a[spl_read.pos + 1] += 1
+
+        # # check whether the lumpy base matches my base
+        # # vcf_out.write('%s\t' % var.pos)
 
         '''
         Breakend B
@@ -430,20 +471,24 @@ def sv_genotype(vcf_file, bam_list, spl_list, vcf_out, splflank, discflank, z, m
         ref_counter_b = Counter()
         spl_counter_b = Counter()
 
-        for ref_read in bam.fetch(var.chrom, end - padding, end + padding + 1):
-            if not ref_read.is_duplicate and not ref_read.is_unmapped and ref_read.mapq > 0:
-                for p in range(ref_read.pos + 1, ref_read.aend + 1):
-                    if p - ref_read.pos >= splflank and ref_read.aend - p >= splflank:
-                        ref_counter_b[p] += 1
+        # for ref_read in bam.fetch(var.chrom, end - padding, end + padding + 1):
+        #     if debug:
+        #         print "%s\t%s" % (var.var_id, ref_read)
+        #     if not ref_read.is_duplicate and not ref_read.is_unmapped and ref_read.mapq > 0:
+        #         for p in range(ref_read.pos + 1, ref_read.aend + 1):
+        #             if p - ref_read.pos >= splflank and ref_read.aend - p >= splflank:
+        #                 ref_counter_b[p] += 1
 
-        for spl_read in spl_bam.fetch(var.chrom, end - padding, end + padding + 1):
-            if not spl_read.is_duplicate and not spl_read.is_unmapped and ref_read.mapq > 0:
-                # if debug:
-                #     print spl_read.pos + 1, spl_read.aend, spl_read
-                if o2 == '+' and spl_read.cigar[0][0] == 0: # and split_read.pnext > startB - readlength:
-                    spl_counter_b[spl_read.aend] += 1
-                elif o2 == '-' and spl_read.cigar[-1][0] == 0:
-                    spl_counter_b[spl_read.pos + 1] += 1
+        # for spl_read in spl_bam.fetch(var.chrom, end - padding, end + padding + 1):
+        #     if debug:
+        #         print "%s\t%s" % (var.var_id, spl_read)
+        #     if not spl_read.is_duplicate and not spl_read.is_unmapped and ref_read.mapq > 0:
+        #         # if debug:
+        #         #     print spl_read.pos + 1, spl_read.aend, spl_read
+        #         if o2 == '+' and spl_read.cigar[0][0] == 0: # and split_read.pnext > startB - readlength:
+        #             spl_counter_b[spl_read.aend] += 1
+        #         elif o2 == '-' and spl_read.cigar[-1][0] == 0:
+        #             spl_counter_b[spl_read.pos + 1] += 1
 
         #print spl_counter_a.most_common(1)[0]
         #print spl_counter_b.most_common(1)[0]
@@ -467,12 +512,13 @@ def sv_genotype(vcf_file, bam_list, spl_list, vcf_out, splflank, discflank, z, m
         if len(spl_counter_b) > 0:
             var.set_info('END', int(spl_counter_b.most_common(1)[0][0]))
 
+        if debug:
+            print "start disc"
 
-
-        conc_counter_a = count_concordant(var.chrom, var.pos, 0, mean_ospan + sd_ospan * z, discflank, bam)
+        conc_counter_a = count_concordant(var.chrom, var.pos, 0, mean_ospan + sd_ospan * z, discflank, bam, exclude_regions)
         disc_counter_a = count_discordant(var.chrom, var.pos, o1, o2, 0, mean_ospan + sd_ospan * z, discflank, bam)
 
-        conc_counter_b = count_concordant(var.chrom, int(var.get_info('END')), 0, mean_ospan + sd_ospan * z, discflank, bam)
+        conc_counter_b = count_concordant(var.chrom, int(var.get_info('END')), 0, mean_ospan + sd_ospan * z, discflank, bam, exclude_regions)
         disc_counter_b = count_discordant(var.chrom, int(var.get_info('END')), o2, o1, 0, mean_ospan + sd_ospan * z, discflank, bam)
 
         # print var.genotype(sample).get_format('GT')
@@ -545,7 +591,7 @@ def main():
         spl_list.append(pysam.Samfile(sfile, 'rb'))
 
     # call primary function
-    sv_genotype(args.input_vcf, bam_list, spl_list, args.output_vcf, args.splflank, args.discflank, args.z, args.mean_frag_size, args.sd_frag_size, args.split_weight, args.disc_weight, args.booster, args.debug)
+    sv_genotype(args.input_vcf, args.exclude, bam_list, spl_list, args.output_vcf, args.splflank, args.discflank, args.z, args.mean_frag_size, args.sd_frag_size, args.split_weight, args.disc_weight, args.booster, args.debug)
 
     # close the files
     args.input_vcf.close()

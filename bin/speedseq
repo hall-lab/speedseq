@@ -1023,11 +1023,12 @@ global options:
     EXCLUDE_BED=
     TEMP_DIR="./temp"
     GENOTYPE=0
+    CNV=0
     VERBOSE=0
     KEEP=0
     OUTPUT=""
 
-    while getopts ":hB:S:D:R:o:m:r:L:x:s:p:T:t:gkvK:" OPTION
+    while getopts ":hB:S:D:R:o:m:r:L:x:s:p:T:t:cgkvK:" OPTION
     do
 	case "${OPTION}" in
             h)
@@ -1073,6 +1074,9 @@ global options:
                 ;;
 	    t)
 		THREADS="$OPTARG"
+		;;
+	    c)
+		CNV=1
 		;;
 	    g)
 		GENOTYPE=1
@@ -1175,7 +1179,6 @@ global options:
 	echo -e "$DISC_SAMPLE\t$(($i+1))0\tPE\t$DISC_BAM"
 	echo -e "$SPL_SAMPLE\t$(($i+1))1\tSR\t$SPL_BAM"
 	echo -e "$FULL_SAMPLE\t$(($i+1))2\tRD\t$FULL_BAM"
-	echo -e "$FULL_SAMPLE\t$(($i+1))3\tFULL\t$FULL_BAM"
 	
     done > $TEMP_DIR/$OUTBASE.sample.config
 
@@ -1244,8 +1247,28 @@ $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FM
 	$LUMPY_SPL_STRING \
 	> $TEMP_DIR/$OUTBASE.bedpe
 
+    # convert to VCF, ensure that each variant has at least one sample with MIN_WEIGHT support
     cat $TEMP_DIR/$OUTBASE.bedpe \
 	| bedpeToVcf -t LUMPY -c $TEMP_DIR/$OUTBASE.sample.config -f $REF \
+	| awk -v MIN_WEIGHT=$MIN_WEIGHT 'BEGIN {S_IDX=0} {
+            if ($0~"^#") print
+            else {
+                if (S_IDX==0) {
+                    split($9,fmt,":");
+                    for (i=1;i<=length(fmt);++i) {
+                        if (fmt[i]=="SUP") S_IDX=i
+                    }
+                }
+                else {
+                    PASS=0
+                    for (i=10;i<=NF;++i) {
+                        split($i,a,":");
+                        if (a[S_IDX]>=MIN_WEIGHT) PASS=1;
+                    }
+                }
+            }
+            if (PASS) print
+        }' \
 	> $TEMP_DIR/$OUTBASE.vcf
 
     # make header
@@ -1255,17 +1278,23 @@ $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FM
     # genotype in parallel
     if [[ GENOTYPE -eq 1 ]]
     then
+	# split the VCF file into slices of 100 lines each
 	mkdir -p $TEMP_DIR/gt
 	cat $TEMP_DIR/$OUTBASE.vcf | split -a 5 -d -l 100 - $TEMP_DIR/gt/spl
-	for s in $TEMP_DIR/gt/spl*
+	for s in `ls $TEMP_DIR/gt/spl* | grep -v "vcf$"`
 	do
 	    cat $TEMP_DIR/header.txt $s > $s.vcf
 	done
 
+	# genotype each of the variants in parallel
 	for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
 	do
 	    FULL_BAM=${FULL_BAM_LIST[$i]}
 	    SPL_BAM=${SPL_BAM_LIST[$i]}
+            FULL_BASE=`basename "$FULL_BAM"`
+
+            MEAN=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^mean" | sed 's/mean\://g'`
+            STDEV=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^stdev" | sed 's/stdev\://g'`
 
 	    for vcf in $TEMP_DIR/gt/spl*.vcf
 	    do
@@ -1274,6 +1303,8 @@ $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FM
 	done
 	cat $TEMP_DIR/gt/*.vcf | grep -v "^#" | cat $TEMP_DIR/header.txt - > $TEMP_DIR/$OUTBASE.vcf
     fi
+
+    # run cnvnator
 
     # clean up
     if [[ $KEEP -eq 0 ]]
