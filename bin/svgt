@@ -20,18 +20,19 @@ svgt\n\
 author: " + __author__ + "\n\
 version: " + __version__ + "\n\
 description: Compute genotype of structural variants based on breakpoint depth")
+    parser.add_argument('-B', '--bam', type=pysam.Samfile, required=True, help='BAM file(s), comma-separated if genotyping multiple BAMs')
+    parser.add_argument('-S', '--split_bam', type=pysam.Samfile, required=False, default=None, help='split-read bam file for sample')
     parser.add_argument('-e', '--exclude', type=argparse.FileType('r'), default=None, help='BED file to exclude')
     parser.add_argument('-f', '--splflank', type=int, required=False, default=20, help='min number of split read query bases flanking breakpoint on either side [20]')
     parser.add_argument('-F', '--discflank', type=int, required=False, default=20, help='min number of discordant read query bases flanking breakpoint on either side. (should not exceed read length) [20]')
     parser.add_argument('-z', '--z', type=float, required=False, default=3, help='z-score of inner-span to be considered discordant for pairs (default: 3)')
     parser.add_argument('-v', '--input_vcf', type=argparse.FileType('r'), default=None, help='VCF input (default: stdin)')
-    parser.add_argument('-B', '--bam', type=str, required=True, help='BAM file(s), comma-separated if genotyping multiple BAMs')
-    parser.add_argument('-S', '--split_bam', type=str, required=False, default=None, help='split-read bam file for sample')
-    parser.add_argument('-m', '--mean_frag_size', type=float, required=True, help='mean fragment size of library')
-    parser.add_argument('-sd', '--sd_frag_size', type=float, required=True, help='standard deviation of fragment size of library')
+    parser.add_argument('-m', '--mean_frag_size', type=float, required=False, help='mean fragment size of library [auto]')
+    parser.add_argument('-sd', '--sd_frag_size', type=float, required=False, help='standard deviation of fragment size of library [auto]')
     parser.add_argument('--split_weight', type=float, required=False, default=1, help='weight for split reads [1]')
     parser.add_argument('--disc_weight', type=float, required=False, default=1, help='weight for discordant reads [1]')
     parser.add_argument('--booster', type=float, required=False, default=1.5, help='multiplier for weights with more than one type of support [1.5]')
+    parser.add_argument('-rl', '--read_length', type=int, required=False, help='maximum read-length in BAM')
     parser.add_argument('-o', '--output_vcf', type=argparse.FileType('w'), default=sys.stdout, help='output VCF to write (default: stdout)')
     parser.add_argument('--debug', action='store_true', help='debugging verbosity')
 
@@ -307,8 +308,9 @@ def count_concordant(chrom, pos, min_frag, max_frag, discflank, mybam, exclude_r
     fetch_right = pos
 
     exclude_olap = [e for e in exclude_regions if e.chrom == chrom and e.end > fetch_left and e.start < fetch_left]
-    print exclude_olap
-    print fetch_left, fetch_right
+    # if debug:
+    #     print exclude_olap
+    #     print fetch_left, fetch_right
 
     discardcounter = 0
     keepcounter = 0
@@ -329,7 +331,8 @@ def count_concordant(chrom, pos, min_frag, max_frag, discflank, mybam, exclude_r
                 #print mate.aend - discflank
                 conc_count += 1-1/10**read.mapq
                 #print mate
-    print 'keep: %s, discard: %s' % (keepcounter, discardcounter)
+
+    # print 'keep: %s, discard: %s' % (keepcounter, discardcounter)
 
     return conc_count
 
@@ -377,12 +380,54 @@ def count_discordant(chrom, pos, o1, o2, min_frag, max_frag, discflank, mybam, e
 
     return disc_counter
 
+def insert_dist(bam):
+    num_samp = 1000000
+    counter = 0
+    skip = 5000000
+    skip_counter = 0
+    ins_list = []
+    for read in bam.fetch():
+        if skip_counter < skip:
+            skip_counter += 1
+            continue
+        if read.is_proper_pair and not read.is_reverse and not read.is_secondary:
+            ins_list.append(read.tlen)
+            counter += 1
+        if counter == num_samp:
+            break
+    mean = sum(ins_list)/float(len(ins_list))
+    v = 0
+    for i in ins_list:
+        v += (i-mean)**2
+    variance = v/float(len(ins_list))
+    stdev = variance**(0.5)
+    return (mean, stdev)
+
+def get_read_length(bam):
+    max_rl = 0
+    counter = 0
+    num_samp = 10000
+    for read in bam.fetch():
+        if read.qlen > max_rl:
+            max_rl = read.qlen
+        if counter == num_samp:
+            break
+        counter += 1
+    return max_rl
+        
+
 # primary function
-def sv_genotype(vcf_file, exclude, bam_list, spl_list, vcf_out, splflank, discflank, z, mean_ospan, sd_ospan, split_weight, disc_weight, booster, debug):
-    read_length = 100
+def sv_genotype(vcf_file, exclude, bam, spl_bam, vcf_out, splflank, discflank, z, mean_ospan, sd_ospan, read_length, split_weight, disc_weight, booster, debug):
+
+    # sample insert size distribution
+    if mean_ospan == None or sd_ospan == None:
+        (mean_ospan, stdev_ospan) = insert_dist(bam)
+
+    # get read length if not specified.
+    if read_length == None:
+        read_length = get_read_length(bam)
+
     padding = 30
-    bam = bam_list[0]
-    spl_bam = spl_list[0]
     in_header = True
     header = []
     vcf = Vcf()
@@ -398,9 +443,6 @@ def sv_genotype(vcf_file, exclude, bam_list, spl_list, vcf_out, splflank, discfl
     # first get the sample name from the bam file
     sample = bam.header['RG'][0]['SM']
 
-    # spanning coverage variables
-    #mean_ospan = 320
-    #sd_ospan = 80
     mean_ispan = mean_ospan - (2 * discflank)
     sd_ispan = sd_ospan
 
@@ -436,30 +478,30 @@ def sv_genotype(vcf_file, exclude, bam_list, spl_list, vcf_out, splflank, discfl
         ref_counter_a = Counter()
         spl_counter_a = Counter()
 
-        # fetch_left = var.pos - padding
-        # fetch_right = var.pos + padding + 1
+        fetch_left = var.pos - padding
+        fetch_right = var.pos + padding + 1
 
-        # for ref_read in bam.fetch(var.chrom, fetch_left, fetch_right):
-        #     if debug:
-        #         print "%s\t%s" % (var.var_id, ref_read)
-        #     if not ref_read.is_duplicate and not ref_read.is_unmapped and ref_read.mapq > 0:
-        #         for p in range(ref_read.pos + 1, ref_read.aend + 1):
-        #             if p - ref_read.pos >= splflank and ref_read.aend - p >= splflank:
-        #                 ref_counter_a[p] += 1
+        for ref_read in bam.fetch(var.chrom, fetch_left, fetch_right):
+            # if debug:
+            #     print "%s\t%s" % (var.var_id, ref_read)
+            if not ref_read.is_duplicate and not ref_read.is_unmapped and ref_read.mapq > 0:
+                for p in range(ref_read.pos + 1, ref_read.aend + 1):
+                    if p - ref_read.pos >= splflank and ref_read.aend - p >= splflank:
+                        ref_counter_a[p] += 1
 
-        # for spl_read in spl_bam.fetch(var.chrom, var.pos - padding, var.pos + padding + 1):
-        #     if debug:
-        #         print "%s\t%s" % (var.var_id, spl_read)
-        #     if not spl_read.is_duplicate and not spl_read.is_unmapped and spl_read.mapq >0:
-        #         # if debug:
-        #         #     print spl_read.pos + 1, spl_read.aend, spl_read
-        #         if o1 == '+' and spl_read.cigar[0][0] == 0: # and split_read.pnext > startB - readlength:
-        #             spl_counter_a[spl_read.aend] += 1
-        #         elif o1 == '-' and spl_read.cigar[-1][0] == 0:
-        #             spl_counter_a[spl_read.pos + 1] += 1
+        for spl_read in spl_bam.fetch(var.chrom, var.pos - padding, var.pos + padding + 1):
+            # if debug:
+            #     print "%s\t%s" % (var.var_id, spl_read)
+            if not spl_read.is_duplicate and not spl_read.is_unmapped and spl_read.mapq >0:
+                # if debug:
+                #     print spl_read.pos + 1, spl_read.aend, spl_read
+                if o1 == '+' and spl_read.cigar[0][0] == 0: # and split_read.pnext > startB - readlength:
+                    spl_counter_a[spl_read.aend] += 1
+                elif o1 == '-' and spl_read.cigar[-1][0] == 0:
+                    spl_counter_a[spl_read.pos + 1] += 1
 
-        # # check whether the lumpy base matches my base
-        # # vcf_out.write('%s\t' % var.pos)
+        # check whether the lumpy base matches my base
+        # vcf_out.write('%s\t' % var.pos)
 
         '''
         Breakend B
@@ -467,39 +509,22 @@ def sv_genotype(vcf_file, exclude, bam_list, spl_list, vcf_out, splflank, discfl
         ref_counter_b = Counter()
         spl_counter_b = Counter()
 
-        # for ref_read in bam.fetch(var.chrom, end - padding, end + padding + 1):
-        #     if debug:
-        #         print "%s\t%s" % (var.var_id, ref_read)
-        #     if not ref_read.is_duplicate and not ref_read.is_unmapped and ref_read.mapq > 0:
-        #         for p in range(ref_read.pos + 1, ref_read.aend + 1):
-        #             if p - ref_read.pos >= splflank and ref_read.aend - p >= splflank:
-        #                 ref_counter_b[p] += 1
+        for ref_read in bam.fetch(var.chrom, end - padding, end + padding + 1):
+            # if debug:
+            #     print "%s\t%s" % (var.var_id, ref_read)
+            if not ref_read.is_duplicate and not ref_read.is_unmapped and ref_read.mapq > 0:
+                for p in range(ref_read.pos + 1, ref_read.aend + 1):
+                    if p - ref_read.pos >= splflank and ref_read.aend - p >= splflank:
+                        ref_counter_b[p] += 1
 
-        # for spl_read in spl_bam.fetch(var.chrom, end - padding, end + padding + 1):
-        #     if debug:
-        #         print "%s\t%s" % (var.var_id, spl_read)
-        #     if not spl_read.is_duplicate and not spl_read.is_unmapped and ref_read.mapq > 0:
-        #         # if debug:
-        #         #     print spl_read.pos + 1, spl_read.aend, spl_read
-        #         if o2 == '+' and spl_read.cigar[0][0] == 0: # and split_read.pnext > startB - readlength:
-        #             spl_counter_b[spl_read.aend] += 1
-        #         elif o2 == '-' and spl_read.cigar[-1][0] == 0:
-        #             spl_counter_b[spl_read.pos + 1] += 1
-
-        #print spl_counter_a.most_common(1)[0]
-        #print spl_counter_b.most_common(1)[0]
-
-        # check whether the lumpy base matches my base
-        # vcf_out.write('%s\t' % var.pos)
-
-        # conc_counter_a = count_concordant(var.chrom, var.pos, 0, 300, bam)
-        # disc_counter_a = 0
-
-        # conc_counter_b = count_concordant(var.chrom, int(var.get_info('END')), 0, 300, bam)
-        # disc_counter_b = 0
-
-        #span_cov(var.chrom, var.pos, 220, o1, o2, bam)
-
+        for spl_read in spl_bam.fetch(var.chrom, end - padding, end + padding + 1):
+            # if debug:
+            #     print "%s\t%s" % (var.var_id, spl_read)
+            if not spl_read.is_duplicate and not spl_read.is_unmapped and ref_read.mapq > 0:
+                if o2 == '+' and spl_read.cigar[0][0] == 0: # and split_read.pnext > startB - readlength:
+                    spl_counter_b[spl_read.aend] += 1
+                elif o2 == '-' and spl_read.cigar[-1][0] == 0:
+                    spl_counter_b[spl_read.pos + 1] += 1
 
         if len(spl_counter_a) > 0:
             var.pos = spl_counter_a.most_common(1)[0][0]
@@ -507,9 +532,6 @@ def sv_genotype(vcf_file, exclude, bam_list, spl_list, vcf_out, splflank, discfl
 
         if len(spl_counter_b) > 0:
             var.set_info('END', int(spl_counter_b.most_common(1)[0][0]))
-
-        # if debug:
-        #     print "start disc"
 
         conc_counter_a = count_concordant(var.chrom, var.pos, 0, mean_ospan + sd_ospan * z, discflank, bam, exclude_regions)
         disc_counter_a = count_discordant(var.chrom, var.pos, o1, o2, 0, mean_ospan + sd_ospan * z, discflank, bam, exclude_regions)
@@ -556,7 +578,7 @@ def sv_genotype(vcf_file, exclude, bam_list, spl_list, vcf_out, splflank, discfl
 
             # don't genotype if LUMPY call is reference
             if var.genotype(sample).get_format('GT') == '0/0':
-                print var.get_var_string()
+                vcf_out.write(var.get_var_string() + '\n')
                 continue
             if gt_idx == 1:
                 var.genotype(sample).set_format('GT', '0/1')
@@ -577,17 +599,9 @@ def sv_genotype(vcf_file, exclude, bam_list, spl_list, vcf_out, splflank, discfl
 def main():
     # parse the command line args
     args = get_args()
-    bam_filenames = args.bam.split(',')
-    bam_list = list()
-    for bfile in bam_filenames:
-        bam_list.append(pysam.Samfile(bfile, 'rb'))
-    spl_filenames = args.split_bam.split(',')
-    spl_list = list()
-    for sfile in spl_filenames:
-        spl_list.append(pysam.Samfile(sfile, 'rb'))
 
     # call primary function
-    sv_genotype(args.input_vcf, args.exclude, bam_list, spl_list, args.output_vcf, args.splflank, args.discflank, args.z, args.mean_frag_size, args.sd_frag_size, args.split_weight, args.disc_weight, args.booster, args.debug)
+    sv_genotype(args.input_vcf, args.exclude, args.bam, args.split_bam, args.output_vcf, args.splflank, args.discflank, args.z, args.mean_frag_size, args.sd_frag_size, args.read_length, args.split_weight, args.disc_weight, args.booster, args.debug)
 
     # close the files
     args.input_vcf.close()
