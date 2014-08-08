@@ -303,7 +303,6 @@ def count_concordant(chrom, pos, min_frag, max_frag, discflank, mybam, exclude_r
     read_length = 100
     # discflank = 20
 
-
     fetch_left = pos - max_frag
     fetch_right = pos
 
@@ -311,21 +310,18 @@ def count_concordant(chrom, pos, min_frag, max_frag, discflank, mybam, exclude_r
     print exclude_olap
     print fetch_left, fetch_right
 
-
-
-    counter = 0
+    discardcounter = 0
     keepcounter = 0
     for read in mybam.fetch(chrom, pos - max_frag, pos):
-
         if read.is_reverse or not read.mate_is_reverse or read.is_secondary or read.is_unmapped or read.mate_is_unmapped or read.is_duplicate or read.mapq == 0 or read.pos + discflank > pos or read.pnext + read_length - discflank < pos:
-            counter += 1
-            print 'discard', counter
+            discardcounter += 1
+            # print 'discard', discardcounter
             continue
         else:
             keepcounter += 1
-            print 'keep', keepcounter
+            # print 'keep', keepcounter
             mate = mybam.mate(read)
-            print 'found mate', mate
+            # print 'found mate', mate
             ispan1 = read.pos + discflank
             ispan2 = mate.aend - discflank - 1
             ispan = ispan2 - ispan1
@@ -333,8 +329,8 @@ def count_concordant(chrom, pos, min_frag, max_frag, discflank, mybam, exclude_r
                 #print mate.aend - discflank
                 conc_count += 1-1/10**read.mapq
                 #print mate
+    print 'keep: %s, discard: %s' % (keepcounter, discardcounter)
 
-    exit(1)
     return conc_count
 
 def count_discordant(chrom, pos, o1, o2, min_frag, max_frag, discflank, mybam, exclude_regions):
@@ -512,14 +508,14 @@ def sv_genotype(vcf_file, exclude, bam_list, spl_list, vcf_out, splflank, discfl
         if len(spl_counter_b) > 0:
             var.set_info('END', int(spl_counter_b.most_common(1)[0][0]))
 
-        if debug:
-            print "start disc"
+        # if debug:
+        #     print "start disc"
 
         conc_counter_a = count_concordant(var.chrom, var.pos, 0, mean_ospan + sd_ospan * z, discflank, bam, exclude_regions)
-        disc_counter_a = count_discordant(var.chrom, var.pos, o1, o2, 0, mean_ospan + sd_ospan * z, discflank, bam)
+        disc_counter_a = count_discordant(var.chrom, var.pos, o1, o2, 0, mean_ospan + sd_ospan * z, discflank, bam, exclude_regions)
 
         conc_counter_b = count_concordant(var.chrom, int(var.get_info('END')), 0, mean_ospan + sd_ospan * z, discflank, bam, exclude_regions)
-        disc_counter_b = count_discordant(var.chrom, int(var.get_info('END')), o2, o1, 0, mean_ospan + sd_ospan * z, discflank, bam)
+        disc_counter_b = count_discordant(var.chrom, int(var.get_info('END')), o2, o1, 0, mean_ospan + sd_ospan * z, discflank, bam, exclude_regions)
 
         # print var.genotype(sample).get_format('GT')
 
