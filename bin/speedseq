@@ -1122,6 +1122,27 @@ global options:
 	sv_usage
         echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
+    elif [[ -z  "$BEDPETOVCF" ]]
+    then
+	sv_usage
+        echo -e "Error: bedpeToVcf executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    fi
+
+    # if genotyping requested, look for svtyper
+    if [[ "$GENOTYPE" -eq 1 ]]
+    then
+	sv_usage
+        echo -e "Error: svtyper executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    fi
+
+    # if CNV read-depth requested, look for cnvnator-ss
+    if [[ "$GENOTYPE" -eq 1 ]]
+    then
+	sv_usage
+        echo -e "Error: svtyper executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
     fi
 
     # Check that the required files exist

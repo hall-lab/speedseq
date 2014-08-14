@@ -7,11 +7,11 @@ ROOTLIBS  = -L$(ROOTSYS)/lib -lCore -lCint -lRIO -lNet -lHist -lGraf -lGraf3d \
 		-lMathCore -lThread -lGui
 
 CXX    = g++ $(ROOTFLAGS) -DCNVNATOR_VERSION=\"$(VERSION)\"
-SAMDIR = samtools
+SAMDIR = src/samtools
 INC    = -I$(ROOTSYS)/include -I$(SAMDIR)
 SAMLIB = $(SAMDIR)/libbam.a
 
-OBJDIR = obj
+OBJDIR = src/obj
 OBJS   = $(OBJDIR)/cnvnator.o  \
 	 $(OBJDIR)/HisMaker.o  \
 	 $(OBJDIR)/AliParser.o \
@@ -21,22 +21,28 @@ OBJS   = $(OBJDIR)/cnvnator.o  \
 	 $(OBJDIR)/TreeBuilder.o
 
 DISTRIBUTION = $(PWD)/CNVnator_$(VERSION).zip
-TMPDIR	     =  /tmp
+TMPDIR	     = /tmp
 CNVDIR	     = CNVnator_$(VERSION)
 MAINDIR	     = $(TMPDIR)/$(CNVDIR)
 SRCDIR	     = $(MAINDIR)/src
 
-all: cnvnator
+all:	cnvnator
 
-cnvnator: $(OBJS)
+.PHONY: samtools
+
+samtools:
+	$(MAKE) -C $(SAMDIR)
+
+cnvnator: samtools $(OBJS)
 	$(CXX) -o $@ $(OBJS) $(SAMLIB) $(LIBS) $(ROOTLIBS)
 
-$(OBJDIR)/%.o: %.cpp
+$(OBJDIR)/%.o: src/%.cpp
 	@mkdir -p $(OBJDIR)
 	$(CXX) $(INC) -c $< -o $@
 
 clean:
 	rm -f $(OBJS)
+	$(MAKE) -C $(SAMDIR) clean
 
 distribution: clean all
 	@echo Creating directory ...
