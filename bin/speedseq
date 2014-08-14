@@ -980,6 +980,8 @@ sv options:
          -o STR   output prefix [fullBam.bam]
          -t INT   threads [1] 
          -x FILE  BED file to exclude
+         -g       genotype SV breakends
+         -c       assess read depth at CNVs
          -m INT   minimum weight for a call [4]
          -r FLOAT trim threshold [0]
          -L INT   read length [auto]
