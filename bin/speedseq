@@ -30,6 +30,8 @@ function source_binaries() {
 	TABIX=`which tabix || true`
 	LUMPY=`which lumpy || true`
 	PAIREND_DISTRO=`which pairend_distro.py || true`
+	BEDPETOVCF="$SPEEDSEQ_HOME/src/sv-tools/bedpeToVcf"
+	SVTYPER="$SPEEDSEQ_HOME/src/svtyper/svtyper"
     fi
 }
 
@@ -1251,7 +1253,7 @@ $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FM
 
     # convert to VCF, ensure that each variant has at least one sample with MIN_WEIGHT support
     cat $TEMP_DIR/$OUTBASE.bedpe \
-	| bedpeToVcf -t LUMPY -c $TEMP_DIR/$OUTBASE.sample.config -f $REF \
+	| $BEDPETOVCF -t LUMPY -c $TEMP_DIR/$OUTBASE.sample.config -f $REF \
 	| awk -v MIN_WEIGHT=$MIN_WEIGHT 'BEGIN {S_IDX=0} {
             if ($0~"^#") print
             else {
@@ -1301,7 +1303,7 @@ $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FM
 
 	    for vcf in $TEMP_DIR/gt/spl*.vcf
 	    do
-    		echo "svtyper -v $vcf -B $FULL_BAM -S $SPL_BAM -m $MEAN -sd $STDEV -rl $READ_LENGTH > $vcf.gt ; mv $vcf.gt $vcf"
+    		echo "$SVTYPER -v $vcf -B $FULL_BAM -S $SPL_BAM -m $MEAN -sd $STDEV -rl $READ_LENGTH > $vcf.gt ; mv $vcf.gt $vcf"
 	    done | parallel -j $THREADS
 	done
 	cat $TEMP_DIR/gt/*.vcf | grep -v "^#" | cat $TEMP_DIR/header.txt - > $TEMP_DIR/$OUTBASE.vcf

@@ -1,3 +1,6 @@
 [submodule "src/sv-tools"]
 	path = src/sv-tools
 	url = https://github.com/hall-lab/sv-tools.git
+[submodule "src/svtyper"]
+	path = src/svtyper
+	url = https://github.com/cc2qe/svtyper.git
