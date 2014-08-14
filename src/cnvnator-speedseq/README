@@ -1,0 +1,174 @@
+README file for CNVnator software distribution
+
+
+
+1. Compilation
+==============
+
+You must install ROOT package (http://root.cern.ch) and set up $ROOTSYS
+variable (see ROOT documentation).
+
+$ cd src/samtools
+$ make
+
+Even if compilation is not completed but file libbam.a has been created you
+can continue.
+
+$ cd ../
+$ make
+
+2. Predicting CNV regions
+=========================
+
+Running involves few steps outlined below. Chromosome names and lengths are
+parsed from sam/bam file header. Using -genome option one can overwrite
+this default behavior. 
+
+
+
+>>>EXTRACTING READ MAPPING FROM BAM/SAM FILES
+
+$ ./cnvnator [-genome name] -root out.root [-chrom name1 ...] -tree [file1.bam ...]
+
+out.root  -- output ROOT file. See ROOT package documentation.
+chr_name1 -- chromosome name.
+file.bam  -- bam files.
+
+Chromosome names can be specified by name, e.g., X, or together with
+prefix chr, e.g., chrX. One can specify multiple chromosomes separated by
+space. If no chromosome specified, read mapping is extracted for all
+in sam/bam file. Note, that this would require machines with large physical
+memory of 7Gb. Extracting read mapping for subsets of chromosomes is a way
+around this issue. Note, root file is not being overwritten.
+To have correct q0 field for CNV calls (see below) one need to use
+option -unique when extracting read mapping from bam/sam files.
+
+Example:
+
+./cnvnator -root NA12878.root -chrom chr1 chr2 chr3  -tree NA12878_ali.bam
+
+is equivalent to
+
+./cnvnator -root NA12878.root -chrom 1 2 3           -tree NA12878_ali.bam
+
+Example:
+
+./cnvnator -root NA12878.root -chrom 4 5 6 -tree NA12878_ali.bam
+./cnvnator -root NA12878.root -chrom 7 8 9 -tree NA12878_ali.bam
+
+is equivalent to
+
+./cnvnator -root NA12878.root -chrom 4 5 6 7 8 9 -tree NA12878_ali.bam
+
+
+>>>GENERATING HISTOGRAM
+
+$ ./cnvnator [-genome name] -root file.root [-chrom name1 ...] -his bin_size [-d dir]
+
+This step is not memory consuming and can be done for all chromosomes
+at once, still can be done for a subset of chromosomes. Files with
+chromosome sequences are required and should reside in running
+directory or directory specified by -d option. Files should be named
+as: chr1.fa, chr2.fa, etc.
+
+
+
+>>>CALCULATING STATISTICS
+
+$ ./cnvnator -root file.root [-chrom name1 ...] -stat bin_size
+
+This step must be completed before proceeding to partitioning and CNV calling.
+
+
+
+>>>RD SIGNAL PARTITIONING
+
+$ ./cnvnator -root file.root [-chrom name1 ...] -partition bin_size [-ngc]
+
+Option -ngc specifies not to use GC corrected RD signal. Partitioning
+is the most time consuming step.
+
+
+
+>>>CNV CALLING
+
+$ ./cnvnator -root file.root [-chrom name1 ...] -call bin_size [-ngc]
+
+Calls are printed to STDOUT.
+
+The output is as follows:
+
+CNV_type coordinates CNV_size normalized_RD e-val1 e-val2 e-val3 e-val4 q0
+
+normalized_RD -- normalized to 1.
+e-val1        -- is calculated using t-test statistics.
+e-val2        -- is from probability of RD values within the region to be in
+the tails of gaussian distribution describing frequencies of RD values in bins.
+e-val3        -- same as e-val1 but for the middle of CNV
+e-val4        -- same as e-val2 but for the middle of CNV
+q0            -- fraction of reads mapped with q0 quality
+
+To have correct output at q0 field one need to use option -unique when extracting read mapping from bam/sam files.
+
+>>>MERGIN ROOT FILES
+
+./cnvnator [-genome name]-root out.root [-chrom name ...] -merge file1.root ...
+
+Merging can be used when combining read mappings extracted from multiple files.
+Note, histogram generation, statistics calculation, signal partitioning and
+CNV calling should be completed/redone after merging.
+
+
+
+
+>>>VISUALIZING SPECIFIED REGIONS
+
+./cnvnator -root file.root [-chrom chr_name1 ...] -view bin_size [-ngc]
+
+Once prompted enter a genomic region, e.g. 
+>chr12:11396601-11436500
+ or 
+>chr12 11396601 11436500
+
+Additionally one can specify length of flanking regions (default is 10 kb) to
+be also displayed, e.g.
+>chr12:11396601-11436500 100000
+ or
+>chr12 11396601 11436500 100000
+
+One can also perform instant genotyping by adding word 'genotype', e.g.
+>chr12:11396601-11436500 genotype
+ or
+>chr12 11396601 11436500 genotype
+
+
+
+3. Genotyping genomic regions
+=============================
+./cnvnator -root file.root -genotype bin_size [-ngc]
+Once prompted enter a genomic region, e.g. 
+>chr12:11396601-11436500
+ or 
+>chr12 11396601 11436500
+
+One can also perform instant visualization by adding word 'view', e.g.
+>chr12:11396601-11436500 view
+ or
+>chr12 11396601 11436500 view
+
+For genotyping of large number of regions one can use input piping, e.g.
+./cnvnator -root NA12878.root -genotype 100 << EOF
+chr12:11396601-11436500
+chr22:20999401-21300400
+exit
+EOF
+
+For efficient calculation I recommend you sort your list of regions by
+chromosome.
+
+
+
+
+
+
+Please send your comments and suggestions to abyzov@gersteinlab.edu.
