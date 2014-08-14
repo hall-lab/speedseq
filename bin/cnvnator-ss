@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 import sys, os, os.path, subprocess, time 
+import argparse
+from argparse import RawTextHelpFormatter
+
+__author__ = "David Rose (dbr3d@virginia.edu)"
+__version__ = "$Revision: 0.0.1 $"
+__date__ = "$Date: 2014-08-14 14:53 $"
 
 before_part_cp = """
 int before_partition_copy(TString fname_in  = "his.HG00702.root",
@@ -110,10 +116,30 @@ int after_partition_copy(TString fname_in  = "chr22.root",
 
 BEFORE_PART_FN = "before_partition_copy.cpp"
 AFTER_PART_FN = "after_partition_copy.cpp"
-MAX_PROCS = 128
+MAX_MAX_PROCS = 48
+MAX_PROCS = 32
 ROOT_EXT = ".root"
 HIST_EXT = ".hist"
+CNVNATOR = "cnvnator"
 
+def get_args():
+    parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter, description="\
+cnvnator-ss\n\
+author: " + __author__ + "\n\
+version: " + __version__ + "\n\
+description: SpeedSeq parallelized implementation of CNVnator v0.3 (Gerstein lab)")
+    parser.add_argument('-t', '--threads', type=int, required=False, default=1, help='number of threads')
+    parser.add_argument('-w', '--window', type=int, required=False, default=100, help='window size in base pairs [100]')
+    parser.add_argument('-b', '--bam', required=True, help='input bam file name')
+    parser.add_argument('-o', '--output', required=True, help='output variant file name')
+    parser.add_argument('-c', '--chroms', required=True, help='path to chromosome files')
+    parser.add_argument('-g', '--genome', required=False, default='GRCh37', help='genome build [GRCh37]')
+
+    # parse the arguments
+    args = parser.parse_args()
+
+    # send back the user input
+    return args
 
 # get root file name
 def get_root_fn(bam_fn):
@@ -178,7 +204,7 @@ def run_partition(bin_size, root_fn, chroms):
 	proc_idx = 0
 	while proc_idx < len(chroms): 
 		x = chroms[proc_idx]
-		part_dict[x] = subprocess.Popen(['cnvnator', '-root', 'chr%s.root'%x, '-partition', bin_size, '-chrom', x], stdout = devnull)
+		part_dict[x] = subprocess.Popen([CNVNATOR, '-root', 'chr%s.root'%x, '-partition', bin_size, '-chrom', x], stdout = devnull)
 		print ("Now partitioning chrom %s" % x)
 		proc_idx += 1
 		if proc_idx >= MAX_PROCS: break
@@ -205,7 +231,7 @@ def run_partition(bin_size, root_fn, chroms):
 			# since we spawn up to max_procs number of procs at once, we might have more things to run...
 			if proc_idx < len(chroms):
 				x = chroms[proc_idx]
-				part_dict[x] = subprocess.Popen(['cnvnator', '-root', 'chr%s.root'%x, '-partition', bin_size, '-chrom', x], stdout = devnull)
+				part_dict[x] = subprocess.Popen([CNVNATOR, '-root', 'chr%s.root'%x, '-partition', bin_size, '-chrom', x], stdout = devnull)
 				print ("Now partitioning chrom %s" % x)
 				proc_idx += 1
 	devnull.close()
@@ -219,30 +245,16 @@ def run_hist_stats(bin_size, bam_fn, chroms_dir):
 	hist_fn = get_hist_fn(bam_fn)
 
 	print "===== Running histograms on input data for input bin size"
-	ret = subprocess.call(['cnvnator', '-his', bin_size, '-d', chroms_dir, '-root', root_fn, '-outroot', hist_fn]) 
+	ret = subprocess.call([CNVNATOR, '-his', bin_size, '-d', chroms_dir, '-root', root_fn, '-outroot', hist_fn]) 
 	if ret != 0:
 		print "Error computing histograms (input bin size)."
 		return ret
 	print "===== Running stats on input data for input bin size"
-	ret = subprocess.call(['cnvnator', '-stat', bin_size, '-root', hist_fn]) 
+	ret = subprocess.call([CNVNATOR, '-stat', bin_size, '-root', hist_fn]) 
 	if ret != 0:
 		print "Error computing histograms (input bin size)."
 		return ret
-	# no need to duplicate hist and stat if the input bin size was 1000
-	if bin_size == "1000":
-		return 0
-	
-	#print "===== Running histograms on input data for bin size 1000"
-	ret = subprocess.call(['cnvnator', '-his', '1000', '-d', chroms_dir, '-root', root_fn, '-outroot', hist_fn]) 
-	if ret != 0:
-		print "Error computing histograms (bin size 1000)."
-		return ret
-	#print "===== Running stats on input data for bin size 1000"
-	ret = subprocess.call(['cnvnator', '-stat', '1000', '-root', hist_fn]) 
-	if ret != 0:
-		print "Error computing stats (bin size 1000)."
-		return ret
-	return 0
+        return 0
 # end of run tree, hist, stats
 
 
@@ -250,7 +262,7 @@ def run_hist_stats(bin_size, bam_fn, chroms_dir):
 def run_calls(bin_size, hist_fn, out_fn):
 	print "===== Running calls on input data"
 	f = open(out_fn, 'w')
-	ret = subprocess.call(['cnvnator', '-call', bin_size, '-root', hist_fn], stdout = f) 
+	ret = subprocess.call([CNVNATOR, '-call', bin_size, '-root', hist_fn], stdout = f) 
 	f.close()
 	if ret != 0:
 		print "Error computing calls."
@@ -261,41 +273,86 @@ def run_calls(bin_size, hist_fn, out_fn):
 # run tree
 def run_tree(bam_fn, genome):
 	print "===== Running tree on input data"
-	ret = subprocess.call(['cnvnator', '-root', get_root_fn(bam_fn), '-genome', genome, '-tree', bam_fn, '-unique'])
+	ret = subprocess.call([CNVNATOR, '-root', get_root_fn(bam_fn), '-genome', genome, '-ptree', bam_fn, '-unique', '-nthreads', str(MAX_PROCS)])
 	if ret != 0:
 		print "Error in tree creation"
 	return ret
 # end of run tree
 
 
+# make a bedgraph file
+def mk_graph_file(out_fn):
+	bedgraph_fn = out_fn + ".bedgraph"
+	f = open(out_fn, 'r')
+	fdata = f.readlines()
+	f.close()
+	
+	nf = []
+	prev_chr = ""
+	prev_end = 0
+	for x in fdata:
+  		pieces = x.split()
+  		idx = pieces[1].find(':')
+  		idx2 = pieces[1].find('-')
+  		chr = pieces[1][0:idx]
+		# remove any 'chr' prefixes from the chrom name
+		if chr.startswith('chr'): chr = chr[3:]
+  		start = int(pieces[1][idx+1:idx2])
+  		end = int(pieces[1][idx2+1:])
+  		if chr == prev_chr and start-prev_end>1:
+  			line = "%s\t%d\t%d\t%f" % (prev_chr, prev_end+1, start-1, 1.000)
+  			nf.append(line)
+  		prev_chr, prev_end = chr, end
+  		line = "%s\t%d\t%d\t%s" % (chr, start, end, pieces[3])
+  		nf.append(line)
+	nfstr = '\n'.join(nf)
+	
+	f = open(bedgraph_fn, 'w')
+	f.write(nfstr)
+	f.close()
+# end of make bedgraph file
+
+
 # main
 if __name__ == "__main__":
+	args = get_args()
+
 	# usage: ./cnvnator.py {window size} {BAM file} {output variant file name} {path to chromosome files}
-	if len(sys.argv) != 6:
-		print "Usage: ./cnvator.py {window size} {BAM file name} {output variant file name} {path to chromosome files} {genome}"
+	# if len(sys.argv) != 7:
+	# 	print "Usage: ./cnvator.py {window size} {BAM file name} {output variant file name} {path to chromosome files} {genome} {nthreads}"
+	# 	sys.exit(1)
+	
+	try:
+		MAX_PROCS = args.threads
+		if MAX_PROCS <= 0 or MAX_PROCS > MAX_MAX_PROCS:
+			raise Exception()	
+	except:
+		print "Number of threads must be a number between 1 and %d." % MAX_MAX_PROCS
 		sys.exit(1)
-	chroms_list = get_chroms_list(sys.argv[2])
+	
+	chroms_list = get_chroms_list(args.bam)
 	if len(chroms_list) == 0:
 		print "No chromosomes found in BAM file."
 		sys.exit(1)
 	print "Processing data from the following chromosomes: %s" % str(chroms_list)
-
+	
 	# run tree
-	if run_tree(sys.argv[2], sys.argv[5]) != 0:
+	if run_tree(args.bam, args.genome) != 0:
 		sys.exit(1)
-
+        
 	# run hist and stats
-	if run_hist_stats(sys.argv[1], sys.argv[2], sys.argv[4]) != 0:
+	if run_hist_stats(args.window, args.bam, args.chroms) != 0:
 		sys.exit(1)
 
 	# run partition
-	hist_fn = get_hist_fn(sys.argv[2])	
-	if run_partition(sys.argv[1], hist_fn, chroms_list) != 0:
+	hist_fn = get_hist_fn(args.bam)	
+	if run_partition(args.window, hist_fn, chroms_list) != 0:
 		sys.exit(1)
 
 	# run calls
-	if run_calls(sys.argv[1], hist_fn, sys.argv[3]) != 0:
+	if run_calls(args.window, hist_fn, args.output) != 0:
 		sys.exit(1)
+	mk_graph_file(args.output)
 	sys.exit(0)
 # end of main
 
