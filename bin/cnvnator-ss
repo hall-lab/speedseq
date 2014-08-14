@@ -120,7 +120,7 @@ MAX_MAX_PROCS = 48
 MAX_PROCS = 32
 ROOT_EXT = ".root"
 HIST_EXT = ".hist"
-CNVNATOR = "cnvnator"
+# CNVNATOR = "cnvnator" # now defined in command line arg
 
 def get_args():
     parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter, description="\
@@ -134,6 +134,7 @@ description: SpeedSeq parallelized implementation of CNVnator v0.3 (Gerstein lab
     parser.add_argument('-o', '--output', required=True, help='output variant file name')
     parser.add_argument('-c', '--chroms', required=True, help='path to chromosome files')
     parser.add_argument('-g', '--genome', required=False, default='GRCh37', help='genome build [GRCh37]')
+    parser.add_argument('--cnvnator', required=False, default='cnvnator', help='path to cnvnator binary')
 
     # parse the arguments
     args = parser.parse_args()
@@ -322,6 +323,8 @@ if __name__ == "__main__":
 	# 	print "Usage: ./cnvator.py {window size} {BAM file name} {output variant file name} {path to chromosome files} {genome} {nthreads}"
 	# 	sys.exit(1)
 	
+        CNVNATOR = args.cnvnator
+
 	try:
 		MAX_PROCS = args.threads
 		if MAX_PROCS <= 0 or MAX_PROCS > MAX_MAX_PROCS:
