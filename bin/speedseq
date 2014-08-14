@@ -1027,7 +1027,7 @@ global options:
     EXCLUDE_BED=
     TEMP_DIR="./temp"
     GENOTYPE=0
-    CNV=0
+    READDEPTH=0
     VERBOSE=0
     KEEP=0
     OUTPUT=""
@@ -1080,7 +1080,7 @@ global options:
 		THREADS="$OPTARG"
 		;;
 	    c)
-		CNV=1
+		READDEPTH=1
 		;;
 	    g)
 		GENOTYPE=1
@@ -1130,19 +1130,26 @@ global options:
     fi
 
     # if genotyping requested, look for svtyper
-    if [[ "$GENOTYPE" -eq 1 ]]
+    if [[ "$GENOTYPE" -eq 1 ]] && [[ -z "$SVTYPER" ]]
     then
 	sv_usage
         echo -e "Error: svtyper executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     fi
 
-    # if CNV read-depth requested, look for cnvnator-ss
-    if [[ "$GENOTYPE" -eq 1 ]]
+    # if CNV read-depth requested, look for cnvnator executables
+    if [[ "$READDEPTH" -eq 1 ]]
     then
-	sv_usage
-        echo -e "Error: svtyper executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
+	if [[ -z "$CNVNATOR" ]]
+	then
+	    sv_usage
+            echo -e "Error: cnvnator executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+            exit 1
+	elif [[ -z "$CNVNATOR_WRAPPER" ]]
+	    sv_usage
+            echo -e "Error: cnvnator_wrapper.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+            exit 1
+	fi
     fi
 
     # Check that the required files exist

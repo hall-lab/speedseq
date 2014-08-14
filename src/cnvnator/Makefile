@@ -6,12 +6,14 @@ ROOTLIBS  = -L$(ROOTSYS)/lib -lCore -lCint -lRIO -lNet -lHist -lGraf -lGraf3d \
 		-lGpad -lTree -lRint -lMatrix -lPhysics \
 		-lMathCore -lThread -lGui
 
+SRC    = src
+BINDIR = bin
 CXX    = g++ $(ROOTFLAGS) -DCNVNATOR_VERSION=\"$(VERSION)\"
-SAMDIR = src/samtools
+SAMDIR = $(SRC)/samtools
 INC    = -I$(ROOTSYS)/include -I$(SAMDIR)
 SAMLIB = $(SAMDIR)/libbam.a
 
-OBJDIR = src/obj
+OBJDIR = $(SRC)/obj
 OBJS   = $(OBJDIR)/cnvnator.o  \
 	 $(OBJDIR)/HisMaker.o  \
 	 $(OBJDIR)/AliParser.o \
@@ -34,14 +36,16 @@ samtools:
 	$(MAKE) -C $(SAMDIR)
 
 cnvnator: samtools $(OBJS)
-	$(CXX) -o $@ $(OBJS) $(SAMLIB) $(LIBS) $(ROOTLIBS)
+	@mkdir -p $(BINDIR)
+	$(CXX) -o $(BINDIR)/$@ $(OBJS) $(SAMLIB) $(LIBS) $(ROOTLIBS)
 
-$(OBJDIR)/%.o: src/%.cpp
+$(OBJDIR)/%.o: $(SRC)/%.cpp
 	@mkdir -p $(OBJDIR)
 	$(CXX) $(INC) -c $< -o $@
 
 clean:
 	rm -f $(OBJS)
+	rm -f $(BINDIR)/cnvnator
 	$(MAKE) -C $(SAMDIR) clean
 
 distribution: clean all
