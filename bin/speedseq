@@ -20,10 +20,6 @@ function source_binaries() {
 	SAMBAMBA=`which sambamba || true`
 	FREEBAYES=`which freebayes || true`
 	BEDTOOLS=`which bedtools || true`
-	JAVA=`which java || true`
-	SNPEFF=
-	SNPEFF_CONFIG=
-	SNPEFF_GENOME=
 	VEP=`which variant_effect_predictor.pl || true`
 	VEP_CACHE_DIR="$HOME/.vep/"
 	BGZIP=`which bgzip || true`
@@ -342,6 +338,7 @@ positional args:
 options:
          -o STR   output prefix [input1.bam]
          -w FILE  BED file of windowed genomic intervals
+         -q FLOAT minimum variant QUAL score to output [1]
          -t INT   threads [1]
          -T DIR   temp directory [./temp]
          -A BOOL  annotate the vcf with VEP (true or false) (default: true)
@@ -362,11 +359,13 @@ options:
     SPEEDSEQ_DIR=`dirname $0`
     CONFIG="$SPEEDSEQ_DIR/speedseq.config"
     THREADS=1
+    MINQUAL=1
     TEMP_DIR="./temp"
     ANNOTATE="true"
+    MINQUAL=1
     VERBOSE=0
 
-    while getopts ":ho:w:t:T:A:vK:" OPTION
+    while getopts ":ho:w:t:T:A:q:vK:" OPTION
     do
         case "${OPTION}" in
             h)
@@ -378,6 +377,9 @@ options:
                 ;;
 	    w)
 		WINDOWS="$OPTARG"
+		;;
+	    q)
+		MINQUAL="$OPTARG"
 		;;
             t)
                 THREADS="$OPTARG"
@@ -422,11 +424,6 @@ options:
 	var_usage
         echo -e "Error: bedtools executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ ! -f "$JAVA" ]]
-    then
-	var_usage
-        echo -e "Error: java executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
     elif [[ ! -f "$BGZIP" ]]
     then
 	var_usage
@@ -442,7 +439,7 @@ options:
 	var_usage
         echo -e "Error: VEP not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ ! -f "$VEP_CACHE_DIR" ]] && [[ "$ANNOTATE" == "true" ]]
+    elif [[ ! -d "$VEP_CACHE_DIR" ]] && [[ "$ANNOTATE" == "true" ]]
     then
 	var_usage
         echo -e "Error: VEP cache directory not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -506,6 +503,7 @@ options:
             -f $REF \\
             --region \$chrom:\$start..\$end \\
             $BAM_STRING \\
+            | awk '\$6>=$MINQUAL' \\
             > ${TEMP_DIR}/$OUTBASE.$i.vcf"
     fi
     
@@ -515,6 +513,7 @@ options:
         -f $REF \
         --region $i \
         $BAM_STRING \
+        | awk '\$6>=$MINQUAL' \
         > ${TEMP_DIR}/$OUTBASE.$i.vcf"
     done > $TEMP_DIR/var_command.txt
 
@@ -684,7 +683,7 @@ options:
     MIN_ALT_COUNT=2
     TEMP_DIR="./temp"
     ANNOTATE="true"
-    QUAL=1
+    MINQUAL=1
     VERBOSE=0
 
     while getopts ":ho:w:t:F:C:T:A:q:vK:" OPTION
@@ -716,7 +715,7 @@ options:
                 ANNOTATE=`echo "$OPTARG" | tr [:upper:] [:lower:]`
                 ;;
 	    q)
-		QUAL="$OPTARG"
+		MINQUAL="$OPTARG"
 		;;
             v)
                 VERBOSE=1
@@ -752,11 +751,6 @@ options:
     then
         somatic_usage
         echo -e "Error: bedtools executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ ! -f "$JAVA" ]]
-    then
-        somatic_usage
-        echo -e "Error: java executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ ! -f "$BGZIP" ]]
     then
@@ -840,7 +834,7 @@ options:
             --min-alternate-count ${MIN_ALT_COUNT} \\
             --region \$chrom:\$start..\$end \\
             $NORMAL_BAM_FMT $TUMOR_BAM_FMT \\
-            | awk '\$6>=$QUAL' \\
+            | awk '\$6>=$MINQUAL' \\
             > ${TEMP_DIR}/$OUTBASE.\$chrom:\$start..\$end.vcf"
     fi
     for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
@@ -852,7 +846,7 @@ options:
         --min-alternate-count ${MIN_ALT_COUNT} \
         --region $i \
         $NORMAL_BAM_FMT $TUMOR_BAM_FMT \
-        | awk '\$6>=$QUAL' \
+        | awk '\$6>=$MINQUAL' \
         > ${TEMP_DIR}/$OUTBASE.$i.vcf"
     done > $TEMP_DIR/var_command.txt
 
@@ -1254,7 +1248,7 @@ global options:
 	    
             # calculate stats
             $SAMBAMBA view -F "not secondary_alignment" $FULL_BAM \
-		| head -n 10000000 | tail -n 5000000 \
+		| head -n 10000000 | tail -n 1000000 \
 		| $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$FULL_BASE.x4.histo \
 		> ${TEMP_DIR}/$FULL_BASE.insert.stats
 	    
@@ -1270,7 +1264,8 @@ global options:
     if [[ "$VERBOSE" -eq 1 ]]
     then
 	echo "
-$LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FMT $LUMPY_DISC_STRING $LUMPY_SPL_STRING > $OUTPUT.bedpe
+# call lumpy
+$LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FMT $LUMPY_DISC_STRING $LUMPY_SPL_STRING > $TEMP_DIR/$OUTBASE.bedpe
         "
     fi
     # call lumpy
@@ -1279,6 +1274,35 @@ $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FM
 	$LUMPY_DISC_STRING \
 	$LUMPY_SPL_STRING \
 	> $TEMP_DIR/$OUTBASE.bedpe
+
+    if [[ "$VERBOSE" -eq 1 ]]
+    then
+	echo -e "
+# convert to VCF, ensure that each variant has at least one sample with MIN_WEIGHT support
+cat $TEMP_DIR/$OUTBASE.bedpe \\
+    | $BEDPETOVCF -t LUMPY -c $TEMP_DIR/$OUTBASE.sample.config -f $REF \\
+    | awk -v MIN_WEIGHT=$MIN_WEIGHT 'BEGIN {S_IDX=0} {
+        if ($0~\"^#\") print
+        else {
+            if (S_IDX==0) {
+                split($9,fmt,\":\");
+                for (i=1;i<=length(fmt);++i) {
+                    if (fmt[i]==\"SUP\") S_IDX=i
+                }
+            }
+            else {
+                PASS=0
+                for (i=10;i<=NF;++i) {
+                    split($i,a,\":\");
+                    if (a[S_IDX]>=MIN_WEIGHT) PASS=1;
+                }
+            }
+        }
+        if (PASS) print
+    }' \\
+    > $TEMP_DIR/$OUTBASE.vcf
+        "
+    fi
 
     # convert to VCF, ensure that each variant has at least one sample with MIN_WEIGHT support
     cat $TEMP_DIR/$OUTBASE.bedpe \
@@ -1304,16 +1328,35 @@ $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FM
         }' \
 	> $TEMP_DIR/$OUTBASE.vcf
 
+    if [[ "$VERBOSE" -eq 1 ]]
+    then
+	echo -e "
+# make header
+cat $TEMP_DIR/$OUTBASE.vcf | awk '$0!~\"^#\" {exit}; 1' > $TEMP_DIR/header.txt
+        "
+    fi
     # make header
     cat $TEMP_DIR/$OUTBASE.vcf | awk '$0!~"^#" {exit}; 1' > $TEMP_DIR/header.txt
-    echo "done"
 
     # genotype in parallel
     if [[ GENOTYPE -eq 1 ]]
     then
+	if [[ "$VERBOSE" -eq 1 ]]
+	then
+	    echo -e "
+# split the VCF file into slices of 100 lines each
+mkdir -p $TEMP_DIR/gt
+cat $TEMP_DIR/$OUTBASE.vcf | grep -v \"^#\" | split -a 5 -d -l 100 - $TEMP_DIR/gt/spl
+for s in `ls $TEMP_DIR/gt/spl* | grep -v \"vcf\$\"`
+do
+    cat $TEMP_DIR/header.txt \$s > \$s.vcf
+done
+            "
+	fi
+
 	# split the VCF file into slices of 100 lines each
 	mkdir -p $TEMP_DIR/gt
-	cat $TEMP_DIR/$OUTBASE.vcf | split -a 5 -d -l 100 - $TEMP_DIR/gt/spl
+	cat $TEMP_DIR/$OUTBASE.vcf | grep -v "^#" | split -a 5 -d -l 100 - $TEMP_DIR/gt/spl
 	for s in `ls $TEMP_DIR/gt/spl* | grep -v "vcf$"`
 	do
 	    cat $TEMP_DIR/header.txt $s > $s.vcf
@@ -1341,11 +1384,17 @@ $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FM
     # run cnvnator
     # todo
 
+    # write output
+    mv $TEMP_DIR/$OUTBASE.bedpe $OUTPUT.bedpe
+    mv $TEMP_DIR/$OUTBASE.vcf $OUTPUT.vcf
+
     # clean up
     if [[ $KEEP -eq 0 ]]
     then
 	rm -r ${TEMP_DIR}
     fi
+
+    echo "done"
 
     # exit cleanly
     exit 0
