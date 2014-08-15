@@ -114,13 +114,6 @@ int after_partition_copy(TString fname_in  = "22.root",
 }
 """
 
-BEFORE_PART_FN = "before_partition_copy.cpp"
-AFTER_PART_FN = "after_partition_copy.cpp"
-MAX_MAX_PROCS = 48
-MAX_PROCS = 32
-ROOT_EXT = ".root"
-HIST_EXT = ".hist"
-# CNVNATOR = "cnvnator" # now defined in command line arg
 
 def get_args():
     parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter, description="\
@@ -135,6 +128,7 @@ description: SpeedSeq parallelized implementation of CNVnator v0.3 (Gerstein lab
     parser.add_argument('-c', '--chroms', required=True, help='path to chromosome files')
     parser.add_argument('-g', '--genome', required=False, default='GRCh37', help='genome build [GRCh37]')
     parser.add_argument('--cnvnator', required=False, default='cnvnator', help='path to cnvnator binary')
+    parser.add_argument('-T', '--tempdir', type=str, required=False, default='temp', help='temp directiory [./temp]')
 
     # parse the arguments
     args = parser.parse_args()
@@ -144,13 +138,13 @@ description: SpeedSeq parallelized implementation of CNVnator v0.3 (Gerstein lab
 
 # get root file name
 def get_root_fn(bam_fn):
-	return os.path.split(bam_fn)[1] + ROOT_EXT
+	return TEMPDIR + '/' + os.path.split(bam_fn)[1] + ROOT_EXT
 # end of get root file name
 
 
 # get hist file name
 def get_hist_fn(bam_fn):
-	return os.path.split(bam_fn)[1] + HIST_EXT + ROOT_EXT
+	return TEMPDIR + '/' + os.path.split(bam_fn)[1] + HIST_EXT + ROOT_EXT
 # end of get hist file name
 
 
@@ -194,8 +188,7 @@ def run_partition(bin_size, root_fn, chroms):
 	devnull = open(os.devnull, 'w')
 	for x in chroms:
 		print "Extracting input data for chrom %s..." % x
-                print 'root', '-b', '-q', '%s(\"%s\",\"%s.root\", \"%s\", \"%s\")' % (BEFORE_PART_FN, root_fn, x, bin_size, get_part_cp_chrom(x))
-		proc = subprocess.call(['root', '-b', '-q', '%s(\"%s\",\"%s.root\", \"%s\", \"%s\")' % (BEFORE_PART_FN, root_fn, x, bin_size, get_part_cp_chrom(x))], stdout = devnull, stderr = devnull)
+		proc = subprocess.call(['root', '-b', '-q', '%s(\"%s\",\"%s/%s.root\", \"%s\", \"%s\")' % (BEFORE_PART_FN, root_fn, TEMPDIR, x, bin_size, get_part_cp_chrom(x))], stdout = devnull, stderr = devnull)
 		if proc != 0:
 			print "Error: Data extraction (before_partition_copy) failed for chrom %s" % x
                         exit(1)
@@ -205,7 +198,7 @@ def run_partition(bin_size, root_fn, chroms):
 	proc_idx = 0
 	while proc_idx < len(chroms): 
 		x = chroms[proc_idx]
-		part_dict[x] = subprocess.Popen([CNVNATOR, '-root', '%s.root'%x, '-partition', bin_size, '-chrom', x], stdout = devnull)
+		part_dict[x] = subprocess.Popen([CNVNATOR, '-root', '%s/%s.root' % (TEMPDIR, x), '-partition', bin_size, '-chrom', x], stdout = devnull)
 		print ("Now partitioning chrom %s" % x)
 		proc_idx += 1
 		if proc_idx >= MAX_PROCS: break
@@ -223,8 +216,8 @@ def run_partition(bin_size, root_fn, chroms):
 			elif val == 0:
 				# if we get a good return, merge the chrom data back into the root file and clean up the standalone data
 				print "Partitioning succeeded for chrom %s" % x
-				proc = subprocess.call(['root', '-b', '-q', '%s(\"%s.root\", \"%s\", \"%s\", \"%s\")' % (AFTER_PART_FN, x, root_fn, bin_size, get_part_cp_chrom(x))], stdout = devnull)			
-				os.unlink('%s.root'%x)
+				proc = subprocess.call(['root', '-b', '-q', '%s(\"%s/%s.root\", \"%s\", \"%s\", \"%s\")' % (AFTER_PART_FN, TEMPDIR, x, root_fn, bin_size, get_part_cp_chrom(x))], stdout = devnull)			
+				os.unlink('%s/%s.root' % (TEMPDIR, x))
 			else:
 				print "Partitioning failed for chrom %s" % x
 				ret = 1
@@ -232,7 +225,7 @@ def run_partition(bin_size, root_fn, chroms):
 			# since we spawn up to max_procs number of procs at once, we might have more things to run...
 			if proc_idx < len(chroms):
 				x = chroms[proc_idx]
-				part_dict[x] = subprocess.Popen([CNVNATOR, '-root', '%s.root'%x, '-partition', bin_size, '-chrom', x], stdout = devnull)
+				part_dict[x] = subprocess.Popen([CNVNATOR, '-root', '%s/%s.root' % (TEMPDIR, x), '-partition', bin_size, '-chrom', x], stdout = devnull)
 				print ("Now partitioning chrom %s" % x)
 				proc_idx += 1
 	devnull.close()
@@ -262,7 +255,7 @@ def run_hist_stats(bin_size, bam_fn, chroms_dir):
 # run calls
 def run_calls(bin_size, hist_fn, out_fn):
 	print "===== Running calls on input data"
-	f = open(out_fn, 'w')
+	f = open(out_fn + '.txt', 'w')
 	ret = subprocess.call([CNVNATOR, '-call', bin_size, '-root', hist_fn], stdout = f) 
 	f.close()
 	if ret != 0:
@@ -284,7 +277,7 @@ def run_tree(bam_fn, genome):
 # make a bedgraph file
 def mk_graph_file(out_fn):
 	bedgraph_fn = out_fn + ".bed"
-	f = open(out_fn, 'r')
+	f = open(out_fn + '.txt', 'r')
 	fdata = f.readlines()
 	f.close()
 	
@@ -318,13 +311,22 @@ def mk_graph_file(out_fn):
 if __name__ == "__main__":
 	args = get_args()
 
-	# usage: ./cnvnator.py {window size} {BAM file} {output variant file name} {path to chromosome files}
-	# if len(sys.argv) != 7:
-	# 	print "Usage: ./cnvator.py {window size} {BAM file name} {output variant file name} {path to chromosome files} {genome} {nthreads}"
-	# 	sys.exit(1)
-	
         CNVNATOR = args.cnvnator
+        TEMPDIR = args.tempdir
+        BEFORE_PART_FN = TEMPDIR + "/" + "before_partition_copy.cpp"
+        AFTER_PART_FN = TEMPDIR + "/" + "after_partition_copy.cpp"
+        MAX_MAX_PROCS = 48
+        MAX_PROCS = 32
+        ROOT_EXT = ".root"
+        HIST_EXT = ".hist"
+	
+        # create temp directory if it doesn't exist
+        try:
+            os.stat(TEMPDIR)
+        except:
+            os.mkdir(TEMPDIR)
 
+        # ensure threads doesn't exceed MAX_MAX_PROCS
 	try:
 		MAX_PROCS = args.threads
 		if MAX_PROCS <= 0 or MAX_PROCS > MAX_MAX_PROCS:
@@ -333,6 +335,7 @@ if __name__ == "__main__":
 		print "Number of threads must be a number between 1 and %d." % MAX_MAX_PROCS
 		sys.exit(1)
 	
+        # build chroms_list
 	chroms_list = get_chroms_list(args.bam)
 	if len(chroms_list) == 0:
 		print "No chromosomes found in BAM file."
@@ -347,12 +350,13 @@ if __name__ == "__main__":
 	# if run_hist_stats(args.window, args.bam, args.chroms) != 0:
 	# 	sys.exit(1)
 
-	# run partition
+	# # run partition
 	hist_fn = get_hist_fn(args.bam)	
-	if run_partition(args.window, hist_fn, chroms_list) != 0:
-		sys.exit(1)
+	# if run_partition(args.window, hist_fn, chroms_list) != 0:
+	# 	sys.exit(1)
 
 	# run calls
+        print args.output
 	if run_calls(args.window, hist_fn, args.output) != 0:
 		sys.exit(1)
 	mk_graph_file(args.output)
