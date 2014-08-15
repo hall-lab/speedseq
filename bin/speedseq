@@ -254,7 +254,7 @@ global options:
 	then
 	    echo -e "
         $BWA mem -t $THREADS -M -p $RG_FMT $REF $FQ | \\
-            $SAMBLASTER $INCLUDE_DUPS --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
+            $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
@@ -266,7 +266,7 @@ global options:
 
 	echo "
         $BWA mem -t $THREADS -M -p $RG_FMT $REF $FQ | \
-	    $SAMBLASTER $INCLUDE_DUPS --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
+	    $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
 	    $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
         
@@ -280,7 +280,7 @@ global options:
 	then
         echo -e "
         $BWA mem -t $THREADS -M $RG_FMT $REF $FQ1 $FQ2 | \\
-            $SAMBLASTER $INCLUDE_DUPS --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
+            $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
@@ -292,7 +292,7 @@ global options:
 
         echo "
         $BWA mem -t $THREADS -M $RG_FMT $REF $FQ1 $FQ2 | \
-            $SAMBLASTER $INCLUDE_DUPS --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
+            $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
@@ -1146,6 +1146,7 @@ global options:
             echo -e "Error: cnvnator executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
             exit 1
 	elif [[ -z "$CNVNATOR_WRAPPER" ]]
+	then
 	    sv_usage
             echo -e "Error: cnvnator_wrapper.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
             exit 1
