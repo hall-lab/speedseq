@@ -9,9 +9,9 @@ __date__ = "$Date: 2014-08-14 14:53 $"
 
 before_part_cp = """
 int before_partition_copy(TString fname_in  = "his.HG00702.root",
-			  TString fname_out = "chr22.root",
+			  TString fname_out = "22.root",
 			  TString bin       = "1000",
-			  TString chr       = "chr22")
+			  TString chr       = "22")
 {
   TString dirname = "bin_"; dirname += bin;
 
@@ -57,10 +57,10 @@ int before_partition_copy(TString fname_in  = "his.HG00702.root",
 """
 
 after_part_cp = """
-int after_partition_copy(TString fname_in  = "chr22.root",
-			 TString fname_out = "his.chr22.root", // here put name of master file
+int after_partition_copy(TString fname_in  = "22.root",
+			 TString fname_out = "his.22.root", // here put name of master file
 			 TString bin       = "1000",
-			 TString chr       = "chr22")
+			 TString chr       = "22")
 {
   TString dirname = "bin_"; dirname += bin;
 
@@ -124,7 +124,7 @@ HIST_EXT = ".hist"
 
 def get_args():
     parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter, description="\
-cnvnator-ss\n\
+cnvnator\n\
 author: " + __author__ + "\n\
 version: " + __version__ + "\n\
 description: SpeedSeq parallelized implementation of CNVnator v0.3 (Gerstein lab)")
@@ -187,25 +187,25 @@ def run_partition(bin_size, root_fn, chroms):
 	
 	# before_parition_copy and after_paritition_copy are called in two ways, depending on chromosome
 	def get_part_cp_chrom(chrom):
-		if chrom.startswith("GL"): return chrom
-		return "chr%s" % chrom
+                return chrom
 	# end
-
 
 	# copy data from the ROOT file to a standalone data file for each chromosome
 	devnull = open(os.devnull, 'w')
 	for x in chroms:
 		print "Extracting input data for chrom %s..." % x
-		proc = subprocess.call(['root', '-b', '-q', '%s(\"%s\",\"chr%s.root\", \"%s\", \"%s\")' % (BEFORE_PART_FN, root_fn, x, bin_size, get_part_cp_chrom(x))], stdout = devnull, stderr = devnull)
+                print 'root', '-b', '-q', '%s(\"%s\",\"%s.root\", \"%s\", \"%s\")' % (BEFORE_PART_FN, root_fn, x, bin_size, get_part_cp_chrom(x))
+		proc = subprocess.call(['root', '-b', '-q', '%s(\"%s\",\"%s.root\", \"%s\", \"%s\")' % (BEFORE_PART_FN, root_fn, x, bin_size, get_part_cp_chrom(x))], stdout = devnull, stderr = devnull)
 		if proc != 0:
 			print "Error: Data extraction (before_partition_copy) failed for chrom %s" % x
+                        exit(1)
 	
 	# spawn off up to max_procs copies of CNVNATOR to partition each chromosome
 	part_dict = {}
 	proc_idx = 0
 	while proc_idx < len(chroms): 
 		x = chroms[proc_idx]
-		part_dict[x] = subprocess.Popen([CNVNATOR, '-root', 'chr%s.root'%x, '-partition', bin_size, '-chrom', x], stdout = devnull)
+		part_dict[x] = subprocess.Popen([CNVNATOR, '-root', '%s.root'%x, '-partition', bin_size, '-chrom', x], stdout = devnull)
 		print ("Now partitioning chrom %s" % x)
 		proc_idx += 1
 		if proc_idx >= MAX_PROCS: break
@@ -223,8 +223,8 @@ def run_partition(bin_size, root_fn, chroms):
 			elif val == 0:
 				# if we get a good return, merge the chrom data back into the root file and clean up the standalone data
 				print "Partitioning succeeded for chrom %s" % x
-				proc = subprocess.call(['root', '-b', '-q', '%s(\"chr%s.root\", \"%s\", \"%s\", \"%s\")' % (AFTER_PART_FN, x, root_fn, bin_size, get_part_cp_chrom(x))], stdout = devnull)			
-				os.unlink('chr%s.root'%x)
+				proc = subprocess.call(['root', '-b', '-q', '%s(\"%s.root\", \"%s\", \"%s\", \"%s\")' % (AFTER_PART_FN, x, root_fn, bin_size, get_part_cp_chrom(x))], stdout = devnull)			
+				os.unlink('%s.root'%x)
 			else:
 				print "Partitioning failed for chrom %s" % x
 				ret = 1
@@ -232,7 +232,7 @@ def run_partition(bin_size, root_fn, chroms):
 			# since we spawn up to max_procs number of procs at once, we might have more things to run...
 			if proc_idx < len(chroms):
 				x = chroms[proc_idx]
-				part_dict[x] = subprocess.Popen([CNVNATOR, '-root', 'chr%s.root'%x, '-partition', bin_size, '-chrom', x], stdout = devnull)
+				part_dict[x] = subprocess.Popen([CNVNATOR, '-root', '%s.root'%x, '-partition', bin_size, '-chrom', x], stdout = devnull)
 				print ("Now partitioning chrom %s" % x)
 				proc_idx += 1
 	devnull.close()
@@ -283,7 +283,7 @@ def run_tree(bam_fn, genome):
 
 # make a bedgraph file
 def mk_graph_file(out_fn):
-	bedgraph_fn = out_fn + ".bedgraph"
+	bedgraph_fn = out_fn + ".bed"
 	f = open(out_fn, 'r')
 	fdata = f.readlines()
 	f.close()
@@ -339,13 +339,13 @@ if __name__ == "__main__":
 		sys.exit(1)
 	print "Processing data from the following chromosomes: %s" % str(chroms_list)
 	
-	# run tree
-	if run_tree(args.bam, args.genome) != 0:
-		sys.exit(1)
+	# # run tree
+	# if run_tree(args.bam, args.genome) != 0:
+	# 	sys.exit(1)
         
-	# run hist and stats
-	if run_hist_stats(args.window, args.bam, args.chroms) != 0:
-		sys.exit(1)
+	# # run hist and stats
+	# if run_hist_stats(args.window, args.bam, args.chroms) != 0:
+	# 	sys.exit(1)
 
 	# run partition
 	hist_fn = get_hist_fn(args.bam)	

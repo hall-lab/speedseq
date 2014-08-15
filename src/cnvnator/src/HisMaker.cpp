@@ -1993,7 +1993,7 @@ void HisMaker::stat(string *user_chroms,int n_chroms,bool useATcorr)
   // Statistics for uncorrected
   TH1* rd_p    = new TH1D(getDistrName(chrAll,bin_size,false,false),
 			  "RD all",   5001,-0.5,5000.5);
-  TH1* rd_p_xy = new TH1D(getDistrName("chrX",bin_size,false,false),
+  TH1* rd_p_xy = new TH1D(getDistrName("X",bin_size,false,false),
 			  "RD all XY",5001,-0.5,5000.5);
   TH1 *rd_u       = new TH1D(rd_u_name,   "RD unique",   5001,-0.5,5000.5);
   TH1 *rd_u_xy    = new TH1D(rd_u_xy_name,"RD unique XY",5001,-0.5,5000.5);
@@ -2082,7 +2082,7 @@ void HisMaker::stat(string *user_chroms,int n_chroms,bool useATcorr)
   // Statistics for corrected counts
   TH1* rd_p_GC    = new TH1D(getDistrName(chrAll,bin_size,useATcorr,true),
 			     "RD all (GC corrected)",   5001,-0.5,5000.5);
-  TH1* rd_p_xy_GC = new TH1D(getDistrName("chrX",bin_size,useATcorr,true),
+  TH1* rd_p_xy_GC = new TH1D(getDistrName("X",bin_size,useATcorr,true),
 			     "RD all XY (GC corrected)",5001,-0.5,5000.5);
   for (int c = 0;c < n_chroms;c++) {
     string chrom = user_chroms[c];
@@ -2132,7 +2132,7 @@ void HisMaker::eval(string *files,int n_files,bool useATcorr,bool useGCcorr)
     root_file_name = files[f];
     TH1 *his    = getHistogram(getDistrName(chrAll,bin_size,
 					    useATcorr,useGCcorr));
-    TH1 *his_xy = getHistogram(getDistrName("chrX",bin_size,
+    TH1 *his_xy = getHistogram(getDistrName("X",bin_size,
 					    useATcorr,useGCcorr));
     double mean = 0,sigma = 0;
 
