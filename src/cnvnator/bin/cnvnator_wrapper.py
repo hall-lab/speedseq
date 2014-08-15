@@ -342,18 +342,18 @@ if __name__ == "__main__":
 		sys.exit(1)
 	print "Processing data from the following chromosomes: %s" % str(chroms_list)
 	
-	# # run tree
-	# if run_tree(args.bam, args.genome) != 0:
-	# 	sys.exit(1)
+	# run tree
+	if run_tree(args.bam, args.genome) != 0:
+		sys.exit(1)
         
-	# # run hist and stats
-	# if run_hist_stats(args.window, args.bam, args.chroms) != 0:
-	# 	sys.exit(1)
+	# run hist and stats
+	if run_hist_stats(args.window, args.bam, args.chroms) != 0:
+		sys.exit(1)
 
 	# # run partition
 	hist_fn = get_hist_fn(args.bam)	
-	# if run_partition(args.window, hist_fn, chroms_list) != 0:
-	# 	sys.exit(1)
+	if run_partition(args.window, hist_fn, chroms_list) != 0:
+		sys.exit(1)
 
 	# run calls
         print args.output
