@@ -204,7 +204,7 @@ Configure the paths to the `speedseq` dependencies by modifying the [speedseq.co
   * run freebayes one or more BAM files
 * [`speedseq somatic`](#speedseq-somatic)
   * run freebayes on a tumor/normal pair of BAM files
-* [`speedseq lumpy`](#speedseq-lumpy)
+* [`speedseq sv`](#speedseq-lumpy)
   * run lumpy-sv on one or more BAM files
 
 -
@@ -269,11 +269,11 @@ These options determine the behavior of `samblaster`
 `speedseq aln` produces three sorted, indexed BAM files (plus their corresponding .bai index files):
 
 * `outprefix.bam`
-  * The full, duplicate-marked, sorted BAM file for the library. This file may serve as input for [`speedseq var`](#speedseq-var), [`speedseq somatic`](#speedseq-somatic), and [`speedseq lumpy`](#speedseq-lumpy).
+  * The full, duplicate-marked, sorted BAM file for the library. This file may serve as input for [`speedseq var`](#speedseq-var), [`speedseq somatic`](#speedseq-somatic), and [`speedseq sv`](#speedseq-lumpy).
 * `outprefix.splitters.bam`
-  * This BAM file contains split reads called by the BWA-MEM alignment of the library. It may be used as the `-S` flag input to [`speedseq lumpy`](#speedseq-lumpy). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a [`speedseq aln`](#speedseq-aln) command line parameter.
+  * This BAM file contains split reads called by the BWA-MEM alignment of the library. It may be used as the `-S` flag input to [`speedseq sv`](#speedseq-lumpy). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a [`speedseq aln`](#speedseq-aln) command line parameter.
 * `outprefix.discordants.bam`
-  * This BAM file contains discordant read-pairs called by the BWA-MEM alignment of the library. These reads may be discordant by strand orientation, intrachromosomal distance, or interchromosomal mapping. This BAM file may be used as the `-D` flag input to [`speedseq lumpy`](#speedseq-lumpy). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a [`speedseq aln`](#speedseq-aln) command line parameter.
+  * This BAM file contains discordant read-pairs called by the BWA-MEM alignment of the library. These reads may be discordant by strand orientation, intrachromosomal distance, or interchromosomal mapping. This BAM file may be used as the `-D` flag input to [`speedseq sv`](#speedseq-lumpy). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a [`speedseq aln`](#speedseq-aln) command line parameter.
 
 -
 ###speedseq var
@@ -341,9 +341,9 @@ usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
 * `outprefix.vcf.gz`
 
 -
-###speedseq lumpy
+###speedseq sv
 
-`speedseq lumpy` runs [lumpy-sv](https://github.com/arq5x/lumpy-sv) on one or more BAM files
+`speedseq sv` runs [lumpy-sv](https://github.com/arq5x/lumpy-sv) on one or more BAM files
 
 #####LUMPY options
 ~~~~~~~~~~~~~~~~~~
@@ -395,7 +395,7 @@ The flags `-s` and `-p` are automatically generated using the defaults below, bu
 
 ####Output
 
-`speedseq lumpy` produces a BEDPE file.
+`speedseq sv` produces a BEDPE file.
 
 * `outprefix.bedpe`
 
@@ -429,7 +429,7 @@ Additionally, the regions in [annotations/ceph18.b37.include.2014-01-15.bed](ann
 
 The regions in [annotations/ceph18.b37.exclude.2014-01-15.bed](annotations/ceph18.b37.exclude.2014-01-15.bed) represent the complement of the regions in [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed).
 
-In the [`speedseq lumpy`](#speedseq-lumpy) module, we recommend excluding the genomic regions in the [annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed](annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed) BED file. These regions represent the complement of those in [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) as well as the mitochondrial chromosome.
+In the [`speedseq sv`](#speedseq-lumpy) module, we recommend excluding the genomic regions in the [annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed](annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed) BED file. These regions represent the complement of those in [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) as well as the mitochondrial chromosome.
 
 ##Example Workflows
 
@@ -457,10 +457,10 @@ In the [`speedseq lumpy`](#speedseq-lumpy) module, we recommend excluding the ge
       human_g1k_v37.fasta NA12878.bam
   ~~~~~~~~~~~~~~~~~~
 
-3. Use `speedseq lumpy` to call structural variants.
+3. Use `speedseq sv` to call structural variants.
 
   ~~~~~~~~~~~~~~~~~~
-  speedseq lumpy -o NA12878 \
+  speedseq sv -o NA12878 \
       -x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
       -B NA12878.bam \
       -D NA12878.discordants.bam \
@@ -490,7 +490,7 @@ In the [`speedseq lumpy`](#speedseq-lumpy) module, we recommend excluding the ge
       human_g1k_v37.fasta NA12878_S1.bam NA12878_S2.bam NA12878_S3.bam
   ~~~~~~~~~~~~~~~~~~
 
-3. `speedseq lumpy` does not currently handle BAM files made from multiple libraries but we plan to add this functionality in the future.
+3. `speedseq sv` does not currently handle BAM files made from multiple libraries but we plan to add this functionality in the future.
 
 
 ###Call variants on multiple samples
@@ -516,10 +516,10 @@ In the [`speedseq lumpy`](#speedseq-lumpy) module, we recommend excluding the ge
       human_g1k_v37.fasta NA12877.bam NA12878.bam NA12879.bam
   ~~~~~~~~~~~~~~~~~~
 
-3. Use `speedseq lumpy` to call structural variants on multiple samples.
+3. Use `speedseq sv` to call structural variants on multiple samples.
 
   ~~~~~~~~~~~~~~~~~~
-  speedseq lumpy -o cephtrio \
+  speedseq sv -o cephtrio \
       -x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
       -B NA12877.bam,NA12878.bam,NA12879.bam \
       -D NA12877.discordants.bam,NA12878.discordants.bam,NA12879.discordants.bam \
@@ -549,9 +549,9 @@ In the [`speedseq lumpy`](#speedseq-lumpy) module, we recommend excluding the ge
       human_g1k_v37.fasta TCGA-B6-A0I6.normal.bam TCGA-B6-A0I6.tumor.bam
   ~~~~~~~~~~~~~~~~~~
 
-3. Use `speedseq lumpy` to call structural variants on the tumor/normal pair.
+3. Use `speedseq sv` to call structural variants on the tumor/normal pair.
   ~~~~~~~~~~~~~~~~~~
-  speedseq lumpy -o TCGA-B6-A0I6 \
+  speedseq sv -o TCGA-B6-A0I6 \
       -x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
       -B TCGA-B6-A0I6.normal.bam,TCGA-B6-A0I6.tumor.bam \
       -D TCGA-B6-A0I6.normal.discordants.bam,TCGA-B6-A0I6.tumor.discordants.bam \
