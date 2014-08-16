@@ -10,3 +10,6 @@
 [submodule "src/vawk"]
 	path = src/vawk
 	url = https://github.com/cc2qe/vawk.git
+[submodule "src/lumpy-sv"]
+	path = src/lumpy-sv
+	url = https://github.com/arq5x/lumpy-sv.git
