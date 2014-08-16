@@ -16,3 +16,6 @@
 [submodule "src/tabix"]
 	path = src/tabix
 	url = https://github.com/samtools/tabix.git
+[submodule "src/freebayes"]
+	path = src/freebayes
+	url = https://github.com/ekg/freebayes.git
