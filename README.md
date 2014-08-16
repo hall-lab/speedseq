@@ -9,7 +9,7 @@ Current support for Linux only
 ##Table of Contents
 
 1. [Summary](#summary)
-2. [Constitutive Pipeline Tools](#constitutive-pipeline-tools-required)
+2. [Constitutive Pipeline Tools](#constitutive-pipeline-tools)
 3. [Installation](#installation)
   * [Automatic Installation](#automatic-installation)
   * [Manual Installation](#manual-installation)
@@ -25,14 +25,14 @@ genomic variation (single nucleotide variants (SNVs), indels, and structural var
 
 ##Constitutive Pipeline Tools
 
-1. [BWA](http://bio-bwa.sourceforge.net/)
-2. [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
-3. [Sambamba](https://github.com/lomereiter/sambamba)
-4. [FreeBayes](https://github.com/ekg/freebayes)
-5. [VEP](http://snpeff.sourceforge.net/)
-6. [LUMPY](https://github.com/arq5x/lumpy-sv)
-7. [CNVnator](http://sv.gersteinlab.org/cnvnator/)
-8. GEMINI https://github.com/arq5x/gemini
+1. BWA (http://bio-bwa.sourceforge.net/)
+2. SAMBLASTER (https://github.com/GregoryFaust/samblaster)
+3. Sambamba (https://github.com/lomereiter/sambamba)
+4. FreeBayes (https://github.com/ekg/freebayes)
+5. VEP (http://snpeff.sourceforge.net/)
+6. LUMPY (https://github.com/arq5x/lumpy-sv)
+7. CNVnator (http://sv.gersteinlab.org/cnvnator/)
+8. GEMINI (https://github.com/arq5x/gemini)
 
 ##Installation
 
@@ -52,27 +52,27 @@ The following are required for both installations:
 
 A Linux package manager can be used to obtain these by with the command:
 
-~~~~~~~~~~~~~~~~~~~
+```
 sudo yum update
 sudo yum -y install cmake gcc-c++ gcc git make python27 python-devel python-yaml ncurses-devel zlib-devel 
-~~~~~~~~~~~~~~~~~~~
+```
  
 or 
 
-~~~~~~~~~~~~~~~~~~~
+```
 sudo apt-get update
 sudo apt-get install build-essential cmake gpp gcc git make python2.7 python-dev python-yaml ncurses-dev zlib1g-dev 
-~~~~~~~~~~~~~~~~~~~
+```
 
 ###Automatic installation
 
 `speedseq` can be installed with the following commands:
-~~~~~~~~~~~~~~~~~~
-	git clone --recursive https://github.com/cc2qe/speedseq
-	cd speedseq
-	python speedseq_setup.py
-	sudo cp -r bin/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~
+```
+git clone --recursive https://github.com/cc2qe/speedseq
+cd speedseq
+python speedseq_setup.py
+sudo cp -r bin/* /usr/local/bin/
+```
 
 ###Manual installation
 
@@ -81,11 +81,11 @@ It is recommended that the specified versions of each tool is used for this rele
 The use of unspecified versions of any pipeline component is not guaranteed to work. 
 
 `speedseq` can be installed with the following commands: 
-~~~~~~~~~~~~~~~~~~
-	git clone https://github.com/cc2qe/speedseq
-	cd speedseq
-	sudo cp -r bin/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~
+```
+git clone https://github.com/cc2qe/speedseq
+cd speedseq
+sudo cp -r bin/* /usr/local/bin/
+```
 
 #####Configuration
 
@@ -96,67 +96,67 @@ Configure the paths to the `speedseq` dependencies by modifying the [speedseq.co
 ####1) BWA
 
 `bwa` can be installed and used by ``speedseq`` with the following commands: 
-~~~~~~~~~~~~~~~~~~
-	curl -OL http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.8.tar.bz2
-	tar -xvf bwa-0.7.8.tar.bz2
-	cd bwa-0.7.8
-	make
-	sudo cp bwa /usr/local/bin
-~~~~~~~~~~~~~~~~~~
--
+```
+curl -OL http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.8.tar.bz2
+tar -xvf bwa-0.7.8.tar.bz2
+cd bwa-0.7.8
+make
+sudo cp bwa /usr/local/bin
+```
+
 ####2) FREEBAYES
 
 ``freebayes`` can be installed and used by ``speedseq`` with the following commands: 
-~~~~~~~~~~~~~~~~~~~
-	git clone --recursive git://github.com/ekg/freebayes.git
-	cd freebayes
-	make
-	sudo cp -r bin/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~~
--
+```
+git clone --recursive git://github.com/ekg/freebayes.git
+cd freebayes
+make
+sudo cp -r bin/* /usr/local/bin/
+```
+
 ####3) GEMINI
 
 ``gemini`` can be installed and used by ``speedseq`` with the following commands: 
-~~~~~~~~~~~~~~~~~~~
-	wget https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py	
-	#or curl -OL https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py > gemini_install.py
-	sudo python2.7 gemini_install.py /usr/local /usr/local/share/gemini
-	export PATH=$PATH:/usr/local/gemini/bin
-	# it would be wise to add the above line to your ``.bashrc`` or ``.bash_profile``
-	gemini update
-~~~~~~~~~~~~~~~~~~~
--
+```
+wget https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py	
+# or curl -OL https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py > gemini_install.py
+sudo python2.7 gemini_install.py /usr/local /usr/local/share/gemini
+export PATH=$PATH:/usr/local/gemini/bin
+# it would be wise to add the above line to your ``.bashrc`` or ``.bash_profile``
+gemini update
+```
+
 ####4) LUMPY
 
 `lumpy-sv` can be installed and used by ``speedseq`` with the following commands:
-~~~~~~~~~~~~~~~~~~~
-	curl -OL https://github.com/arq5x/lumpy-sv/archive/v0.2.1.tar.gz
-	tar -xvf lumpy-sv-0.2.1.tar.gz
-	cd lumpy-sv-0.2.1
-	make 
-	sudo cp -r bin/* /usr/local/bin/
-	sudo cp -r scripts/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~~
--
+```
+curl -OL https://github.com/arq5x/lumpy-sv/archive/v0.2.1.tar.gz
+tar -xvf lumpy-sv-0.2.1.tar.gz
+cd lumpy-sv-0.2.1
+make 
+sudo cp -r bin/* /usr/local/bin/
+sudo cp -r scripts/* /usr/local/bin/
+```
+
 ####5) PARALLEL
 
 ``parallel`` can be installed and used by ``speedseq`` with the following commands:
-~~~~~~~~~~~~~~~~~~~
-	curl -OL http://ftp.gnu.org/gnu/parallel/parallel-20100424.tar.bz2
-	tar -xvf parallel-20100424.tar.bz2
-	cd parallel-20100424
-	./configure && sudo make && sudo make install
-	sudo cp src/parallel /usr/local/bin/
-~~~~~~~~~~~~~~~~~~~
--
+```
+curl -OL http://ftp.gnu.org/gnu/parallel/parallel-20100424.tar.bz2
+tar -xvf parallel-20100424.tar.bz2
+cd parallel-20100424
+./configure && sudo make && sudo make install
+sudo cp src/parallel /usr/local/bin/
+```
+
 ####6) SAMBAMBA
 
 ``sambamba`` can be installed and used by ``speedseq`` by: 
-~~~~~~~~~~~~~~~~~~
-	curl -OL https://github.com/lomereiter/sambamba/releases/download/v0.4.6-beta/sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2
-	tar -xvf sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2
-	sudo cp sambamba_v0.4.6 /usr/local/bin/
-~~~~~~~~~~~~~~~~~~
+```
+curl -OL https://github.com/lomereiter/sambamba/releases/download/v0.4.6-beta/sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2
+tar -xvf sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2
+sudo cp sambamba_v0.4.6 /usr/local/bin/
+```
 -
 ####7) SAMBLASTER
 
