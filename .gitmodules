@@ -7,3 +7,6 @@
 [submodule "src/samblaster"]
 	path = src/samblaster
 	url = https://github.com/GregoryFaust/samblaster.git
+[submodule "src/vawk"]
+	path = src/vawk
+	url = https://github.com/cc2qe/vawk.git
