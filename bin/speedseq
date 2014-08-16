@@ -977,7 +977,7 @@ sv options:
          -t INT   threads [1] 
          -x FILE  BED file to exclude
          -g       genotype SV breakends
-         -c       assess read depth at CNVs
+         -d       calculate read depth
          -m INT   minimum weight for a call [4]
          -r FLOAT trim threshold [0]
          -L INT   read length [auto]
@@ -1026,7 +1026,7 @@ global options:
     KEEP=0
     OUTPUT=""
 
-    while getopts ":hB:S:D:R:o:m:r:L:x:s:p:T:t:cgkvK:" OPTION
+    while getopts ":hB:S:D:R:o:m:r:L:x:s:p:T:t:dgkvK:" OPTION
     do
 	case "${OPTION}" in
             h)
@@ -1073,7 +1073,7 @@ global options:
 	    t)
 		THREADS="$OPTARG"
 		;;
-	    c)
+	    d)
 		READDEPTH=1
 		;;
 	    g)
@@ -1353,7 +1353,6 @@ do
 done
             "
 	fi
-
 	# split the VCF file into slices of 100 lines each
 	mkdir -p $TEMP_DIR/gt
 	cat $TEMP_DIR/$OUTBASE.vcf | grep -v "^#" | split -a 5 -d -l 100 - $TEMP_DIR/gt/spl
@@ -1373,7 +1372,13 @@ done
             STDEV=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^stdev" | sed 's/stdev\://g'`
 	    READ_LENGTH=`$SAMBAMBA view $FULL_BAM | head -n 10000 | awk 'BEGIN { MAX_LEN=0 } { LEN=length($10); if (LEN>MAX_LEN) MAX_LEN=LEN } END { print MAX_LEN }'`
 
-	    for vcf in $TEMP_DIR/gt/spl*.vcf
+	    if [[ "$VERBOSE" -eq 1 ]]
+	    then
+		echo "# genotype each of the variants in parallel"
+    		echo -e "$SVTYPER -v \$vcf -B $FULL_BAM -S $SPL_BAM -m $MEAN -sd $STDEV -rl $READ_LENGTH > \$vcf.gt ; mv \$vcf.gt \$vcf"
+	    fi
+
+	    for vcf in `ls $TEMP_DIR/gt/spl*.vcf`
 	    do
     		echo "$SVTYPER -v $vcf -B $FULL_BAM -S $SPL_BAM -m $MEAN -sd $STDEV -rl $READ_LENGTH > $vcf.gt ; mv $vcf.gt $vcf"
 	    done | parallel -j $THREADS
@@ -1382,7 +1387,12 @@ done
     fi
 
     # run cnvnator
-    # todo
+    # WARNING: CNVNATOR currently only works on a single sample with one BAM file
+    if [[ READDEPTH -eq 1 ]]
+    then
+	echo "$CNVNATOR_WRAPPER --cnvnator $CNVNATOR -T $TEMP_DIR/cnvnator-temp -t $THREADS -w 100 -b ${FULL_BAM_LIST[$i]} -o $TEMP_DIR/$OUTBASE.rd -c $CNVNATOR_CHROMS_DIR -g GRCh37"
+	$CNVNATOR_WRAPPER --cnvnator $CNVNATOR -T $TEMP_DIR/cnvnator-temp -t $THREADS -w 100 -b ${FULL_BAM_LIST[$i]} -o $OUTPUT.readdepth -c $CNVNATOR_CHROMS_DIR -g GRCh37
+    fi
 
     # write output
     mv $TEMP_DIR/$OUTBASE.bedpe $OUTPUT.bedpe
