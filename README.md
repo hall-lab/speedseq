@@ -9,7 +9,7 @@ Current support for Linux only
 ##Table of Contents
 
 1. [Summary](#summary)
-2. [Constitutive Pipeline Tools](#constitutive-pipeline-tools-required)
+2. [Constitutive Pipeline Tools](#constitutive-pipeline-tools)
 3. [Installation](#installation)
   * [Automatic Installation](#automatic-installation)
   * [Manual Installation](#manual-installation)
@@ -25,14 +25,14 @@ genomic variation (single nucleotide variants (SNVs), indels, and structural var
 
 ##Constitutive Pipeline Tools
 
-1. [BWA](http://bio-bwa.sourceforge.net/)
-2. [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
-3. [Sambamba](https://github.com/lomereiter/sambamba)
-4. [FreeBayes](https://github.com/ekg/freebayes)
-5. [VEP](http://snpeff.sourceforge.net/)
-6. [LUMPY](https://github.com/arq5x/lumpy-sv)
-7. [CNVnator](http://sv.gersteinlab.org/cnvnator/)
-8. GEMINI https://github.com/arq5x/gemini
+1. BWA (http://bio-bwa.sourceforge.net/)
+2. SAMBLASTER (https://github.com/GregoryFaust/samblaster)
+3. Sambamba (https://github.com/lomereiter/sambamba)
+4. FreeBayes (https://github.com/ekg/freebayes)
+5. VEP (http://snpeff.sourceforge.net/)
+6. LUMPY (https://github.com/arq5x/lumpy-sv)
+7. CNVnator (http://sv.gersteinlab.org/cnvnator/)
+8. GEMINI (https://github.com/arq5x/gemini)
 
 ##Installation
 
@@ -52,27 +52,27 @@ The following are required for both installations:
 
 A Linux package manager can be used to obtain these by with the command:
 
-~~~~~~~~~~~~~~~~~~~
+```
 sudo yum update
 sudo yum -y install cmake gcc-c++ gcc git make python27 python-devel python-yaml ncurses-devel zlib-devel 
-~~~~~~~~~~~~~~~~~~~
+```
  
 or 
 
-~~~~~~~~~~~~~~~~~~~
+```
 sudo apt-get update
 sudo apt-get install build-essential cmake gpp gcc git make python2.7 python-dev python-yaml ncurses-dev zlib1g-dev 
-~~~~~~~~~~~~~~~~~~~
+```
 
 ###Automatic installation
 
 `speedseq` can be installed with the following commands:
-~~~~~~~~~~~~~~~~~~
-	git clone --recursive https://github.com/cc2qe/speedseq
-	cd speedseq
-	python speedseq_setup.py
-	sudo cp -r bin/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~
+```
+git clone --recursive https://github.com/cc2qe/speedseq
+cd speedseq
+python speedseq_setup.py
+sudo cp -r bin/* /usr/local/bin/
+```
 
 ###Manual installation
 
@@ -81,11 +81,11 @@ It is recommended that the specified versions of each tool is used for this rele
 The use of unspecified versions of any pipeline component is not guaranteed to work. 
 
 `speedseq` can be installed with the following commands: 
-~~~~~~~~~~~~~~~~~~
-	git clone https://github.com/cc2qe/speedseq
-	cd speedseq
-	sudo cp -r bin/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~
+```
+git clone https://github.com/cc2qe/speedseq
+cd speedseq
+sudo cp -r bin/* /usr/local/bin/
+```
 
 #####Configuration
 
@@ -96,113 +96,91 @@ Configure the paths to the `speedseq` dependencies by modifying the [speedseq.co
 ####1) BWA
 
 `bwa` can be installed and used by ``speedseq`` with the following commands: 
-~~~~~~~~~~~~~~~~~~
-	curl -OL http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.8.tar.bz2
-	tar -xvf bwa-0.7.8.tar.bz2
-	cd bwa-0.7.8
-	make
-	sudo cp bwa /usr/local/bin
-~~~~~~~~~~~~~~~~~~
--
-####2) FREEBAYES
+```
+curl -OL http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.8.tar.bz2
+tar -xvf bwa-0.7.8.tar.bz2
+cd bwa-0.7.8
+make
+sudo cp bwa /usr/local/bin
+```
 
-``freebayes`` can be installed and used by ``speedseq`` with the following commands: 
-~~~~~~~~~~~~~~~~~~~
-	git clone --recursive git://github.com/ekg/freebayes.git
-	cd freebayes
-	make
-	sudo cp -r bin/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~~
--
+####2) FreeBayes
+
+FreeBayes can be installed and used by ``speedseq`` with the following commands: 
+```
+git clone --recursive git://github.com/ekg/freebayes.git
+cd freebayes
+make
+sudo cp -r bin/* /usr/local/bin/
+```
+
 ####3) GEMINI
 
-``gemini`` can be installed and used by ``speedseq`` with the following commands: 
-~~~~~~~~~~~~~~~~~~~
-	wget https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py	
-	#or curl -OL https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py > gemini_install.py
-	sudo python2.7 gemini_install.py /usr/local /usr/local/share/gemini
-	export PATH=$PATH:/usr/local/gemini/bin
-	# it would be wise to add the above line to your ``.bashrc`` or ``.bash_profile``
-	gemini update
-~~~~~~~~~~~~~~~~~~~
--
+GEMINI can be installed and used by ``speedseq`` with the following commands: 
+```
+wget https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py	
+# or curl -OL https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py > gemini_install.py
+sudo python2.7 gemini_install.py /usr/local /usr/local/share/gemini
+export PATH=$PATH:/usr/local/gemini/bin
+# it would be wise to add the above line to your ``.bashrc`` or ``.bash_profile``
+gemini update
+```
+
 ####4) LUMPY
 
-`lumpy-sv` can be installed and used by ``speedseq`` with the following commands:
-~~~~~~~~~~~~~~~~~~~
-	curl -OL https://github.com/arq5x/lumpy-sv/archive/v0.2.1.tar.gz
-	tar -xvf lumpy-sv-0.2.1.tar.gz
-	cd lumpy-sv-0.2.1
-	make 
-	sudo cp -r bin/* /usr/local/bin/
-	sudo cp -r scripts/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~~
--
+LUMPY can be installed and used by SpeedSeq with the following commands:
+```
+curl -OL https://github.com/arq5x/lumpy-sv/archive/v0.2.1.tar.gz
+tar -xvf lumpy-sv-0.2.1.tar.gz
+cd lumpy-sv-0.2.1
+make 
+sudo cp -r bin/* /usr/local/bin/
+sudo cp -r scripts/* /usr/local/bin/
+```
+
 ####5) PARALLEL
 
 ``parallel`` can be installed and used by ``speedseq`` with the following commands:
-~~~~~~~~~~~~~~~~~~~
-	curl -OL http://ftp.gnu.org/gnu/parallel/parallel-20100424.tar.bz2
-	tar -xvf parallel-20100424.tar.bz2
-	cd parallel-20100424
-	./configure && sudo make && sudo make install
-	sudo cp src/parallel /usr/local/bin/
-~~~~~~~~~~~~~~~~~~~
--
-####6) SAMBAMBA
+```
+curl -OL http://ftp.gnu.org/gnu/parallel/parallel-20100424.tar.bz2
+tar -xvf parallel-20100424.tar.bz2
+cd parallel-20100424
+./configure && sudo make && sudo make install
+sudo cp src/parallel /usr/local/bin/
+```
+
+####6) Sambamba
 
 ``sambamba`` can be installed and used by ``speedseq`` by: 
-~~~~~~~~~~~~~~~~~~
-	curl -OL https://github.com/lomereiter/sambamba/releases/download/v0.4.6-beta/sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2
-	tar -xvf sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2
-	sudo cp sambamba_v0.4.6 /usr/local/bin/
-~~~~~~~~~~~~~~~~~~
+```
+curl -OL https://github.com/lomereiter/sambamba/releases/download/v0.4.6-beta/sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2
+tar -xvf sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2
+sudo cp sambamba_v0.4.6 /usr/local/bin/
+```
 -
 ####7) SAMBLASTER
 
 ``samblaster`` can be installed and used by ``speedseq`` with the following commands: 
-~~~~~~~~~~~~~~~~~~
-	curl -OL https://github.com/GregoryFaust/samblaster/archive/0.1.14.tar.gz
-	tar -xvf 0.1.14.tar.gz
-	cd samblaster-0.1.14
-	make samblaster-0.1.14
-	sudo cp samblaster /usr/local/bin/
-~~~~~~~~~~~~~~~~~~
--
-####8) SNPEFF
+```
+curl -OL https://github.com/GregoryFaust/samblaster/archive/0.1.14.tar.gz
+tar -xvf 0.1.14.tar.gz
+cd samblaster-0.1.14
+make samblaster-0.1.14
+sudo cp samblaster /usr/local/bin/
+```
 
-``snpeff`` can be installed and used by ``speedseq`` with the following commands: 
-~~~~~~~~~~~~~~~~~~
-	wget http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip
-	unzip snpEff_latest_core.zip
-	cd snpEff
-	sudo cp *jar /usr/local/bin/
-	sudo cp snpEff.config /usr/local/bin
-	sudo cp -r scripts/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~
--
-####9) VCFLIB
-
-``vcflib`` can be installed and used by ``speedseq`` with the following commands: 
-~~~~~~~~~~~~~~~~~~
-	git clone --recursive  https://github.com/ekg/vcflib
-	cd vcflib
-	make
-	sudo cp bin/* /usr/local/bin/
-~~~~~~~~~~~~~~~~~~
--
 **For alternative installations and release issues for any of the above tools please consult the website/creator.**
 
 ##Usage
 
-`speedseq` is a modular pipeline with four components: [`aln`](#speedseq-aln), [`var`](#speedseq-var), [`somatic`](#speedseq-somatic), and [`lumpy`](#speedseq-lumpy).
+SpeedSeq is a modular pipeline with four components: [`aln`](#speedseq-aln), [`var`](#speedseq-var), [`somatic`](#speedseq-somatic), and [`lumpy`](#speedseq-lumpy).
 
 * [`speedseq aln`](#speedseq-aln)
   * take paired-end fastq sequences as input, and produce a duplicate-marked, sorted, indexed BAM file that can be processed with other speedseq modules. Currently, speedseq aln does not support single-end reads.
 * [`speedseq var`](#speedseq-var)
-  * run freebayes one or more BAM files
+  * run FreeBayes one or more BAM files
 * [`speedseq somatic`](#speedseq-somatic)
-  * run freebayes on a tumor/normal pair of BAM files
+  * run FreeBayes on a tumor/normal pair of BAM files
 * [`speedseq sv`](#speedseq-lumpy)
   * run lumpy-sv on one or more BAM files
 
@@ -219,49 +197,49 @@ Internally, `speedseq aln` runs the following steps to produce [three output BAM
 4. Position sorting with [sambamba](https://github.com/lomereiter/sambamba)
 5. BAM indexing with [sambamba](https://github.com/lomereiter/sambamba)
 
-~~~~~~~~~~~~~~~~~~
+```
 usage:   speedseq aln [options] <reference.fa> <in1.fq> [in2.fq]
-~~~~~~~~~~~~~~~~~~
+```
 
 #####Positional arguments
 
-~~~~~~~~~~~~~~~~~~
+```
 reference.fa	genome reference fasta file (indexed with bwa) (required)
 in1.fq          paired-end fastq file. if -p flag is used then expected to be
                   an interleaved paired-end fastq file, and in2.fq may be omitted.
                   (may be gzipped) (required)
 in2.fq	        paired-end fastq file. (may be gzipped) (required)
-~~~~~~~~~~~~~~~~~~
+```
 
 #####Alignment options
 
 These options determine the behavior of BWA-MEM
-~~~~~~~~~~~~~~~~~~
--o STR		output prefix that will be  [default: in1.fq]
+```
+-o STR          output prefix that will be  [default: in1.fq]
 -R              read group header line such as "@RG\tID:libraryname\tSM:samplename" (required)
--p       	first fastq file consists of interleaved paired-end sequences
+-p              first fastq file consists of interleaved paired-end sequences
 -t INT          number of threads to use [default: 1]
 -T DIR          temp directory [default: ./temp]
-~~~~~~~~~~~~~~~~~~
+```
 
 #####Samblaster options
 
 These options determine the behavior of `samblaster`
-~~~~~~~~~~~~~~~~~~
+```
 -i              include duplicates in splitters and discordants
                   (default: exclude duplicates)
--c INT		maximum number of split alignments for a read to be
+-c INT          maximum number of split alignments for a read to be
                   included in splitter file [default: 2]
--m INT		minimum non-overlapping base pairs between two alignments
-                  for a read to be included in splitter file [default: 20]
-~~~~~~~~~~~~~~~~~~
+-m INT          minimum non-overlapping base pairs between two alignments
+                for a read to be included in splitter file [default: 20]
+```
 
 #####Global options
 
-~~~~~~~~~~~~~~~~~~
+```
 -K FILE         path to speedseq.config file (default: same directory as speedseq)
 -h              show help message
-~~~~~~~~~~~~~~~~~~
+```
 
 ####Output
 
@@ -277,15 +255,15 @@ These options determine the behavior of `samblaster`
 -
 ###speedseq var
 
-`speedseq var` runs [freebayes](https://github.com/ekg/freebayes) one or more BAM files.
+`speedseq var` runs FreeBayes one or more BAM files.
 
-~~~~~~~~~~~~~~~~~~
+```
 usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
-~~~~~~~~~~~~~~~~~~
+```
 
 #####Options
 
-~~~~~~~~~~~~~~~~~~
+```
 -o STR          output prefix [default: input1.bam]
 -w FILE         BED file of windowed genomic intervals. For human genomes,
                   we recommend using the annotations/ceph18.b37.include.2014-01-15.bed
@@ -295,7 +273,7 @@ usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 -A BOOL         annotate the vcf with snpEff (true or false) [default: true]
 -K FILE         path to speedseq.config file [default: same directory as speedseq]
 -h              show help message
-~~~~~~~~~~~~~~~~~~
+```
 
 ####Output
 
@@ -306,15 +284,15 @@ usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 -
 ###speedseq somatic
 
-`speedseq somatic` runs [freebayes](https://github.com/ekg/freebayes) on a tumor/normal pair of BAM files
+`speedseq somatic` runs FreeBayes on a tumor/normal pair of BAM files
 
-~~~~~~~~~~~~~~~~~~
+```
 usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
-~~~~~~~~~~~~~~~~~~
+```
 
 #####Options
 
-~~~~~~~~~~~~~~~~~~
+```
 -o STR           output prefix [default: tumor.bam]
 -w FILE          BED file of windowed genomic intervals. For human genomes,
                    we recommend using the annotations/ceph18.b37.include.2014-01-15.bed
@@ -331,7 +309,7 @@ usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
 -A BOOL          annotate the vcf with snpEff (true or false) (default: true)
 -K FILE          path to speedseq.config file (default: same directory as speedseq)
 -h               show help message
-~~~~~~~~~~~~~~~~~~
+```
 
 ####Output
 
@@ -339,13 +317,12 @@ usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
 
 * `outprefix.vcf.gz`
 
--
 ###speedseq sv
 
 `speedseq sv` runs [lumpy-sv](https://github.com/arq5x/lumpy-sv) on one or more BAM files
 
-#####LUMPY options
-~~~~~~~~~~~~~~~~~~
+#####Options
+```
 -B FILE          full BAM file(s) (comma separated) (required)
                    example: -B in1.bam,in2.bam,in3.bam
 -S FILE          split reads BAM file(s) (comma separated, order same as in -B) (required)
@@ -358,11 +335,11 @@ usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
 -r FLOAT         trim threshold [default: 1e-10]
 -L INT           read length [default: auto-calculate]
 -T DIR           temp directory [default: ./temp]
-~~~~~~~~~~~~~~~~~~
+```
 
 The flags `-s` and `-p` are automatically generated using the defaults below, but may be overridden by the user by explicitly defining them using the following format.
 
-~~~~~~~~~~~~~~~~~~
+```
 -s STR           lumpy split read parameters [auto]
                     bam_file:<splitreads.bam>,
                     back_distance:<20>,
@@ -383,23 +360,23 @@ The flags `-s` and `-p` are automatically generated using the defaults below, bu
                     min_mapping_threshold:<20>,
                     weight:<1>,
                     id:<10>
-~~~~~~~~~~~~~~~~~~
+```
 
 #####Global options
 
-~~~~~~~~~~~~~~~~~~
+```
 -K FILE          path to speedseq.config file (default: same directory as speedseq)
 -h               show help message
-~~~~~~~~~~~~~~~~~~
+```
 
 ####Output
 
-`speedseq sv` produces a BEDPE file.
+`speedseq sv` produces a VCF file and a BEDPE file containing the same information.
 
 * `outprefix.bedpe`
 
 The tab-delimited BEDPE file has the following structure:
-~~~~~~~~~~~~~~~~~~
+```
 1. chromosome 1
 2. interval 1 start
 3. interval 1 end
@@ -413,12 +390,12 @@ The tab-delimited BEDPE file has the following structure:
 11. type
 12. id of samples containing evidence for this breakpoint
 13. strand configurations observed in the evidence set
-~~~~~~~~~~~~~~~~~~
+```
 
 Example:
-~~~~~~~~~~~~~~~~~~
+```
 chr1    34971904    34971945    chr1    34976002    34976043    0x7f9eb0917210  0.0110386   +   -   TYPE:DELETION   IDS:11,1    STRANDS:+-,1
-~~~~~~~~~~~~~~~~~~
+```
 
 ##Annotations
 
@@ -436,41 +413,41 @@ In the [`speedseq sv`](#speedseq-lumpy) module, we recommend excluding the genom
 
 1. Use `speedseq aln` to produce a sorted, duplicate-marked, BAM alignment from paired-end fastq data.
 
-  ~~~~~~~~~~~~~~~~~~
+  ```
   speedseq aln -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
       human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
-  ~~~~~~~~~~~~~~~~~~
+  ```
 
   Note: if using an interleaved paired-end fastq file, use the `-p` flag
 
-  ~~~~~~~~~~~~~~~~~~
+  ```
   speedseq aln -p -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
       human_g1k_v37.fasta NA12878.interleaved.fq.gz
-  ~~~~~~~~~~~~~~~~~~
+  ```
 
 2. Use `speedseq var` to call SNVs and indels on a single sample.
 
-  ~~~~~~~~~~~~~~~~~~
+  ```
   speedseq var -o NA12878 \
       -w annotations/ceph18.b37.include.2014-01-15.bed \
       human_g1k_v37.fasta NA12878.bam
-  ~~~~~~~~~~~~~~~~~~
+  ```
 
 3. Use `speedseq sv` to call structural variants.
 
-  ~~~~~~~~~~~~~~~~~~
+  ```
   speedseq sv -o NA12878 \
       -x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
       -B NA12878.bam \
       -D NA12878.discordants.bam \
       -S NA12878.splitters.bam
-  ~~~~~~~~~~~~~~~~~~
+  ```
 
 ###Call variants on a single sample sequenced with multiple libraries
 
 1. Use `speedseq aln` to produce a sorted, duplicate-marked, BAM alignment of each library.
 
-  ~~~~~~~~~~~~~~~~~~
+  ```
   speedseq aln -o NA12878_S1 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
       human_g1k_v37.fasta NA12878.S1.1.fq.gz NA12878.S1.2.fq.gz
 
@@ -479,15 +456,15 @@ In the [`speedseq sv`](#speedseq-lumpy) module, we recommend excluding the genom
 
   speedseq aln -o NA12878_S3 -R "@RG\tID:NA12878.S3\tSM:NA12878" \
       human_g1k_v37.fasta NA12878.S3.1.fq.gz NA12878.S3.2.fq.gz
-  ~~~~~~~~~~~~~~~~~~
+  ```
 
 2. Use `speedseq var` to call SNVs and indels. `speedseq var` will automatically recognize libraries with the same SM readgroup tag to be the same sample.
 
-  ~~~~~~~~~~~~~~~~~~
+  ```
   speedseq var -o NA12878 \
       -w annotations/ceph18.b37.include.2014-01-15.bed \
       human_g1k_v37.fasta NA12878_S1.bam NA12878_S2.bam NA12878_S3.bam
-  ~~~~~~~~~~~~~~~~~~
+  ```
 
 3. `speedseq sv` does not currently handle BAM files made from multiple libraries but we plan to add this functionality in the future.
 
@@ -496,7 +473,7 @@ In the [`speedseq sv`](#speedseq-lumpy) module, we recommend excluding the genom
 
 1. Use `speedseq aln` to produce sorted, duplicate-marked, BAM alignments for each sample.
 
-  ~~~~~~~~~~~~~~~~~~
+  ```
   speedseq aln -o NA12877 -R "@RG\tID:NA12877.S1\tSM:NA12877" \
       human_g1k_v37.fasta NA12877.1.fq.gz NA12877.2.fq.gz
 
@@ -505,31 +482,31 @@ In the [`speedseq sv`](#speedseq-lumpy) module, we recommend excluding the genom
 
   speedseq aln -o NA12879 -R "@RG\tID:NA12879.S1\tSM:NA12879" \
       human_g1k_v37.fasta NA12879.1.fq.gz NA12879.2.fq.gz
-  ~~~~~~~~~~~~~~~~~~
+  ```
 
 2. Use `speedseq var` to call SNVs and indels on multiple samples.
 
-  ~~~~~~~~~~~~~~~~~~
+  ```
   speedseq var -o cephtrio \
       -w annotations/ceph18.b37.include.2014-01-15.bed \
       human_g1k_v37.fasta NA12877.bam NA12878.bam NA12879.bam
-  ~~~~~~~~~~~~~~~~~~
+  ```
 
 3. Use `speedseq sv` to call structural variants on multiple samples.
 
-  ~~~~~~~~~~~~~~~~~~
+  ```
   speedseq sv -o cephtrio \
       -x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
       -B NA12877.bam,NA12878.bam,NA12879.bam \
       -D NA12877.discordants.bam,NA12878.discordants.bam,NA12879.discordants.bam \
       -S NA12877.splitters.bam,NA12878.splitters.bam,NA12879.splitters.bam
-  ~~~~~~~~~~~~~~~~~~
+  ```
 
 ###Call variants on a tumor/normal pair
 
 1. Use `speedseq aln` to produce sorted, duplicate-marked, BAM alignments for the tumor/normal pair
 
-  ~~~~~~~~~~~~~~~~~~
+  ```
   speedseq aln -p -o TCGA-B6-A0I6.normal \
       -R "@RG\tID:TCGA-B6-A0I6-10A-01D-A128-09\tSM:TCGA-B6-A0I6-10A-01D-A128-09" \
       human_g1k_v37.fasta TCGA-B6-A0I6-10A-01D-A128-09.interleaved.fq.gz
@@ -537,24 +514,24 @@ In the [`speedseq sv`](#speedseq-lumpy) module, we recommend excluding the genom
   speedseq aln -p -o TCGA-B6-A0I6.tumor \
       -R "@RG\tID:TCGA-B6-A0I6-01A-11D-A128-09\tSM:TCGA-B6-A0I6-01A-11D-A128-09" \
       human_g1k_v37.fasta TCGA-B6-A0I6-01A-11D-A128-09.interleaved.fq.gz
-  ~~~~~~~~~~~~~~~~~~
+  ```
 
 2. Use `speedseq somatic` to call SNVs and indels on the tumor/normal pair.
-  ~~~~~~~~~~~~~~~~~~
+  ```
   speedseq somatic -o TCGA-B6-A0I6 \
       -w annotations/ceph18.b37.include.2014-01-15.bed \
       -F 0.05 \
       -q 1 \
       human_g1k_v37.fasta TCGA-B6-A0I6.normal.bam TCGA-B6-A0I6.tumor.bam
-  ~~~~~~~~~~~~~~~~~~
+  ```
 
 3. Use `speedseq sv` to call structural variants on the tumor/normal pair.
-  ~~~~~~~~~~~~~~~~~~
+  ```
   speedseq sv -o TCGA-B6-A0I6 \
       -x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
       -B TCGA-B6-A0I6.normal.bam,TCGA-B6-A0I6.tumor.bam \
       -D TCGA-B6-A0I6.normal.discordants.bam,TCGA-B6-A0I6.tumor.discordants.bam \
       -S TCGA-B6-A0I6.normal.splitters.bam,TCGA-B6-A0I6.tumor.splitters.bam
-  ~~~~~~~~~~~~~~~~~~
+  ```
 
 

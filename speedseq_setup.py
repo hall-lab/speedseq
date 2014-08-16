@@ -170,7 +170,6 @@ def main(args):
 		bwa.unpack("tar")
 		bwa.install("make", "bwa-0.7.8")
 		bwa.cp_bin("bwa-0.7.8/bwa", args.targetbin)
-		
 	#freebayes install
 	freebayes = INSTALLER("freebayes", args.quiet)
 	freebayes.check_install("freebayes")
@@ -181,16 +180,6 @@ def main(args):
 		freebayes.download("git", url)
 		freebayes.install("make", "freebayes")
 		freebayes.cp_bin("freebayes/bin", args.targetbin)
-    	#gemini install
-	gemini = INSTALLER("gemini", args.quiet)
-	gemini.check_install("gemini")
-	if (gemini.isInstalled):
-		gemini.get_update()
-	if (gemini.notInstalled or gemini.update):
-		url = "https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py"
-		gemini.download("wget", url)
-		gemini.install("python2.7", "/usr/local/share/gemini")
-		gemini.cp_bin("/usr/local/gemini/bin", args.targetbin)
 	#lumpy install
 	lumpy = INSTALLER("lumpy", args.quiet)
 	lumpy.check_install("lumpy")
@@ -230,24 +219,11 @@ def main(args):
 	if (samblaster.isInstalled):
 		samblaster.get_update()
 	if (samblaster.notInstalled or samblaster.update):
-		url = "https://github.com/GregoryFaust/samblaster/archive/0.1.14.tar.gz"
+		url = "https://github.com/GregoryFaust/samblaster/archive/v.0.1.19.tar.gz"
 		samblaster.download("curl", url)
 		samblaster.unpack("tar")
-		samblaster.install("make", "samblaster-0.1.14")
-		samblaster.cp_bin("samblaster-0.1.14/samblaster", args.targetbin)
-	#snpeff install
-	snpeff = INSTALLER("snpeff", args.quiet)
-	snpeff.check_install("snpeff")
-	if (snpeff.isInstalled):
-		snpeff.get_update()
-	if (snpeff.notInstalled or snpeff.update):
-		url = "http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip"
-		snpeff.download("wget", url)
-		snpeff.unpack("unzip")
-		snpeff.install(None, "snpEff")
-		snpeff.cp_bin("snpEff/snpEff.config", args.targetbin)
-		snpeff.cp_bin("snpEff/snpEff.jar", args.targetbin)
-		snpeff.cp_bin("snpEff/scripts", args.targetbin)
+		samblaster.install("make", "samblaster-0.1.19")
+		samblaster.cp_bin("samblaster-0.1.19/samblaster", args.targetbin)
 	#vcflib install
 	vcflib = INSTALLER("vcflib", args.quiet)
 	if (vcflib.isInstalled):
@@ -259,18 +235,26 @@ def main(args):
 		vcflib.cp_bin("vcflib/tabixpp/bgzip", args.targetbin)
 		vcflib.cp_bin("vcflib/tabixpp/tabix", args.targetbin)
 		vcflib.cp_bin("vcflib/bin", args.targetbin)
+    	#gemini install
+	gemini = INSTALLER("gemini", args.quiet)
+	gemini.check_install("gemini")
+	if (gemini.isInstalled):
+		gemini.get_update()
+	if (gemini.notInstalled or gemini.update):
+		url = "https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py"
+		gemini.download("wget", url)
+		gemini.install("python2.7", "/usr/local/share/gemini")
+		gemini.cp_bin("/usr/local/gemini/bin", args.targetbin)
 	
 	print "Checking installations...\n"
 	bwa.check_install("bwa")
 	freebayes.check_install("freebayes")
-	gemini.check_install("gemini")
 	lumpy.check_install("lumpy")
 	parallel.check_install("parallel")
 	sambamba.check_install("sambamba_v0.4.6")
 	samblaster.check_install("samblaster")
-	snpeff.check_install("snpeff")
 	vcflib.check_install("bgzip")
-
+	gemini.check_install("gemini")
 
 def check_dependencies():
 		"""Ensure required tools for installation are present.
@@ -290,7 +274,6 @@ def check_dependencies():
 				raise OSError("speedseq requires %s for installation (%s)" % (cmd, url))
 			else:
 				print " %s found" % cmd
-
 
 if __name__ == "__main__":
 		parser = argparse.ArgumentParser(description="Automated installer for speedseq.")

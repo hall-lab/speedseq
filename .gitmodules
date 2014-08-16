@@ -10,3 +10,12 @@
 [submodule "src/vawk"]
 	path = src/vawk
 	url = https://github.com/cc2qe/vawk.git
+[submodule "src/lumpy-sv"]
+	path = src/lumpy-sv
+	url = https://github.com/arq5x/lumpy-sv.git
+[submodule "src/tabix"]
+	path = src/tabix
+	url = https://github.com/samtools/tabix.git
+[submodule "src/freebayes"]
+	path = src/freebayes
+	url = https://github.com/ekg/freebayes.git
