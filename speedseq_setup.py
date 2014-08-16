@@ -9,7 +9,7 @@ Handles installation of:
 
 Requires: 
 Linux packages: cmake gcc-c++ gcc git make python27 python-devel python-yaml ncurses-devel zlib-devel 
-Bioinformatics software: BWA, FREEBAYES, GEMINI (bedtools, samtools, pybedtools), LUMPY, PARALLEL, SAMBAMBA, SAMBLASTER, SNPEFF, VCFLIB
+Bioinformatics software: BWA, FREEBAYES, GEMINI (bedtools, samtools, pybedtools), LUMPY, PARALLEL, SAMBAMBA, SAMBLASTER, VEP
 
 Run speedseq_install.py -h for usage.
 """
@@ -99,8 +99,6 @@ class INSTALLER(object):
 		elif (method == "python2.7"):
 			#This only applies to gemini, uses pip install
 			self.installcmd =  "python2.7 gemini_install.py /usr/local " + self.installdir + " && gemini update"
-		else:
-			self.installcmd = 'echo "snpEff is java"'
 		if not self.quiet:
 			print "\nInstalling " + self.name + "...\n"
 		subprocess.call(self.installcmd, shell=True)
@@ -180,18 +178,7 @@ def main(args):
 		freebayes.download("git", url)
 		freebayes.install("make", "freebayes")
 		freebayes.cp_bin("freebayes/bin", args.targetbin)
-	#lumpy install
-	lumpy = INSTALLER("lumpy", args.quiet)
-	lumpy.check_install("lumpy")
-	if (lumpy.isInstalled):
-		lumpy.get_update()
-	if (lumpy.notInstalled or lumpy.update):
-		url="https://github.com/arq5x/lumpy-sv/archive/0.2.1.tar.gz"
-		lumpy.download("curl", url)
-		lumpy.unpack("tar") 
-		lumpy.install("make", "lumpy-sv-0.2.1")
-		lumpy.cp_bin("lumpy-sv-0.2.1/bin", args.targetbin)
-		lumpy.cp_bin("lumpy-sv-0.2.1/scripts", args.targetbin)
+
 	#parallel install
 	parallel = INSTALLER("parallel", args.quiet)
 	parallel.check_install("parallel")
@@ -203,58 +190,45 @@ def main(args):
 		parallel.unpack("tar")
 		parallel.install("confmake", "parallel-20100424")
 		parallel.cp_bin("parallel-20100424/src/parallel", args.targetbin)
+
 	#sambamba install
-	sambamba = INSTALLER("sambamba_v0.4.6", args.quiet)
-	sambamba.check_install("sambamba_v0.4.6")
+	sambamba = INSTALLER("sambamba_v0.4.7", args.quiet)
+	sambamba.check_install("sambamba_v0.4.7")
 	if (sambamba.isInstalled):
 		sambamba.get_update()
 	if (sambamba.notInstalled or sambamba.update):
-		url = "https://github.com/lomereiter/sambamba/releases/download/v0.4.6-beta/sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2"
+		url = "https://github.com/lomereiter/sambamba/releases/download/v0.4.7/sambamba_v0.4.7_centos5.tar.bz2"
 		sambamba.download("curl", url)
 		sambamba.unpack("tar")
-		sambamba.cp_bin("sambamba_v0.4.6", args.targetbin)
-	#samblaster install	
-	samblaster = INSTALLER("samblaster", args.quiet)
-	samblaster.check_install("samblaster")
-	if (samblaster.isInstalled):
-		samblaster.get_update()
-	if (samblaster.notInstalled or samblaster.update):
-		url = "https://github.com/GregoryFaust/samblaster/archive/v.0.1.19.tar.gz"
-		samblaster.download("curl", url)
-		samblaster.unpack("tar")
-		samblaster.install("make", "samblaster-0.1.19")
-		samblaster.cp_bin("samblaster-0.1.19/samblaster", args.targetbin)
-	#vcflib install
-	vcflib = INSTALLER("vcflib", args.quiet)
-	if (vcflib.isInstalled):
-		vcflib.get_update()
-	if (vcflib.notInstalled or vcflib.update):
-		url = "https://github.com/ekg/vcflib"
-		vcflib.download("git", url)
-		vcflib.install("make", "vcflib")
-		vcflib.cp_bin("vcflib/tabixpp/bgzip", args.targetbin)
-		vcflib.cp_bin("vcflib/tabixpp/tabix", args.targetbin)
-		vcflib.cp_bin("vcflib/bin", args.targetbin)
-    	#gemini install
-	gemini = INSTALLER("gemini", args.quiet)
-	gemini.check_install("gemini")
-	if (gemini.isInstalled):
-		gemini.get_update()
-	if (gemini.notInstalled or gemini.update):
-		url = "https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py"
-		gemini.download("wget", url)
-		gemini.install("python2.7", "/usr/local/share/gemini")
-		gemini.cp_bin("/usr/local/gemini/bin", args.targetbin)
+		sambamba.cp_bin("sambamba_v0.4.7", args.targetbin + "/sambamba")
+
+	# tabix install
+	tabix = INSTALLER("tabix", args.quiet)
+	if (tabix.isInstalled):
+		tabix.get_update()
+	if (tabix.notInstalled or tabix.update):
+		url = "http://downloads.sourceforge.net/project/samtools/tabix/tabix-0.2.6.tar.bz2"
+		tabix.download("curl", url)
+		tabix.unpack("tar")
+		tabix.install("make", "tabix-0.2.6")
+
+    	# #gemini install
+	# gemini = INSTALLER("gemini", args.quiet)
+	# gemini.check_install("gemini")
+	# if (gemini.isInstalled):
+	# 	gemini.get_update()
+	# if (gemini.notInstalled or gemini.update):
+	# 	url = "https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py"
+	# 	gemini.download("wget", url)
+	# 	gemini.install("python2.7", "/usr/local/share/gemini")
+	# 	gemini.cp_bin("/usr/local/gemini/bin", args.targetbin)
 	
 	print "Checking installations...\n"
 	bwa.check_install("bwa")
 	freebayes.check_install("freebayes")
-	lumpy.check_install("lumpy")
 	parallel.check_install("parallel")
-	sambamba.check_install("sambamba_v0.4.6")
-	samblaster.check_install("samblaster")
-	vcflib.check_install("bgzip")
-	gemini.check_install("gemini")
+	sambamba.check_install("sambamba")
+	# gemini.check_install("gemini")
 
 def check_dependencies():
 		"""Ensure required tools for installation are present.
