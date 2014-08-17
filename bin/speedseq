@@ -1265,7 +1265,7 @@ global options:
     then
 	echo "
 # call lumpy
-$LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FMT $LUMPY_DISC_STRING $LUMPY_SPL_STRING > $TEMP_DIR/$OUTBASE.bedpe
+$LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FMT $LUMPY_DISC_STRING $LUMPY_SPL_STRING > $TEMP_DIR/$OUTBASE.sv.bedpe
         "
     fi
     # call lumpy
@@ -1273,13 +1273,13 @@ $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FM
 	$EXCLUDE_BED_FMT \
 	$LUMPY_DISC_STRING \
 	$LUMPY_SPL_STRING \
-	> $TEMP_DIR/$OUTBASE.bedpe
+	> $TEMP_DIR/$OUTBASE.sv.bedpe
 
     if [[ "$VERBOSE" -eq 1 ]]
     then
 	echo -e "
 # convert to VCF, ensure that each variant has at least one sample with MIN_WEIGHT support
-cat $TEMP_DIR/$OUTBASE.bedpe \\
+cat $TEMP_DIR/$OUTBASE.sv.bedpe \\
     | $BEDPETOVCF -t LUMPY -c $TEMP_DIR/$OUTBASE.sample.config -f $REF \\
     | awk -v MIN_WEIGHT=$MIN_WEIGHT 'BEGIN {S_IDX=0} {
         if ($0~\"^#\") print
@@ -1305,7 +1305,7 @@ cat $TEMP_DIR/$OUTBASE.bedpe \\
     fi
 
     # convert to VCF, ensure that each variant has at least one sample with MIN_WEIGHT support
-    cat $TEMP_DIR/$OUTBASE.bedpe \
+    cat $TEMP_DIR/$OUTBASE.sv.bedpe \
 	| $BEDPETOVCF -t LUMPY -c $TEMP_DIR/$OUTBASE.sample.config -f $REF \
 	| awk -v MIN_WEIGHT=$MIN_WEIGHT 'BEGIN {S_IDX=0} {
             if ($0~"^#") print
@@ -1383,7 +1383,7 @@ done
     		echo "$SVTYPER -v $vcf -B $FULL_BAM -S $SPL_BAM -m $MEAN -sd $STDEV -rl $READ_LENGTH > $vcf.gt ; mv $vcf.gt $vcf"
 	    done | parallel -j $THREADS
 	done
-	cat $TEMP_DIR/gt/*.vcf | grep -v "^#" | cat $TEMP_DIR/header.txt - > $TEMP_DIR/$OUTBASE.vcf
+	cat $TEMP_DIR/gt/*.vcf | grep -v "^#" | cat $TEMP_DIR/header.txt - | $BGZIP -c > $TEMP_DIR/$OUTBASE.sv.vcf.gz
     fi
 
     # run cnvnator
@@ -1395,8 +1395,8 @@ done
     fi
 
     # write output
-    mv $TEMP_DIR/$OUTBASE.bedpe $OUTPUT.bedpe
-    mv $TEMP_DIR/$OUTBASE.vcf $OUTPUT.vcf
+    mv $TEMP_DIR/$OUTBASE.sv.bedpe $OUTPUT.sv.bedpe
+    mv $TEMP_DIR/$OUTBASE.sv.vcf.gz $OUTPUT.sv.vcf.gz
 
     # clean up
     if [[ $KEEP -eq 0 ]]
