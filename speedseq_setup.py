@@ -217,6 +217,18 @@ def main(args):
 		vep.install("perl", "ensembl-tools-release-76/scripts/variant_effect_predictor")
 		vep.cp_bin("ensembl-tools-release-76/scripts/variant_effect_predictor/variant_effect_predictor.pl", args.targetbin)
 		vep.cp_bin("Bio", args.targetbin + "/Bio")
+	
+	#BEDtools install
+	bedtools = INSTALLER("bedtools", args.quiet)
+	bedtools.check_install("bedtools")
+	if (bedtools.isInstalled):
+		bedtools.get_update()
+	if (bedtools.notInstalled or bedtools.update):
+		url = "https://github.com/arq5x/bedtools2/releases/download/v2.20.1/bedtools-2.20.1.tar.gz"
+		bedtools.download("curl", url)
+		bedtools.unpack("tar")
+		bedtools.install("make", "bedtools2-2.20.1")
+		bedtools.cp_bin("bedtools2-2.20.1/bin/*", args.targetbin)
 
     	# #gemini install
 	# gemini = INSTALLER("gemini", args.quiet)

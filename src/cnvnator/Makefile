@@ -28,14 +28,14 @@ CNVDIR	     = CNVnator_$(VERSION)
 MAINDIR	     = $(TMPDIR)/$(CNVDIR)
 SRCDIR	     = $(MAINDIR)/src
 
-all:	cnvnator
+all:	cnvnator-multi
 
 .PHONY: samtools
 
 samtools:
 	$(MAKE) -C $(SAMDIR)
 
-cnvnator: samtools $(OBJS)
+cnvnator-multi: samtools $(OBJS)
 	@mkdir -p $(BINDIR)
 	$(CXX) -o $(BINDIR)/$@ $(OBJS) $(SAMLIB) $(LIBS) $(ROOTLIBS)
 

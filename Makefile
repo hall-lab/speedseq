@@ -12,7 +12,7 @@ TABIX_DIR=$(SRC)/tabix
 VAWK_DIR=$(SRC)/vawk
 SVTOOLS_DIR=$(SRC)/svtools
 
-all:	samblaster freebayes lumpy svtyper tabix vawk svtools cnvnator
+all:	samblaster freebayes lumpy svtyper tabix vawk svtools cnvnator-multi
 
 samblaster:
 	$(MAKE) -C $(SAMBLASTER_DIR)
@@ -30,9 +30,9 @@ lumpy:
 svtyper:
 	cp $(SVTYPER_DIR)/svtyper $(TARGET_BIN)
 
-cnvnator:
+cnvnator-multi:
 	$(MAKE) -C $(CNVNATOR_DIR)
-	cp $(CNVNATOR_DIR)/bin/cnvnator $(TARGET_BIN)
+	cp $(CNVNATOR_DIR)/bin/cnvnator-multi $(TARGET_BIN)
 	cp $(CNVNATOR_DIR)/bin/cnvnator_wrapper.py $(TARGET_BIN)
 	cp $(CNVNATOR_DIR)/bin/cnvnator2VCF.pl $(TARGET_BIN)
 
