@@ -192,6 +192,7 @@ SpeedSeq is a modular pipeline with four components: [`aln`](#speedseq-aln), [`v
 Internally, `speedseq aln` runs the following steps to produce [three output BAM files](#output):
 
 1. Alignment with [BWA-MEM](http://bio-bwa.sourceforge.net/)
+   * Prior to alignment, run `bwa index genome.fasta` on the reference genome
 2. Duplicate marking with [samblaster](https://github.com/GregoryFaust/samblaster)
 3. Discordant-read and split-read extraction with [samblaster](https://github.com/GregoryFaust/samblaster)
 4. Position sorting with [sambamba](https://github.com/lomereiter/sambamba)

@@ -170,44 +170,44 @@ def main(args):
 	packageManager.install()
 	check_dependencies()
 
-	# #bwa install
-	# bwa = INSTALLER("bwa", args.quiet)
-	# bwa.check_install("bwa")
-	# if (bwa.isInstalled):
-	# 	bwa.get_update()
-	# if (bwa.notInstalled or bwa.update):
-	# 	url = "http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.8.tar.bz2"
-	# 	bwa.download("curl", url)
-	# 	bwa.unpack("tar")
-	# 	bwa.install("make", "bwa-0.7.8")
-	# 	bwa.cp_bin("bwa-0.7.8/bwa", args.targetbin)
+	#bwa install
+	bwa = INSTALLER("bwa", args.quiet)
+	bwa.check_install("bwa")
+	if (bwa.isInstalled):
+		bwa.get_update()
+	if (bwa.notInstalled or bwa.update):
+		url = "http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.8.tar.bz2"
+		bwa.download("curl", url)
+		bwa.unpack("tar")
+		bwa.install("make", "bwa-0.7.8")
+		bwa.cp_bin("bwa-0.7.8/bwa", args.targetbin)
 
-	# #parallel install
-	# parallel = INSTALLER("parallel", args.quiet)
-	# parallel.check_install("parallel")
-	# if (parallel.isInstalled):
-	# 	parallel.get_update()
-	# if (parallel.notInstalled or parallel.update):
-	# 	url = "http://ftp.gnu.org/gnu/parallel/parallel-20100424.tar.bz2"
-	# 	parallel.download("curl", url)
-	# 	parallel.unpack("tar")
-	# 	parallel.install("confmake", "parallel-20100424")
-	# 	parallel.cp_bin("parallel-20100424/src/parallel", args.targetbin)
+	#parallel install
+	parallel = INSTALLER("parallel", args.quiet)
+	parallel.check_install("parallel")
+	if (parallel.isInstalled):
+		parallel.get_update()
+	if (parallel.notInstalled or parallel.update):
+		url = "http://ftp.gnu.org/gnu/parallel/parallel-20100424.tar.bz2"
+		parallel.download("curl", url)
+		parallel.unpack("tar")
+		parallel.install("confmake", "parallel-20100424")
+		parallel.cp_bin("parallel-20100424/src/parallel", args.targetbin)
 
-	# #sambamba install
-	# sambamba = INSTALLER("sambamba", args.quiet)
-	# sambamba.check_install("sambamba")
-	# if (sambamba.isInstalled):
-	# 	sambamba.get_update()
-	# if (sambamba.notInstalled or sambamba.update):
-	# 	url = "https://github.com/lomereiter/sambamba/releases/download/v0.4.7/sambamba_v0.4.7_centos5.tar.bz2"
-	# 	sambamba.download("curl", url)
-	# 	sambamba.unpack("tar")
-	# 	sambamba.cp_bin("sambamba_v0.4.7", args.targetbin + "/sambamba")
+	#sambamba install
+	sambamba = INSTALLER("sambamba", args.quiet)
+	sambamba.check_install("sambamba")
+	if (sambamba.isInstalled):
+		sambamba.get_update()
+	if (sambamba.notInstalled or sambamba.update):
+		url = "https://github.com/lomereiter/sambamba/releases/download/v0.4.7/sambamba_v0.4.7_centos5.tar.bz2"
+		sambamba.download("curl", url)
+		sambamba.unpack("tar")
+		sambamba.cp_bin("sambamba_v0.4.7", args.targetbin + "/sambamba")
 
 	#VEP install
 	vep = INSTALLER("vep", args.quiet)
-	vep.check_install("vep")
+	vep.check_install("variant_effect_predictor.pl")
 	if (vep.isInstalled):
 		vep.get_update()
 	if (vep.notInstalled or vep.update):
@@ -229,10 +229,11 @@ def main(args):
 	# 	gemini.install("python2.7", "/usr/local/share/gemini")
 	# 	gemini.cp_bin("/usr/local/gemini/bin", args.targetbin)
 	
-	# print "Checking installations...\n"
-	# bwa.check_install("bwa")
-	# parallel.check_install("parallel")
-	# sambamba.check_install("sambamba")
+	print "Checking installations...\n"
+	bwa.check_install("bwa")
+	parallel.check_install("parallel")
+	sambamba.check_install("sambamba")
+	vep.check_install("variant_effect_predictor.pl")
 	# gemini.check_install("gemini")
 
 	print "Cleaning up...\n"
@@ -240,8 +241,8 @@ def main(args):
 		os.chdir(prevdir)
 		shutil.rmtree(args.tempdir)
 
-	# print "Compiling embedded software...\n"
-	# make()
+	print "Compiling embedded software...\n"
+	make()
 
 def check_dependencies():
 		"""Ensure required tools for installation are present.

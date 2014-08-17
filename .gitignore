@@ -16,6 +16,11 @@ bin/svtyper
 bin/tabix
 bin/vawk
 bin/vcfToBedpe
+bin/Bio
+bin/bwa
+bin/parallel
+bin/sambamba
+bin/variant_effect_predictor.pl
 
 # Compiled source #
 ###################
