@@ -20,35 +20,37 @@ Current support for Linux only
 
 ##Summary
 
-The `speedseq` suite is a lightweight, flexible, and open source pipeline that identifies
+The SpeedSeq suite is a lightweight, flexible, and open source pipeline that identifies
 genomic variation (single nucleotide variants (SNVs), indels, and structural variants (SVs)).
 
 ##Constitutive Pipeline Tools
 
-1. BWA (http://bio-bwa.sourceforge.net/)
-2. SAMBLASTER (https://github.com/GregoryFaust/samblaster)
-3. Sambamba (https://github.com/lomereiter/sambamba)
-4. FreeBayes (https://github.com/ekg/freebayes)
-5. VEP (http://snpeff.sourceforge.net/)
-6. LUMPY (https://github.com/arq5x/lumpy-sv)
-7. CNVnator (http://sv.gersteinlab.org/cnvnator/)
-8. GEMINI (https://github.com/arq5x/gemini)
+* [BWA](http://bio-bwa.sourceforge.net/)
+* [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
+* [Sambamba](https://github.com/lomereiter/sambamba)
+* [FreeBayes](https://github.com/ekg/freebayes)
+* [VEP](http://snpeff.sourceforge.net/)
+* [LUMPY](https://github.com/arq5x/lumpy-sv)
+* [CNVnator](http://sv.gersteinlab.org/cnvnator/)
+* [GEMINI](https://github.com/arq5x/gemini)
+* [GNU Parallel](http://www.gnu.org/software/parallel/)
 
 ##Installation
 
-There is an automatic and manual installation process for `speedseq`.
+There is an automatic and manual installation process for SpeedSeq.
 
 The following are required for both installations:
-- cmake
-- g++ 4.3 or later
-- gcc
-- git
-- make
-- python2.7
-- python-devel
-- python-yaml
-- ncurses-devel
-- zlib-devel
+
+* cmake
+* g++ 4.3 or later
+* gcc
+* git
+* make
+* python2.7
+* python-devel
+* python-yaml
+* ncurses-devel
+* zlib-devel
 
 A Linux package manager can be used to obtain these by with the command:
 
@@ -66,7 +68,7 @@ sudo apt-get install build-essential cmake gpp gcc git make python2.7 python-dev
 
 ###Automatic installation
 
-`speedseq` can be installed with the following commands:
+SpeedSeq can be installed with the following commands:
 ```
 git clone --recursive https://github.com/cc2qe/speedseq
 cd speedseq
@@ -74,28 +76,34 @@ python speedseq_setup.py
 sudo cp -r bin/* /usr/local/bin/
 ```
 
+Configure the paths to the SpeedSeq dependencies by modifying the [speedseq.config](bin/speedseq.config) file. The [speedseq.config](bin/speedseq.config) file should reside in the same directory as the SpeedSeq executable. By default, SpeedSeq attempts to source the dependencies from the $PATH.
+
+Note that the optional component CNVnator cannot be automatically installed (see the CNVnator manual install instructions).
+
 ###Manual installation
 
 The following instructions for installation assumes that the required tools are not installed.  
-It is recommended that the specified versions of each tool is used for this release of ``speedseq``.  
+It is recommended that the specified versions of each tool is used for this release of SpeedSeq.  
 The use of unspecified versions of any pipeline component is not guaranteed to work. 
 
-`speedseq` can be installed with the following commands: 
+SpeedSeq can be installed with the following commands: 
 ```
-git clone https://github.com/cc2qe/speedseq
+git clone --recursive https://github.com/cc2qe/speedseq
 cd speedseq
+make
 sudo cp -r bin/* /usr/local/bin/
 ```
 
 #####Configuration
 
-Configure the paths to the `speedseq` dependencies by modifying the [speedseq.config](bin/speedseq.config) file. The [speedseq.config](bin/speedseq.config) file should reside in the same directory as the `speedseq` executable. By default, `speedseq` attempts to source the dependencies from the $PATH.
+Configure the paths to the SpeedSeq dependencies by modifying the [speedseq.config](bin/speedseq.config) file. The [speedseq.config](bin/speedseq.config) file should reside in the same directory as the SpeedSeq executable. By default, SpeedSeq attempts to source the dependencies from the $PATH.
 
-####Obtain each of the pipeline tools and install:
+####Obtain each of the external pipeline tools and install:
 	
-####1) BWA
+#### BWA
+http://bio-bwa.sourceforge.net/
 
-`bwa` can be installed and used by ``speedseq`` with the following commands: 
+BWA can be installed and used by SpeedSeq with the following commands: 
 ```
 curl -OL http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.8.tar.bz2
 tar -xvf bwa-0.7.8.tar.bz2
@@ -104,19 +112,52 @@ make
 sudo cp bwa /usr/local/bin
 ```
 
-####2) FreeBayes
+#### Sambamba
+https://github.com/lomereiter/sambamba
 
-FreeBayes can be installed and used by ``speedseq`` with the following commands: 
+Sambamba can be installed and used by SpeedSeq by: 
 ```
-git clone --recursive git://github.com/ekg/freebayes.git
-cd freebayes
-make
-sudo cp -r bin/* /usr/local/bin/
+curl -OL https://github.com/lomereiter/sambamba/releases/download/v0.4.6-beta/sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2
+tar -xvf sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2
+sudo cp sambamba_v0.4.6 /usr/local/bin/
 ```
 
-####3) GEMINI
+#### CNVnator
+http://sv.gersteinlab.org/cnvnator/
 
-GEMINI can be installed and used by ``speedseq`` with the following commands: 
+CNVnator can be installed and used by SpeedSeq with the following commands:
+
+1. Install the ROOT package (http://root.cern.ch/drupal/)
+   ```
+   # install dependencies
+   sudo yum -y install libX11-devel libXpm-devel libXft-devel libXext-devel
+
+   # get ROOT
+   curl -OL ftp://root.cern.ch/root/root_v5.34.20.source.tar.gz
+   tar -xvf root_v5.34.20.source.tar.gz
+   cd root
+   ./configure
+   make
+   cd ..
+   sudo mv root /usr/local
+   ```
+
+2. Add the following line to `~/.bashrc`
+   ```
+   source /usr/local/root/bin/thisroot.sh
+   ```
+
+3. Navigate to SpeedSeq git directory and compile the multi-threaded implementation of CNVnator v0.3
+   ```
+   cd speedseq
+   make -C src/cnvnator
+   sudo cp src/cnvnator/bin/* /usr/local/bin
+   ```
+
+#### GEMINI
+https://github.com/arq5x/gemini
+
+GEMINI can be installed and used by SpeedSeq with the following commands: 
 ```
 wget https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py	
 # or curl -OL https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py > gemini_install.py
@@ -126,47 +167,27 @@ export PATH=$PATH:/usr/local/gemini/bin
 gemini update
 ```
 
-####4) LUMPY
+#### BEDTools
+https://github.com/arq5x/bedtools2
 
-LUMPY can be installed and used by SpeedSeq with the following commands:
+BEDTools can be install and used by SpeedSeq with the following commands:
 ```
-curl -OL https://github.com/arq5x/lumpy-sv/archive/v0.2.1.tar.gz
-tar -xvf lumpy-sv-0.2.1.tar.gz
-cd lumpy-sv-0.2.1
-make 
-sudo cp -r bin/* /usr/local/bin/
-sudo cp -r scripts/* /usr/local/bin/
+curl -OL https://github.com/arq5x/bedtools2/releases/download/v2.20.1/bedtools-2.20.1.tar.gz
+tar -xvf bedtools-2.20.1.tar.gz
+make -C bedtools2-2.20.1
+sudo cp bedtools2-2.20.1/bin/* /usr/local/bin
 ```
 
-####5) PARALLEL
+#### GNU Parallel
+http://www.gnu.org/software/parallel/
 
-``parallel`` can be installed and used by ``speedseq`` with the following commands:
+Parallel can be installed and used by SpeedSeq with the following commands:
 ```
 curl -OL http://ftp.gnu.org/gnu/parallel/parallel-20100424.tar.bz2
 tar -xvf parallel-20100424.tar.bz2
 cd parallel-20100424
 ./configure && sudo make && sudo make install
 sudo cp src/parallel /usr/local/bin/
-```
-
-####6) Sambamba
-
-``sambamba`` can be installed and used by ``speedseq`` by: 
-```
-curl -OL https://github.com/lomereiter/sambamba/releases/download/v0.4.6-beta/sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2
-tar -xvf sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2
-sudo cp sambamba_v0.4.6 /usr/local/bin/
-```
--
-####7) SAMBLASTER
-
-``samblaster`` can be installed and used by ``speedseq`` with the following commands: 
-```
-curl -OL https://github.com/GregoryFaust/samblaster/archive/0.1.14.tar.gz
-tar -xvf 0.1.14.tar.gz
-cd samblaster-0.1.14
-make samblaster-0.1.14
-sudo cp samblaster /usr/local/bin/
 ```
 
 **For alternative installations and release issues for any of the above tools please consult the website/creator.**
@@ -187,7 +208,7 @@ SpeedSeq is a modular pipeline with four components: [`aln`](#speedseq-aln), [`v
 -
 ###speedseq aln
 
-`speedseq aln` takes paired-end fastq sequences as input, and produces a duplicate-marked, sorted, indexed BAM file that can be processed with other `speedseq` modules. Currently, `speedseq aln` does not support single-end reads.
+`speedseq aln` takes paired-end fastq sequences as input, and produces a duplicate-marked, sorted, indexed BAM file that can be processed with other SpeedSeq modules. Currently, `speedseq aln` does not support single-end reads.
 
 Internally, `speedseq aln` runs the following steps to produce [three output BAM files](#output):
 
