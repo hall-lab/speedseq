@@ -129,7 +129,7 @@ class INSTALLER(object):
 				" work with the installed version of " + self.name  + ".\nDo you want to install/update? [y/N]\n")
 			s = s.lower()
 			if ((s == "n") or (s == "no")):
-				print "\nNot installing/updating and could lead to potential problems in speedseq" + self.name + "...\nContinuing anyway...\n"
+				print "\nNot installing/updating and could lead to potential problems in speedseq " + self.name + "...\nContinuing anyway...\n"
 				self.update = False
 				needInput = False
 			elif ((s == "y") or (s == "yes")):
@@ -229,6 +229,14 @@ def main(args):
 		bedtools.unpack("tar")
 		bedtools.install("make", "bedtools2-2.20.1")
 		bedtools.cp_bin("bedtools2-2.20.1/bin/*", args.targetbin)
+
+	#Pysam install
+	pysam = INSTALLER("pysam", args.quiet)
+	try:
+		__import__("pysam")
+	except ImportError:
+		print "Installing pysam...\n"
+		subprocess.call("sudo pip install pysam", shell=True)
 
     	# #gemini install
 	# gemini = INSTALLER("gemini", args.quiet)
