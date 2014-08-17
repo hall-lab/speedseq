@@ -96,18 +96,18 @@ class INSTALLER(object):
 			self.installcmd = "make -C " + self.installdir
 		elif (method == "confmake"):
 			self.installcmd = "./configure && sudo make && sudo make install"
+		elif (method == "perl"):
+			#This only applies to VEP
+			self.installcmd = "perl " + self.installdir + "/INSTALL.pl -a ac -s homo_sapiens -y GRCh37"
 		elif (method == "python2.7"):
 			#This only applies to gemini, uses pip install
-			self.installcmd =  "python2.7 gemini_install.py /usr/local " + self.installdir + " && gemini update"
+			self.installcmd = "python2.7 gemini_install.py /usr/local " + self.installdir + " && gemini update"
 		if not self.quiet:
 			print "\nInstalling " + self.name + "...\n"
 		subprocess.call(self.installcmd, shell=True)
 
 	def cp_bin(self, source, target):
-		if os.path.isfile(source):
-			self.copycmd = "sudo cp "  + os.getcwd() + "/" + source + " " + target
-		elif os.path.isdir(source):
-				self.copycmd = "sudo cp -r "  + os.getcwd() + "/" + source + "/* " + target
+		self.copycmd = "sudo cp -r " + os.getcwd() + "/" + source + " " + target
 		if not self.quiet:
 			print "\nCopying " + source + " from " + self.name + " to target bin ...\n"
 		subprocess.call(self.copycmd, shell=True)
@@ -170,40 +170,53 @@ def main(args):
 	packageManager.install()
 	check_dependencies()
 
-	#bwa install
-	bwa = INSTALLER("bwa", args.quiet)
-	bwa.check_install("bwa")
-	if (bwa.isInstalled):
-		bwa.get_update()
-	if (bwa.notInstalled or bwa.update):
-		url = "http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.8.tar.bz2"
-		bwa.download("curl", url)
-		bwa.unpack("tar")
-		bwa.install("make", "bwa-0.7.8")
-		bwa.cp_bin("bwa-0.7.8/bwa", args.targetbin)
+	# #bwa install
+	# bwa = INSTALLER("bwa", args.quiet)
+	# bwa.check_install("bwa")
+	# if (bwa.isInstalled):
+	# 	bwa.get_update()
+	# if (bwa.notInstalled or bwa.update):
+	# 	url = "http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.8.tar.bz2"
+	# 	bwa.download("curl", url)
+	# 	bwa.unpack("tar")
+	# 	bwa.install("make", "bwa-0.7.8")
+	# 	bwa.cp_bin("bwa-0.7.8/bwa", args.targetbin)
 
-	#parallel install
-	parallel = INSTALLER("parallel", args.quiet)
-	parallel.check_install("parallel")
-	if (parallel.isInstalled):
-		parallel.get_update()
-	if (parallel.notInstalled or parallel.update):
-		url = "http://ftp.gnu.org/gnu/parallel/parallel-20100424.tar.bz2"
-		parallel.download("curl", url)
-		parallel.unpack("tar")
-		parallel.install("confmake", "parallel-20100424")
-		parallel.cp_bin("parallel-20100424/src/parallel", args.targetbin)
+	# #parallel install
+	# parallel = INSTALLER("parallel", args.quiet)
+	# parallel.check_install("parallel")
+	# if (parallel.isInstalled):
+	# 	parallel.get_update()
+	# if (parallel.notInstalled or parallel.update):
+	# 	url = "http://ftp.gnu.org/gnu/parallel/parallel-20100424.tar.bz2"
+	# 	parallel.download("curl", url)
+	# 	parallel.unpack("tar")
+	# 	parallel.install("confmake", "parallel-20100424")
+	# 	parallel.cp_bin("parallel-20100424/src/parallel", args.targetbin)
 
-	#sambamba install
-	sambamba = INSTALLER("sambamba", args.quiet)
-	sambamba.check_install("sambamba")
-	if (sambamba.isInstalled):
-		sambamba.get_update()
-	if (sambamba.notInstalled or sambamba.update):
-		url = "https://github.com/lomereiter/sambamba/releases/download/v0.4.7/sambamba_v0.4.7_centos5.tar.bz2"
-		sambamba.download("curl", url)
-		sambamba.unpack("tar")
-		sambamba.cp_bin("sambamba_v0.4.7", args.targetbin + "/sambamba")
+	# #sambamba install
+	# sambamba = INSTALLER("sambamba", args.quiet)
+	# sambamba.check_install("sambamba")
+	# if (sambamba.isInstalled):
+	# 	sambamba.get_update()
+	# if (sambamba.notInstalled or sambamba.update):
+	# 	url = "https://github.com/lomereiter/sambamba/releases/download/v0.4.7/sambamba_v0.4.7_centos5.tar.bz2"
+	# 	sambamba.download("curl", url)
+	# 	sambamba.unpack("tar")
+	# 	sambamba.cp_bin("sambamba_v0.4.7", args.targetbin + "/sambamba")
+
+	#VEP install
+	vep = INSTALLER("vep", args.quiet)
+	vep.check_install("vep")
+	if (vep.isInstalled):
+		vep.get_update()
+	if (vep.notInstalled or vep.update):
+		url = "https://github.com/Ensembl/ensembl-tools/archive/release/76.zip"
+		vep.download("curl", url)
+		vep.unpack("unzip")
+		vep.install("perl", "ensembl-tools-release-76/scripts/variant_effect_predictor")
+		vep.cp_bin("ensembl-tools-release-76/scripts/variant_effect_predictor/variant_effect_predictor.pl", args.targetbin)
+		vep.cp_bin("Bio", args.targetbin + "/Bio")
 
     	# #gemini install
 	# gemini = INSTALLER("gemini", args.quiet)
@@ -216,10 +229,10 @@ def main(args):
 	# 	gemini.install("python2.7", "/usr/local/share/gemini")
 	# 	gemini.cp_bin("/usr/local/gemini/bin", args.targetbin)
 	
-	print "Checking installations...\n"
-	bwa.check_install("bwa")
-	parallel.check_install("parallel")
-	sambamba.check_install("sambamba")
+	# print "Checking installations...\n"
+	# bwa.check_install("bwa")
+	# parallel.check_install("parallel")
+	# sambamba.check_install("sambamba")
 	# gemini.check_install("gemini")
 
 	print "Cleaning up...\n"
@@ -227,8 +240,8 @@ def main(args):
 		os.chdir(prevdir)
 		shutil.rmtree(args.tempdir)
 
-	print "Compiling embedded software...\n"
-	make()
+	# print "Compiling embedded software...\n"
+	# make()
 
 def check_dependencies():
 		"""Ensure required tools for installation are present.
