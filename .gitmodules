@@ -1,0 +1,21 @@
+[submodule "src/svtyper"]
+	path = src/svtyper
+	url = https://github.com/cc2qe/svtyper.git
+[submodule "src/samblaster"]
+	path = src/samblaster
+	url = https://github.com/GregoryFaust/samblaster.git
+[submodule "src/vawk"]
+	path = src/vawk
+	url = https://github.com/cc2qe/vawk.git
+[submodule "src/lumpy-sv"]
+	path = src/lumpy-sv
+	url = https://github.com/arq5x/lumpy-sv.git
+[submodule "src/tabix"]
+	path = src/tabix
+	url = https://github.com/samtools/tabix.git
+[submodule "src/freebayes"]
+	path = src/freebayes
+	url = https://github.com/ekg/freebayes.git
+[submodule "src/svtools"]
+	path = src/svtools
+	url = https://github.com/hall-lab/sv-tools.git

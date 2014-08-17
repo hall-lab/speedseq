@@ -9,7 +9,6 @@ Handles installation of:
 
 Requires: 
 Linux packages: cmake gcc-c++ gcc git make python27 python-devel python-yaml ncurses-devel zlib-devel 
-Bioinformatics software: BWA, FREEBAYES, GEMINI (bedtools, samtools, pybedtools), LUMPY, PARALLEL, SAMBAMBA, SAMBLASTER, SNPEFF, VCFLIB
 
 Run speedseq_install.py -h for usage.
 """
@@ -19,6 +18,7 @@ import shutil
 import subprocess
 import sys
 import shlex
+import tempfile
 
 class PACMAN(object):
 	"""
@@ -96,20 +96,18 @@ class INSTALLER(object):
 			self.installcmd = "make -C " + self.installdir
 		elif (method == "confmake"):
 			self.installcmd = "./configure && sudo make && sudo make install"
+		elif (method == "perl"):
+			#This only applies to VEP
+			self.installcmd = "perl " + self.installdir + "/INSTALL.pl -a ac -s homo_sapiens -y GRCh37"
 		elif (method == "python2.7"):
 			#This only applies to gemini, uses pip install
-			self.installcmd =  "python2.7 gemini_install.py /usr/local " + self.installdir + " && gemini update"
-		else:
-			self.installcmd = 'echo "snpEff is java"'
+			self.installcmd = "python2.7 gemini_install.py /usr/local " + self.installdir + " && gemini update"
 		if not self.quiet:
 			print "\nInstalling " + self.name + "...\n"
 		subprocess.call(self.installcmd, shell=True)
 
 	def cp_bin(self, source, target):
-		if os.path.isfile(source):
-			self.copycmd = "sudo cp "  + os.getcwd() + "/" + source + " " + target
-		elif os.path.isdir(source):
-				self.copycmd = "sudo cp -r "  + os.getcwd() + "/" + source + "/* " + target
+		self.copycmd = "sudo cp -r " + os.getcwd() + "/" + source + " " + target
 		if not self.quiet:
 			print "\nCopying " + source + " from " + self.name + " to target bin ...\n"
 		subprocess.call(self.copycmd, shell=True)
@@ -131,7 +129,7 @@ class INSTALLER(object):
 				" work with the installed version of " + self.name  + ".\nDo you want to install/update? [y/N]\n")
 			s = s.lower()
 			if ((s == "n") or (s == "no")):
-				print "\nNot installing/updating and could lead to potential problems in speedseq" + self.name + "...\nContinuing anyway...\n"
+				print "\nNot installing/updating and could lead to potential problems in speedseq " + self.name + "...\nContinuing anyway...\n"
 				self.update = False
 				needInput = False
 			elif ((s == "y") or (s == "yes")):
@@ -142,6 +140,9 @@ class INSTALLER(object):
 				print "\nUnrecognized input, please input yes or no [y/N]"
 				needInput = True
 
+def make():
+	subprocess.call('make -k all', shell=True)
+
 def which(prgm):
 	for path in os.environ["PATH"].split(":"):
 		if os.path.exists(path + "/" + prgm):
@@ -149,16 +150,26 @@ def which(prgm):
 	return None
 
 def main(args):
-	print "Changing directory to " + args.targetdir + " and installing speedseq...\n"
-	if os.path.isdir(args.targetdir):
-		os.chdir(args.targetdir)
+	# Make temp directory if it doesn't exist
+        try:
+		os.stat(args.tempdir)
+		keep = True
+        except:
+		args.tempdir = tempfile.mkdtemp(dir="./")
+		keep = False
+	print "Changing directory to " + args.tempdir + " and installing speedseq...\n"
+	if os.path.isdir(args.tempdir):
+		prevdir = os.getcwd()
+		os.chdir(args.tempdir)
 	else:
-		raise OSError("cd: " + args.targetdir + ": No such file or directory")
+		raise OSError("cd: " + args.tempdir + ": No such file or directory")
+
 	#Linux install
 	packageManager = PACMAN(args.quiet)
 	packageManager.check_installer()
 	packageManager.install()
 	check_dependencies()
+
 	#bwa install
 	bwa = INSTALLER("bwa", args.quiet)
 	bwa.check_install("bwa")
@@ -170,39 +181,7 @@ def main(args):
 		bwa.unpack("tar")
 		bwa.install("make", "bwa-0.7.8")
 		bwa.cp_bin("bwa-0.7.8/bwa", args.targetbin)
-		
-	#freebayes install
-	freebayes = INSTALLER("freebayes", args.quiet)
-	freebayes.check_install("freebayes")
-	if (freebayes.isInstalled):
-		freebayes.get_update()
-	if (freebayes.notInstalled or freebayes.update):
-		url="git://github.com/ekg/freebayes"
-		freebayes.download("git", url)
-		freebayes.install("make", "freebayes")
-		freebayes.cp_bin("freebayes/bin", args.targetbin)
-    	#gemini install
-	gemini = INSTALLER("gemini", args.quiet)
-	gemini.check_install("gemini")
-	if (gemini.isInstalled):
-		gemini.get_update()
-	if (gemini.notInstalled or gemini.update):
-		url = "https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py"
-		gemini.download("wget", url)
-		gemini.install("python2.7", "/usr/local/share/gemini")
-		gemini.cp_bin("/usr/local/gemini/bin", args.targetbin)
-	#lumpy install
-	lumpy = INSTALLER("lumpy", args.quiet)
-	lumpy.check_install("lumpy")
-	if (lumpy.isInstalled):
-		lumpy.get_update()
-	if (lumpy.notInstalled or lumpy.update):
-		url="https://github.com/arq5x/lumpy-sv/archive/0.2.1.tar.gz"
-		lumpy.download("curl", url)
-		lumpy.unpack("tar") 
-		lumpy.install("make", "lumpy-sv-0.2.1")
-		lumpy.cp_bin("lumpy-sv-0.2.1/bin", args.targetbin)
-		lumpy.cp_bin("lumpy-sv-0.2.1/scripts", args.targetbin)
+
 	#parallel install
 	parallel = INSTALLER("parallel", args.quiet)
 	parallel.check_install("parallel")
@@ -214,63 +193,76 @@ def main(args):
 		parallel.unpack("tar")
 		parallel.install("confmake", "parallel-20100424")
 		parallel.cp_bin("parallel-20100424/src/parallel", args.targetbin)
+
 	#sambamba install
-	sambamba = INSTALLER("sambamba_v0.4.6", args.quiet)
-	sambamba.check_install("sambamba_v0.4.6")
+	sambamba = INSTALLER("sambamba", args.quiet)
+	sambamba.check_install("sambamba")
 	if (sambamba.isInstalled):
 		sambamba.get_update()
 	if (sambamba.notInstalled or sambamba.update):
-		url = "https://github.com/lomereiter/sambamba/releases/download/v0.4.6-beta/sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2"
+		url = "https://github.com/lomereiter/sambamba/releases/download/v0.4.7/sambamba_v0.4.7_centos5.tar.bz2"
 		sambamba.download("curl", url)
 		sambamba.unpack("tar")
-		sambamba.cp_bin("sambamba_v0.4.6", args.targetbin)
-	#samblaster install	
-	samblaster = INSTALLER("samblaster", args.quiet)
-	samblaster.check_install("samblaster")
-	if (samblaster.isInstalled):
-		samblaster.get_update()
-	if (samblaster.notInstalled or samblaster.update):
-		url = "https://github.com/GregoryFaust/samblaster/archive/0.1.14.tar.gz"
-		samblaster.download("curl", url)
-		samblaster.unpack("tar")
-		samblaster.install("make", "samblaster-0.1.14")
-		samblaster.cp_bin("samblaster-0.1.14/samblaster", args.targetbin)
-	#snpeff install
-	snpeff = INSTALLER("snpeff", args.quiet)
-	snpeff.check_install("snpeff")
-	if (snpeff.isInstalled):
-		snpeff.get_update()
-	if (snpeff.notInstalled or snpeff.update):
-		url = "http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip"
-		snpeff.download("wget", url)
-		snpeff.unpack("unzip")
-		snpeff.install(None, "snpEff")
-		snpeff.cp_bin("snpEff/snpEff.config", args.targetbin)
-		snpeff.cp_bin("snpEff/snpEff.jar", args.targetbin)
-		snpeff.cp_bin("snpEff/scripts", args.targetbin)
-	#vcflib install
-	vcflib = INSTALLER("vcflib", args.quiet)
-	if (vcflib.isInstalled):
-		vcflib.get_update()
-	if (vcflib.notInstalled or vcflib.update):
-		url = "https://github.com/ekg/vcflib"
-		vcflib.download("git", url)
-		vcflib.install("make", "vcflib")
-		vcflib.cp_bin("vcflib/tabixpp/bgzip", args.targetbin)
-		vcflib.cp_bin("vcflib/tabixpp/tabix", args.targetbin)
-		vcflib.cp_bin("vcflib/bin", args.targetbin)
+		sambamba.cp_bin("sambamba_v0.4.7", args.targetbin + "/sambamba")
+
+	#VEP install
+	vep = INSTALLER("vep", args.quiet)
+	vep.check_install("variant_effect_predictor.pl")
+	if (vep.isInstalled):
+		vep.get_update()
+	if (vep.notInstalled or vep.update):
+		url = "https://github.com/Ensembl/ensembl-tools/archive/release/76.zip"
+		vep.download("curl", url)
+		vep.unpack("unzip")
+		vep.install("perl", "ensembl-tools-release-76/scripts/variant_effect_predictor")
+		vep.cp_bin("ensembl-tools-release-76/scripts/variant_effect_predictor/variant_effect_predictor.pl", args.targetbin)
+		vep.cp_bin("Bio", args.targetbin + "/Bio")
+	
+	#BEDtools install
+	bedtools = INSTALLER("bedtools", args.quiet)
+	bedtools.check_install("bedtools")
+	if (bedtools.isInstalled):
+		bedtools.get_update()
+	if (bedtools.notInstalled or bedtools.update):
+		url = "https://github.com/arq5x/bedtools2/releases/download/v2.20.1/bedtools-2.20.1.tar.gz"
+		bedtools.download("curl", url)
+		bedtools.unpack("tar")
+		bedtools.install("make", "bedtools2-2.20.1")
+		bedtools.cp_bin("bedtools2-2.20.1/bin/*", args.targetbin)
+
+	#Pysam install
+	pysam = INSTALLER("pysam", args.quiet)
+	try:
+		__import__("pysam")
+	except ImportError:
+		print "Installing pysam...\n"
+		subprocess.call("sudo pip install pysam", shell=True)
+
+    	# #gemini install
+	# gemini = INSTALLER("gemini", args.quiet)
+	# gemini.check_install("gemini")
+	# if (gemini.isInstalled):
+	# 	gemini.get_update()
+	# if (gemini.notInstalled or gemini.update):
+	# 	url = "https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py"
+	# 	gemini.download("wget", url)
+	# 	gemini.install("python2.7", "/usr/local/share/gemini")
+	# 	gemini.cp_bin("/usr/local/gemini/bin", args.targetbin)
 	
 	print "Checking installations...\n"
 	bwa.check_install("bwa")
-	freebayes.check_install("freebayes")
-	gemini.check_install("gemini")
-	lumpy.check_install("lumpy")
 	parallel.check_install("parallel")
-	sambamba.check_install("sambamba_v0.4.6")
-	samblaster.check_install("samblaster")
-	snpeff.check_install("snpeff")
-	vcflib.check_install("bgzip")
+	sambamba.check_install("sambamba")
+	vep.check_install("variant_effect_predictor.pl")
+	# gemini.check_install("gemini")
 
+	print "Cleaning up...\n"
+	if not keep:
+		os.chdir(prevdir)
+		shutil.rmtree(args.tempdir)
+
+	print "Compiling embedded software...\n"
+	make()
 
 def check_dependencies():
 		"""Ensure required tools for installation are present.
@@ -291,13 +283,12 @@ def check_dependencies():
 			else:
 				print " %s found" % cmd
 
-
 if __name__ == "__main__":
 		parser = argparse.ArgumentParser(description="Automated installer for speedseq.")
-		parser.add_argument("targetdir", help="Directory to install 3rd party software tools",
-						nargs='?', type=os.path.abspath, default=os.getcwd())
-		parser.add_argument("targetbin", help="Directory to install the binaries into",
-						nargs='?', type=os.path.abspath, default="/usr/local/bin/")
+		parser.add_argument("--tempdir", help="Temp directory to install 3rd party software tools [./temp]",
+						nargs='?', type=os.path.abspath, default=None)
+		parser.add_argument("--targetbin", help="Directory to install the binaries [./bin]",
+						nargs='?', type=os.path.abspath, default="./bin")
 		parser.add_argument("--quiet", '-q', help="Determines the verbosity of installation",
 						default=False, action='store_true')
 		if len(sys.argv) == 0:
