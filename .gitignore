@@ -1,3 +1,22 @@
+# Binaries #
+############
+bin/bedpeToBed12
+bin/bedpeToVcf
+bin/bgzip
+bin/cnvnator
+bin/cnvnator2VCF.pl
+bin/cnvnator_wrapper.py
+bin/freebayes
+bin/lumpy
+bin/pairend_distro.py
+bin/samblaster
+bin/splitReadSamToBedpe
+bin/splitterToBreakpoint
+bin/svtyper
+bin/tabix
+bin/vawk
+bin/vcfToBedpe
+
 # Compiled source #
 ###################
 *.com

@@ -9,7 +9,6 @@ Handles installation of:
 
 Requires: 
 Linux packages: cmake gcc-c++ gcc git make python27 python-devel python-yaml ncurses-devel zlib-devel 
-Bioinformatics software: BWA, FREEBAYES, GEMINI (bedtools, samtools, pybedtools), LUMPY, PARALLEL, SAMBAMBA, SAMBLASTER, VEP
 
 Run speedseq_install.py -h for usage.
 """
@@ -19,6 +18,7 @@ import shutil
 import subprocess
 import sys
 import shlex
+import tempfile
 
 class PACMAN(object):
 	"""
@@ -140,6 +140,9 @@ class INSTALLER(object):
 				print "\nUnrecognized input, please input yes or no [y/N]"
 				needInput = True
 
+def make():
+	subprocess.call('make all', shell=True)
+
 def which(prgm):
 	for path in os.environ["PATH"].split(":"):
 		if os.path.exists(path + "/" + prgm):
@@ -147,16 +150,26 @@ def which(prgm):
 	return None
 
 def main(args):
-	print "Changing directory to " + args.targetdir + " and installing speedseq...\n"
-	if os.path.isdir(args.targetdir):
-		os.chdir(args.targetdir)
+	# Make temp directory if it doesn't exist
+        try:
+		os.stat(args.tempdir)
+		keep = True
+        except:
+		args.tempdir = tempfile.mkdtemp(dir="./")
+		keep = False
+	print "Changing directory to " + args.tempdir + " and installing speedseq...\n"
+	if os.path.isdir(args.tempdir):
+		prevdir = os.getcwd()
+		os.chdir(args.tempdir)
 	else:
-		raise OSError("cd: " + args.targetdir + ": No such file or directory")
+		raise OSError("cd: " + args.tempdir + ": No such file or directory")
+
 	#Linux install
 	packageManager = PACMAN(args.quiet)
 	packageManager.check_installer()
 	packageManager.install()
 	check_dependencies()
+
 	#bwa install
 	bwa = INSTALLER("bwa", args.quiet)
 	bwa.check_install("bwa")
@@ -168,16 +181,6 @@ def main(args):
 		bwa.unpack("tar")
 		bwa.install("make", "bwa-0.7.8")
 		bwa.cp_bin("bwa-0.7.8/bwa", args.targetbin)
-	#freebayes install
-	freebayes = INSTALLER("freebayes", args.quiet)
-	freebayes.check_install("freebayes")
-	if (freebayes.isInstalled):
-		freebayes.get_update()
-	if (freebayes.notInstalled or freebayes.update):
-		url="git://github.com/ekg/freebayes"
-		freebayes.download("git", url)
-		freebayes.install("make", "freebayes")
-		freebayes.cp_bin("freebayes/bin", args.targetbin)
 
 	#parallel install
 	parallel = INSTALLER("parallel", args.quiet)
@@ -192,8 +195,8 @@ def main(args):
 		parallel.cp_bin("parallel-20100424/src/parallel", args.targetbin)
 
 	#sambamba install
-	sambamba = INSTALLER("sambamba_v0.4.7", args.quiet)
-	sambamba.check_install("sambamba_v0.4.7")
+	sambamba = INSTALLER("sambamba", args.quiet)
+	sambamba.check_install("sambamba")
 	if (sambamba.isInstalled):
 		sambamba.get_update()
 	if (sambamba.notInstalled or sambamba.update):
@@ -201,16 +204,6 @@ def main(args):
 		sambamba.download("curl", url)
 		sambamba.unpack("tar")
 		sambamba.cp_bin("sambamba_v0.4.7", args.targetbin + "/sambamba")
-
-	# tabix install
-	tabix = INSTALLER("tabix", args.quiet)
-	if (tabix.isInstalled):
-		tabix.get_update()
-	if (tabix.notInstalled or tabix.update):
-		url = "http://downloads.sourceforge.net/project/samtools/tabix/tabix-0.2.6.tar.bz2"
-		tabix.download("curl", url)
-		tabix.unpack("tar")
-		tabix.install("make", "tabix-0.2.6")
 
     	# #gemini install
 	# gemini = INSTALLER("gemini", args.quiet)
@@ -225,10 +218,17 @@ def main(args):
 	
 	print "Checking installations...\n"
 	bwa.check_install("bwa")
-	freebayes.check_install("freebayes")
 	parallel.check_install("parallel")
 	sambamba.check_install("sambamba")
 	# gemini.check_install("gemini")
+
+	print "Cleaning up...\n"
+	if not keep:
+		os.chdir(prevdir)
+		shutil.rmtree(args.tempdir)
+
+	print "Compiling embedded software...\n"
+	make()
 
 def check_dependencies():
 		"""Ensure required tools for installation are present.
@@ -251,10 +251,10 @@ def check_dependencies():
 
 if __name__ == "__main__":
 		parser = argparse.ArgumentParser(description="Automated installer for speedseq.")
-		parser.add_argument("targetdir", help="Directory to install 3rd party software tools",
-						nargs='?', type=os.path.abspath, default=os.getcwd())
-		parser.add_argument("targetbin", help="Directory to install the binaries into",
-						nargs='?', type=os.path.abspath, default="/usr/local/bin/")
+		parser.add_argument("--tempdir", help="Temp directory to install 3rd party software tools [./temp]",
+						nargs='?', type=os.path.abspath, default=None)
+		parser.add_argument("--targetbin", help="Directory to install the binaries [./bin]",
+						nargs='?', type=os.path.abspath, default="./bin")
 		parser.add_argument("--quiet", '-q', help="Determines the verbosity of installation",
 						default=False, action='store_true')
 		if len(sys.argv) == 0:

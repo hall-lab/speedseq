@@ -1,6 +1,3 @@
-[submodule "src/sv-tools"]
-	path = src/sv-tools
-	url = https://github.com/hall-lab/sv-tools.git
 [submodule "src/svtyper"]
 	path = src/svtyper
 	url = https://github.com/cc2qe/svtyper.git
@@ -19,3 +16,6 @@
 [submodule "src/freebayes"]
 	path = src/freebayes
 	url = https://github.com/ekg/freebayes.git
+[submodule "src/svtools"]
+	path = src/svtools
+	url = https://github.com/hall-lab/sv-tools.git
