@@ -141,7 +141,7 @@ class INSTALLER(object):
 				needInput = True
 
 def make():
-	subprocess.call('make all', shell=True)
+	subprocess.call('make -k all', shell=True)
 
 def which(prgm):
 	for path in os.environ["PATH"].split(":"):
