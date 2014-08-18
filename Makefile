@@ -12,7 +12,7 @@ TABIX_DIR=$(SRC)/tabix
 VAWK_DIR=$(SRC)/vawk
 SVTOOLS_DIR=$(SRC)/svtools
 
-all:	samblaster freebayes lumpy svtyper tabix vawk svtools cnvnator-multi
+all:	samblaster freebayes lumpy svtyper tabix vawk svtools
 
 samblaster:
 	$(MAKE) -C $(SAMBLASTER_DIR)

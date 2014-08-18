@@ -78,7 +78,7 @@ sudo cp -r bin/* /usr/local/bin/
 
 Configure the paths to the SpeedSeq dependencies by modifying the [speedseq.config](bin/speedseq.config) file. The [speedseq.config](bin/speedseq.config) file should reside in the same directory as the SpeedSeq executable. By default, SpeedSeq attempts to source the dependencies from the $PATH.
 
-Note that the optional component CNVnator cannot be automatically installed (see the CNVnator manual install instructions).
+Note that the optional component CNVnator cannot be automatically installed (see the [CNVnator installation instructions](#cnvnator)). SpeedSeq uses a multi-threaded implementation of CNVnator v0.3, which can be for in [src/cnvnator](src/cnvnator)
 
 ###Manual installation
 
@@ -212,12 +212,12 @@ SpeedSeq is a modular pipeline with four components: [`aln`](#speedseq-aln), [`v
 
 Internally, `speedseq aln` runs the following steps to produce [three output BAM files](#output):
 
-1. Alignment with [BWA-MEM](http://bio-bwa.sourceforge.net/)
+1. Alignment with BWA-MEM
    * Prior to alignment, run `bwa index genome.fasta` on the reference genome
-2. Duplicate marking with [samblaster](https://github.com/GregoryFaust/samblaster)
-3. Discordant-read and split-read extraction with [samblaster](https://github.com/GregoryFaust/samblaster)
-4. Position sorting with [sambamba](https://github.com/lomereiter/sambamba)
-5. BAM indexing with [sambamba](https://github.com/lomereiter/sambamba)
+2. Duplicate marking with SAMBLASTER
+3. Discordant-read and split-read extraction with SAMBLASTER
+4. Position sorting with Sambamba
+5. BAM indexing with Sambamba
 
 ```
 usage:   speedseq aln [options] <reference.fa> <in1.fq> [in2.fq]
@@ -260,6 +260,7 @@ These options determine the behavior of `samblaster`
 
 ```
 -K FILE         path to speedseq.config file (default: same directory as speedseq)
+-v              verbose
 -h              show help message
 ```
 
@@ -283,6 +284,14 @@ These options determine the behavior of `samblaster`
 usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 ```
 
+#####Positional arguments
+
+```
+reference.fa    genome reference fasta file
+input.bam       BAM file(s) to call variants on. Must have readgroup information,
+                  and the SM readgroup tags will be the VCF column header
+```
+
 #####Options
 
 ```
@@ -290,16 +299,18 @@ usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 -w FILE         BED file of windowed genomic intervals. For human genomes,
                   we recommend using the annotations/ceph18.b37.include.2014-01-15.bed
                   (see Annotations)
+-q FLOAT        minimum variant QUAL score to output [1]
 -t INT          number of threads to use [default: 1]
 -T DIR          temp directory [default: ./temp]
 -A BOOL         annotate the vcf with snpEff (true or false) [default: true]
 -K FILE         path to speedseq.config file [default: same directory as speedseq]
+-v              verbose
 -h              show help message
 ```
 
 ####Output
 
-`speedseq var` produces a single bgzipped VCF file that is indexed with `tabix` and optionally annotated with [SnpEff](http://snpeff.sourceforge.net/):
+`speedseq var` produces a single indexed VCF file that optionally annotated with VEP.
 
 * `outprefix.vcf.gz`
 
@@ -310,6 +321,18 @@ usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 
 ```
 usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
+```
+
+#####Positional arguments
+
+```
+reference.fa      genome reference fasta file
+normal.bam        germline BAM file(s) (comma separated BAMs from multiple libraries).
+                    Must have readgroup information, and the SM readgroup tag will
+                    be the VCF column header
+tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries).
+                    Must have readgroup information, and the SM readgroup tag will
+                    be the VCF column header
 ```
 
 #####Options
@@ -335,13 +358,13 @@ usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
 
 ####Output
 
-`speedseq somatic` produces a single bgzipped VCF file that is indexed with `tabix` and optionally annotated with [SnpEff](http://snpeff.sourceforge.net/):
+`speedseq somatic` produces a single indexed VCF file and optionally annotated with VEP.
 
 * `outprefix.vcf.gz`
 
 ###speedseq sv
 
-`speedseq sv` runs [lumpy-sv](https://github.com/arq5x/lumpy-sv) on one or more BAM files
+`speedseq sv` runs LUMPY on one or more BAM files, with optional breakend genotyping by svtyper, and optional read-depth analysis by CNVnator.
 
 #####Options
 ```
@@ -351,12 +374,17 @@ usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
                    example: -S in1.splitters.bam,in2.splitters.bam,in3.splitters.bam
 -D FILE          discordant reads BAM file(s) (comma separated, order same as in -B) (required)
                    example: -D in1.discordants.bam,in2.discordants.bam,in3.discordants.bam
+-R FILE          indexed reference genome fasta file (required)
 -o STR           output prefix [in1.bam]
+-t INT           threads [1]
 -x FILE          BED file to exclude
+-g               genotype SV breakends with svtyper
+-d               calculate read-depth with CNVnator
 -m INT           minimum weight for a call [default: 4]
--r FLOAT         trim threshold [default: 1e-10]
--L INT           read length [default: auto-calculate]
+-r FLOAT         trim threshold [0]
+-L INT           read length [auto]
 -T DIR           temp directory [default: ./temp]
+-k               keep temporary files
 ```
 
 The flags `-s` and `-p` are automatically generated using the defaults below, but may be overridden by the user by explicitly defining them using the following format.
@@ -388,6 +416,7 @@ The flags `-s` and `-p` are automatically generated using the defaults below, bu
 
 ```
 -K FILE          path to speedseq.config file (default: same directory as speedseq)
+-v               verbose
 -h               show help message
 ```
 
@@ -455,11 +484,13 @@ In the [`speedseq sv`](#speedseq-lumpy) module, we recommend excluding the genom
       human_g1k_v37.fasta NA12878.bam
   ```
 
-3. Use `speedseq sv` to call structural variants.
+3. Use `speedseq sv` to call structural variants. The optional `-g` and `-d` flags perform breakend genotyping and read-depth calculation respectively
 
   ```
   speedseq sv -o NA12878 \
       -x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
+      -g \
+      -d \
       -B NA12878.bam \
       -D NA12878.discordants.bam \
       -S NA12878.splitters.bam
@@ -488,8 +519,14 @@ In the [`speedseq sv`](#speedseq-lumpy) module, we recommend excluding the genom
       human_g1k_v37.fasta NA12878_S1.bam NA12878_S2.bam NA12878_S3.bam
   ```
 
-3. `speedseq sv` does not currently handle BAM files made from multiple libraries but we plan to add this functionality in the future.
-
+3. Use `speedseq sv` to call structural variants. (For proper library merging, each library from the same sample must have the same SM readgroup tag.)
+  ```
+  speedseq -sv -o NA12878 \
+      -x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
+      -B NA12878_S1.bam,NA12878_S2.bam,NA12878_S3.bam
+      -S NA12878_S1.splitters.bam,NA12878_S2.splitters.bam,NA12878_S3.splitters.bam
+      -D NA12878_S1.discordants.bam,NA12878_S2.discordants.bam,NA12878_S3.discordants.bam
+  ```
 
 ###Call variants on multiple samples
 
