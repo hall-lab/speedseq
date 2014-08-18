@@ -453,7 +453,8 @@ The flags `-s` and `-p` are automatically generated using the defaults below, bu
 
 `speedseq sv` produces a VCF file and a BEDPE file containing the same information.
 
-* `outprefix.bedpe`
+* `outprefix.sv.vcf.gz`
+* `outprefix.sv.bedpe`
 
 The tab-delimited BEDPE file has the following structure:
 ```
