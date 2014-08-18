@@ -95,7 +95,7 @@ We recommend using the GRCh37 human genome for SpeedSeq, available here:
 
 ###Manual installation
 
-The following instructions for installation assumes that the required tools are not installed.  
+The following instructions for installation assumes that the required tools are not installed. If you already have the SpeedSeq components on your system, then you can simply link them to the proper paths in the [speedseq.config](bin/speedseq.config] file.
 It is recommended that the specified versions of each tool are used for this release of SpeedSeq.  
 The use of unspecified versions of any pipeline component is not guaranteed to work. 
 
@@ -183,7 +183,7 @@ CNVnator can be installed and used by SpeedSeq with the following commands:
    cat human_g1k_v37.fasta | awk 'BEGIN { CHROM="" } { if ($1~"^>") CHROM=substr($1,2); print $0 > CHROM".fa" }'
    ```
 
-   Then set the path to the `chroms` directory as `CNVNATOR_CHROMS_DIR` in [bin/speedseq.config](bin/speedseq.config)
+   Then set the path to the `chroms` directory as `CNVNATOR_CHROMS_DIR` in [speedseq.config](bin/speedseq.config)
 
 #### GEMINI
 https://github.com/arq5x/gemini
