@@ -52,19 +52,27 @@ The following are required for both installations:
 * python-yaml
 * ncurses-devel
 * zlib-devel
+* numpy
+# pip
+
+"perl(Archive::Extract)" "perl(CGI)" "perl(DBI)" "perl(Time::HiRes)" "perl(Archive::Tar)"
 
 A Linux package manager can be used to obtain these by with the command:
 
 ```
+# general purpose tools
 sudo yum update
-sudo yum -y install cmake gcc-c++ gcc git make python27 python-devel python-yaml ncurses-devel zlib-devel 
+sudo yum -y install cmake gcc-c++ gcc git make python27 python-devel python-yaml ncurses-devel zlib-devel numpy python-pip
+
+# PERL modules for VEP
+sudo yum -y install "perl(Archive::Extract)" "perl(CGI)" "perl(DBI)" "perl(Time::HiRes)" "perl(Archive::Tar)"
 ```
  
 or 
 
 ```
 sudo apt-get update
-sudo apt-get install build-essential cmake gpp gcc git make python2.7 python-dev python-yaml ncurses-dev zlib1g-dev 
+sudo apt-get -y install build-essential cmake gpp gcc git make python2.7 python-dev python-yaml ncurses-dev zlib1g-dev python-numpy python-pip
 ```
 
 ###Automatic installation

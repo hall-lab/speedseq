@@ -8,7 +8,7 @@ Handles installation of:
 - Required third party software
 
 Requires: 
-Linux packages: cmake gcc-c++ gcc git make python27 python-devel python-yaml ncurses-devel zlib-devel 
+Linux packages: cmake gcc-c++ gcc git make python27 python-devel python-yaml ncurses-devel zlib-devel numpy pip
 
 Run speedseq_install.py -h for usage.
 """
@@ -46,14 +46,16 @@ class PACMAN(object):
 			#centos/redhat - yum
 			subprocess.call(shlex.split("sudo yum update"))
 			packages = ["cmake", "gcc-c++", "gcc", "git", "make", "python27", "python-devel", \
-			"python-yaml", "ncurses-devel", "zlib-devel"]
+			            "python-yaml", "ncurses-devel", "zlib-devel", "numpy", "python-pip"]
 			for i in range(len(packages)):
 				subprocess.call(shlex.split("sudo yum install " + packages[i]))
 		elif (self.isApt_get):
 			#ubuntu - apt-get
 			subprocess.call(shlex.split("sudo apt-get update"))
 			subprocess.call(shlex.split("sudo apt-get install build-essential cmake gpp gcc git " + \
-			"make python2.7 python-dev python-yaml ncurses-dev zlib1g-dev"))
+                                                    "make python2.7 python-dev python-yaml ncurses-dev zlib1g-dev " + \
+                                                    "python-numpy python-pip unzip " + \
+                                                    "libapache-dbi-perl libarchive-zip-perl"))
 
 class INSTALLER(object):
 	"""
