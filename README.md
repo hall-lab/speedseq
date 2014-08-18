@@ -96,7 +96,7 @@ We recommend using the GRCh37 human genome for SpeedSeq, available here:
 ###Manual installation
 
 The following instructions for installation assumes that the required tools are not installed.  
-It is recommended that the specified versions of each tool is used for this release of SpeedSeq.  
+It is recommended that the specified versions of each tool are used for this release of SpeedSeq.  
 The use of unspecified versions of any pipeline component is not guaranteed to work. 
 
 SpeedSeq can be installed with the following commands: 
@@ -267,7 +267,7 @@ in2.fq	        paired-end fastq file. (may be gzipped) (required)
 
 These options determine the behavior of BWA-MEM
 ```
--o STR          output prefix that will be  [default: in1.fq]
+-o STR          output prefix [default: in1.fq]
 -R              read group header line such as "@RG\tID:libraryname\tSM:samplename" (required)
 -p              first fastq file consists of interleaved paired-end sequences
 -t INT          number of threads to use [default: 1]
@@ -276,7 +276,7 @@ These options determine the behavior of BWA-MEM
 
 #####Samblaster options
 
-These options determine the behavior of `samblaster`
+These options determine the behavior of SAMBLASTER
 ```
 -i              include duplicates in splitters and discordants
                   (default: exclude duplicates)
