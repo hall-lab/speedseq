@@ -381,6 +381,7 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 -T DIR           temp directory [./temp]
 -A BOOL          annotate the vcf with snpEff (true or false) (default: true)
 -K FILE          path to speedseq.config file (default: same directory as speedseq)
+-v               verbose
 -h               show help message
 ```
 
