@@ -53,9 +53,7 @@ The following are required for both installations:
 * ncurses-devel
 * zlib-devel
 * numpy
-# pip
-
-"perl(Archive::Extract)" "perl(CGI)" "perl(DBI)" "perl(Time::HiRes)" "perl(Archive::Tar)"
+* pip
 
 A Linux package manager can be used to obtain these by with the command:
 
@@ -89,6 +87,12 @@ Configure the paths to the SpeedSeq dependencies by modifying the [speedseq.conf
 
 Note that the optional component CNVnator cannot be automatically installed (see the [CNVnator installation instructions](#cnvnator)). SpeedSeq uses a multi-threaded implementation of CNVnator v0.3, which can be for in [src/cnvnator](src/cnvnator)
 
+####Genome
+We recommend using the GRCh37 human genome for SpeedSeq, available here:
+
+* ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/reference/human_g1k_v37.fasta.gz
+* ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/reference/human_g1k_v37.fasta.fai
+
 ###Manual installation
 
 The following instructions for installation assumes that the required tools are not installed.  
@@ -106,6 +110,13 @@ sudo cp -r bin/* /usr/local/bin/
 #####Configuration
 
 Configure the paths to the SpeedSeq dependencies by modifying the [speedseq.config](bin/speedseq.config) file. The [speedseq.config](bin/speedseq.config) file should reside in the same directory as the SpeedSeq executable. By default, SpeedSeq attempts to source the dependencies from the $PATH.
+
+#####Genome
+
+We recommend using the GRCh37 human genome for SpeedSeq, available here:
+
+* ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/reference/human_g1k_v37.fasta.gz
+* ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/reference/human_g1k_v37.fasta.fai
 
 ####Obtain each of the external pipeline tools and install:
 	
@@ -163,6 +174,17 @@ CNVnator can be installed and used by SpeedSeq with the following commands:
    sudo cp src/cnvnator/bin/* /usr/local/bin
    ```
 
+4. Create chromosomes directory from genome fasta file
+
+   CNVnator requires a directory containing each chromosome as a separate fasta file. Run the following commands to generate this directory.
+   ```
+   mkdir chroms
+   cd chroms
+   cat human_g1k_v37.fasta | awk 'BEGIN { CHROM="" } { if ($1~"^>") CHROM=substr($1,2); print $0 > CHROM".fa" }'
+   ```
+
+   Then set the path to the `chroms` directory as `CNVNATOR_CHROMS_DIR` in [bin/speedseq.config](bin/speedseq.config)
+
 #### GEMINI
 https://github.com/arq5x/gemini
 
@@ -179,7 +201,7 @@ gemini update
 #### BEDTools
 https://github.com/arq5x/bedtools2
 
-BEDTools can be install and used by SpeedSeq with the following commands:
+BEDTools can be installed and used by SpeedSeq with the following commands:
 ```
 curl -OL https://github.com/arq5x/bedtools2/releases/download/v2.20.1/bedtools-2.20.1.tar.gz
 tar -xvf bedtools-2.20.1.tar.gz
@@ -206,15 +228,14 @@ sudo cp src/parallel /usr/local/bin/
 SpeedSeq is a modular pipeline with four components: [`aln`](#speedseq-aln), [`var`](#speedseq-var), [`somatic`](#speedseq-somatic), and [`lumpy`](#speedseq-lumpy).
 
 * [`speedseq aln`](#speedseq-aln)
-  * take paired-end fastq sequences as input, and produce a duplicate-marked, sorted, indexed BAM file that can be processed with other speedseq modules. Currently, speedseq aln does not support single-end reads.
+  * Take paired-end fastq sequences as input, and produce a duplicate-marked, sorted, indexed BAM file that can be processed with other speedseq modules. Currently, speedseq aln does not support single-end reads.
 * [`speedseq var`](#speedseq-var)
-  * run FreeBayes one or more BAM files
+  * Run FreeBayes one or more BAM files
 * [`speedseq somatic`](#speedseq-somatic)
-  * run FreeBayes on a tumor/normal pair of BAM files
-* [`speedseq sv`](#speedseq-lumpy)
-  * run lumpy-sv on one or more BAM files
+  * Run FreeBayes on a tumor/normal pair of BAM files
+* [`speedseq sv`](#speedseq-sv)
+  * Run LUMPY on one or more BAM files, with breakend genotyping and read-depth calculation.
 
--
 ###speedseq aln
 
 `speedseq aln` takes paired-end fastq sequences as input, and produces a duplicate-marked, sorted, indexed BAM file that can be processed with other SpeedSeq modules. Currently, `speedseq aln` does not support single-end reads.
@@ -278,13 +299,12 @@ These options determine the behavior of `samblaster`
 `speedseq aln` produces three sorted, indexed BAM files (plus their corresponding .bai index files):
 
 * `outprefix.bam`
-  * The full, duplicate-marked, sorted BAM file for the library. This file may serve as input for [`speedseq var`](#speedseq-var), [`speedseq somatic`](#speedseq-somatic), and [`speedseq sv`](#speedseq-lumpy).
+  * The full, duplicate-marked, sorted BAM file for the library. This file may serve as input for [`speedseq var`](#speedseq-var), [`speedseq somatic`](#speedseq-somatic), and [`speedseq sv`](#speedseq-sv).
 * `outprefix.splitters.bam`
-  * This BAM file contains split reads called by the BWA-MEM alignment of the library. It may be used as the `-S` flag input to [`speedseq sv`](#speedseq-lumpy). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a [`speedseq aln`](#speedseq-aln) command line parameter.
+  * This BAM file contains split reads called by the BWA-MEM alignment of the library. It may be used as the `-S` flag input to [`speedseq sv`](#speedseq-sv). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a [`speedseq aln`](#speedseq-aln) command line parameter.
 * `outprefix.discordants.bam`
-  * This BAM file contains discordant read-pairs called by the BWA-MEM alignment of the library. These reads may be discordant by strand orientation, intrachromosomal distance, or interchromosomal mapping. This BAM file may be used as the `-D` flag input to [`speedseq sv`](#speedseq-lumpy). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a [`speedseq aln`](#speedseq-aln) command line parameter.
+  * This BAM file contains discordant read-pairs called by the BWA-MEM alignment of the library. These reads may be discordant by strand orientation, intrachromosomal distance, or interchromosomal mapping. This BAM file may be used as the `-D` flag input to [`speedseq sv`](#speedseq-sv). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a [`speedseq aln`](#speedseq-aln) command line parameter.
 
--
 ###speedseq var
 
 `speedseq var` runs FreeBayes one or more BAM files.
@@ -323,7 +343,6 @@ input.bam       BAM file(s) to call variants on. Must have readgroup information
 
 * `outprefix.vcf.gz`
 
--
 ###speedseq somatic
 
 `speedseq somatic` runs FreeBayes on a tumor/normal pair of BAM files
@@ -465,7 +484,7 @@ Additionally, the regions in [annotations/ceph18.b37.include.2014-01-15.bed](ann
 
 The regions in [annotations/ceph18.b37.exclude.2014-01-15.bed](annotations/ceph18.b37.exclude.2014-01-15.bed) represent the complement of the regions in [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed).
 
-In the [`speedseq sv`](#speedseq-lumpy) module, we recommend excluding the genomic regions in the [annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed](annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed) BED file. These regions represent the complement of those in [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) as well as the mitochondrial chromosome.
+In the [`speedseq sv`](#speedseq-sv) module, we recommend excluding the genomic regions in the [annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed](annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed) BED file. These regions represent the complement of those in [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) as well as the mitochondrial chromosome.
 
 ##Example Workflows
 
