@@ -1247,7 +1247,7 @@ global options:
             fi
 	    
             # calculate stats
-            $SAMBAMBA view -F "not secondary_alignment" $FULL_BAM \
+            $SAMBAMBA view -F "paired and proper_pair and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)" $FULL_BAM \
 		| head -n 10000000 | tail -n 1000000 \
 		| $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$FULL_BASE.x4.histo \
 		> ${TEMP_DIR}/$FULL_BASE.insert.stats
