@@ -31,6 +31,7 @@ genomic variation (single nucleotide variants (SNVs), indels, and structural var
 * [FreeBayes](https://github.com/ekg/freebayes)
 * [VEP](http://snpeff.sourceforge.net/)
 * [LUMPY](https://github.com/arq5x/lumpy-sv)
+* [SVtyper](https://github.com/cc2qe/svtyper)
 * [CNVnator](http://sv.gersteinlab.org/cnvnator/)
 * [GEMINI](https://github.com/arq5x/gemini)
 * [GNU Parallel](http://www.gnu.org/software/parallel/)
@@ -364,7 +365,7 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 
 ###speedseq sv
 
-`speedseq sv` runs LUMPY on one or more BAM files, with optional breakend genotyping by svtyper, and optional read-depth analysis by CNVnator.
+`speedseq sv` runs LUMPY on one or more BAM files, with optional breakend genotyping by SVtyper, and optional read-depth analysis by CNVnator.
 
 #####Options
 ```
