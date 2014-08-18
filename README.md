@@ -170,8 +170,8 @@ CNVnator can be installed and used by SpeedSeq with the following commands:
 3. Navigate to SpeedSeq git directory and compile the multi-threaded implementation of CNVnator v0.3
    ```
    cd speedseq
-   make -C src/cnvnator
-   sudo cp src/cnvnator/bin/* /usr/local/bin
+   make cnvnator-multi
+   sudo cp bin/* /usr/local/bin
    ```
 
 4. Create chromosomes directory from genome fasta file
@@ -225,7 +225,7 @@ sudo cp src/parallel /usr/local/bin/
 
 ##Usage
 
-SpeedSeq is a modular pipeline with four components: [`aln`](#speedseq-aln), [`var`](#speedseq-var), [`somatic`](#speedseq-somatic), and [`lumpy`](#speedseq-lumpy).
+SpeedSeq is a modular pipeline with four components: [`aln`](#speedseq-aln), [`var`](#speedseq-var), [`somatic`](#speedseq-somatic), and [`sv`](#speedseq-sv).
 
 * [`speedseq aln`](#speedseq-aln)
   * Take paired-end fastq sequences as input, and produce a duplicate-marked, sorted, indexed BAM file that can be processed with other speedseq modules. Currently, speedseq aln does not support single-end reads.

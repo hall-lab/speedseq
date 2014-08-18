@@ -1116,6 +1116,11 @@ global options:
 	sv_usage
         echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
+    elif [[ ! -f "$BGZIP" ]]
+    then
+        somatic_usage
+        echo -e "Error: bgzip executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
     elif [[ -z  "$BEDPETOVCF" ]]
     then
 	sv_usage
@@ -1134,7 +1139,7 @@ global options:
     # if CNV read-depth requested, look for cnvnator executables
     if [[ "$READDEPTH" -eq 1 ]]
     then
-	if [[ -z "$CNVNATOR" ]]
+	if [[ -z "$CNVNATOR_MULTI" ]]
 	then
 	    sv_usage
             echo -e "Error: cnvnator executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -1143,6 +1148,11 @@ global options:
 	then
 	    sv_usage
             echo -e "Error: cnvnator_wrapper.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+            exit 1
+	elif [[ -z "$ANNOTATE_RD" ]]
+	then
+	    sv_usage
+            echo -e "Error: annotate_rd.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
             exit 1
 	fi
     fi
@@ -1269,11 +1279,11 @@ $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FM
         "
     fi
     # call lumpy
-    $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES \
-	$EXCLUDE_BED_FMT \
-	$LUMPY_DISC_STRING \
-	$LUMPY_SPL_STRING \
-	> $TEMP_DIR/$OUTBASE.sv.bedpe
+    # $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES \
+    # 	$EXCLUDE_BED_FMT \
+    # 	$LUMPY_DISC_STRING \
+    # 	$LUMPY_SPL_STRING \
+    # 	> $TEMP_DIR/$OUTBASE.sv.bedpe
 
     if [[ "$VERBOSE" -eq 1 ]]
     then
@@ -1300,7 +1310,7 @@ cat $TEMP_DIR/$OUTBASE.sv.bedpe \\
         }
         if (PASS) print
     }' \\
-    > $TEMP_DIR/$OUTBASE.vcf
+    > $TEMP_DIR/$OUTBASE.sv.vcf
         "
     fi
 
@@ -1326,17 +1336,17 @@ cat $TEMP_DIR/$OUTBASE.sv.bedpe \\
             }
             if (PASS) print
         }' \
-	> $TEMP_DIR/$OUTBASE.vcf
+	> $TEMP_DIR/$OUTBASE.sv.vcf
 
     if [[ "$VERBOSE" -eq 1 ]]
     then
 	echo -e "
 # make header
-cat $TEMP_DIR/$OUTBASE.vcf | awk '$0!~\"^#\" {exit}; 1' > $TEMP_DIR/header.txt
+cat $TEMP_DIR/$OUTBASE.sv.vcf | awk '$0!~\"^#\" {exit}; 1' > $TEMP_DIR/header.txt
         "
     fi
     # make header
-    cat $TEMP_DIR/$OUTBASE.vcf | awk '$0!~"^#" {exit}; 1' > $TEMP_DIR/header.txt
+    cat $TEMP_DIR/$OUTBASE.sv.vcf | awk '$0!~"^#" {exit}; 1' > $TEMP_DIR/header.txt
 
     # genotype in parallel
     if [[ GENOTYPE -eq 1 ]]
@@ -1346,7 +1356,7 @@ cat $TEMP_DIR/$OUTBASE.vcf | awk '$0!~\"^#\" {exit}; 1' > $TEMP_DIR/header.txt
 	    echo -e "
 # split the VCF file into slices of 100 lines each
 mkdir -p $TEMP_DIR/gt
-cat $TEMP_DIR/$OUTBASE.vcf | grep -v \"^#\" | split -a 5 -d -l 100 - $TEMP_DIR/gt/spl
+cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v \"^#\" | split -a 5 -d -l 100 - $TEMP_DIR/gt/spl
 for s in `ls $TEMP_DIR/gt/spl* | grep -v \"vcf\$\"`
 do
     cat $TEMP_DIR/header.txt \$s > \$s.vcf
@@ -1355,7 +1365,7 @@ done
 	fi
 	# split the VCF file into slices of 100 lines each
 	mkdir -p $TEMP_DIR/gt
-	cat $TEMP_DIR/$OUTBASE.vcf | grep -v "^#" | split -a 5 -d -l 100 - $TEMP_DIR/gt/spl
+	cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v "^#" | split -a 5 -d -l 100 - $TEMP_DIR/gt/spl
 	for s in `ls $TEMP_DIR/gt/spl* | grep -v "vcf$"`
 	do
 	    cat $TEMP_DIR/header.txt $s > $s.vcf
@@ -1383,20 +1393,42 @@ done
     		echo "$SVTYPER -v $vcf -B $FULL_BAM -S $SPL_BAM -m $MEAN -sd $STDEV -rl $READ_LENGTH > $vcf.gt ; mv $vcf.gt $vcf"
 	    done | parallel -j $THREADS
 	done
-	cat $TEMP_DIR/gt/*.vcf | grep -v "^#" | cat $TEMP_DIR/header.txt - | $BGZIP -c > $TEMP_DIR/$OUTBASE.sv.vcf.gz
+	cat $TEMP_DIR/gt/*.vcf | grep -v "^#" | cat $TEMP_DIR/header.txt - > $TEMP_DIR/$OUTBASE.sv.vcf
     fi
 
     # run cnvnator
     # WARNING: CNVNATOR currently only works on a single sample with one BAM file
     if [[ READDEPTH -eq 1 ]]
     then
-	echo "$CNVNATOR_WRAPPER --cnvnator $CNVNATOR -T $TEMP_DIR/cnvnator-temp -t $THREADS -w 100 -b ${FULL_BAM_LIST[$i]} -o $TEMP_DIR/$OUTBASE.rd -c $CNVNATOR_CHROMS_DIR -g GRCh37"
-	$CNVNATOR_WRAPPER --cnvnator $CNVNATOR -T $TEMP_DIR/cnvnator-temp -t $THREADS -w 100 -b ${FULL_BAM_LIST[$i]} -o $OUTPUT.readdepth -c $CNVNATOR_CHROMS_DIR -g GRCh37
+	WINDOW_SIZE=100
+	SAMPLE=`cat $TEMP_DIR/$OUTBASE.sample.config | awk '{ print $1 }' | head -n 1`
+
+	if [[ "$VERBOSE" -eq 1 ]]
+	then
+	    echo "# run cnvnator-multi"
+	    echo "$CNVNATOR_WRAPPER --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w 100 -b ${FULL_BAM_LIST[$i]} -o $TEMP_DIR/$OUTBASE.rd -c $CNVNATOR_CHROMS_DIR -g GRCh37
+            "
+	fi
+	$CNVNATOR_WRAPPER --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w 100 -b ${FULL_BAM_LIST[$i]} -o $TEMP_DIR/$OUTBASE.readdepth -c $CNVNATOR_CHROMS_DIR -g GRCh37
+
+	# annotate read-depth of LUMPY calls
+	if [[ "$VERBOSE" -eq 1 ]]
+	then
+	    echo "# annotate read-depth of LUMPY calls"
+	    echo "$ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BAM_LIST[$i]}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.sv.rd.vcf
+            "
+	fi
+	$ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BAM_LIST[$i]}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.sv.rd.vcf
+	mv $TEMP_DIR/$OUTBASE.sv.rd.vcf $TEMP_DIR/$OUTBASE.sv.vcf
     fi
+
+    # To do annotate
+
+
 
     # write output
     mv $TEMP_DIR/$OUTBASE.sv.bedpe $OUTPUT.sv.bedpe
-    mv $TEMP_DIR/$OUTBASE.sv.vcf.gz $OUTPUT.sv.vcf.gz
+    mv $TEMP_DIR/$OUTBASE.sv.vcf $OUTPUT.sv.vcf
 
     # clean up
     if [[ $KEEP -eq 0 ]]

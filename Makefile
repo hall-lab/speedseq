@@ -35,6 +35,7 @@ cnvnator-multi:
 	cp $(CNVNATOR_DIR)/bin/cnvnator-multi $(TARGET_BIN)
 	cp $(CNVNATOR_DIR)/bin/cnvnator_wrapper.py $(TARGET_BIN)
 	cp $(CNVNATOR_DIR)/bin/cnvnator2VCF.pl $(TARGET_BIN)
+	cp $(CNVNATOR_DIR)/bin/annotate_rd.py $(TARGET_BIN)
 
 tabix:
 	$(MAKE) -C $(TABIX_DIR)

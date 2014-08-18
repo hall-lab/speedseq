@@ -127,7 +127,7 @@ description: SpeedSeq parallelized implementation of CNVnator v0.3 (Gerstein lab
     parser.add_argument('-o', '--output', required=True, help='output variant file name')
     parser.add_argument('-c', '--chroms', required=True, help='path to chromosome files')
     parser.add_argument('-g', '--genome', required=False, default='GRCh37', help='genome build [GRCh37]')
-    parser.add_argument('--cnvnator', required=False, default='cnvnator', help='path to cnvnator binary')
+    parser.add_argument('--cnvnator', required=False, default='cnvnator-multi', help='path to cnvnator-multi binary')
     parser.add_argument('-T', '--tempdir', type=str, required=False, default='temp', help='temp directiory [./temp]')
 
     # parse the arguments
@@ -248,6 +248,20 @@ def run_hist_stats(bin_size, bam_fn, chroms_dir):
 	if ret != 0:
 		print "Error computing histograms (input bin size)."
 		return ret
+        # no need to duplicate hist and stat if the input bin size was 1000
+        if bin_size == "1000":
+            return 0
+        
+        #print "===== Running histograms on input data for bin size 1000"
+        ret = subprocess.call([CNVNATOR, '-his', '1000', '-d', chroms_dir, '-root', root_fn, '-outroot', hist_fn]) 
+        if ret != 0:
+            print "Error computing histograms (bin size 1000)."
+            return ret
+        #print "===== Running stats on input data for bin size 1000"
+        ret = subprocess.call([CNVNATOR, '-stat', '1000', '-root', hist_fn]) 
+        if ret != 0:
+            print "Error computing stats (bin size 1000)."
+            return ret
         return 0
 # end of run tree, hist, stats
 

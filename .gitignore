@@ -6,6 +6,7 @@ bin/bgzip
 bin/cnvnator-multi
 bin/cnvnator2VCF.pl
 bin/cnvnator_wrapper.py
+bin/annotate_rd.py
 bin/freebayes
 bin/lumpy
 bin/pairend_distro.py
