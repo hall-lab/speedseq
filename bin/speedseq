@@ -767,7 +767,7 @@ options:
         somatic_usage
         echo -e "Error: VEP not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ ! -f "$VEP_CACHE_DIR" ]] && [[ "$ANNOTATE" == "true" ]]
+    elif [[ ! -d "$VEP_CACHE_DIR" ]] && [[ "$ANNOTATE" == "true" ]]
     then
         somatic_usage
         echo -e "Error: VEP cache directory not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"

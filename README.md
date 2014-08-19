@@ -167,6 +167,11 @@ CNVnator can be installed and used by SpeedSeq with the following commands:
    source /usr/local/root/bin/thisroot.sh
    ```
 
+   Then run the following for reload `.bashrc`
+   ```
+   . ~/.bashrc
+   ```
+
 3. Navigate to SpeedSeq git directory and compile the multi-threaded implementation of CNVnator v0.3
    ```
    cd speedseq
