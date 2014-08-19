@@ -282,7 +282,11 @@ def sv_readdepth(vcf_file, sample, root, window, vcf_out, debug, cnvnator_path):
 
         if var.get_info('SVTYPE') != 'BND':
             end = var.get_info('END')
-            coord_list.write('%s:%s-%s\n' % (var.chrom, var.pos, end))
+            # if the variant is negative size, swap it.
+            if int(end) < int(var.pos):
+                coord_list.write('%s:%s-%s\n' % (var.chrom, end, var.pos))
+            else:
+                coord_list.write('%s:%s-%s\n' % (var.chrom, var.pos, end))
 
     coord_list.write('exit\n')
     coord_list.close()
@@ -315,6 +319,7 @@ def sv_readdepth(vcf_file, sample, root, window, vcf_out, debug, cnvnator_path):
         v = line.rstrip().split('\t')
         var = Variant(v, vcf)
         if var.get_info('SVTYPE') != 'BND':
+            print var.get_var_string()
             var.genotype(sample).set_format('CN', cn_list[i])
             i += 1
 
