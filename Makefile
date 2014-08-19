@@ -12,7 +12,7 @@ TABIX_DIR=$(SRC)/tabix
 VAWK_DIR=$(SRC)/vawk
 SVTOOLS_DIR=$(SRC)/svtools
 
-all:	samblaster freebayes lumpy svtyper tabix vawk svtools
+all:	samblaster freebayes lumpy svtyper tabix vawk svtools cnvnator-multi
 
 samblaster:
 	$(MAKE) -C $(SAMBLASTER_DIR)
@@ -31,11 +31,16 @@ svtyper:
 	cp $(SVTYPER_DIR)/svtyper $(TARGET_BIN)
 
 cnvnator-multi:
+ifeq ($(ROOTSYS),)
+	@echo -e  "\nWARNING: CNVnator not compiled because the ROOT package is not installed."
+	@echo "Please see the README for instructions on manually installing ROOT."
+else
 	$(MAKE) -C $(CNVNATOR_DIR)
 	cp $(CNVNATOR_DIR)/bin/cnvnator-multi $(TARGET_BIN)
 	cp $(CNVNATOR_DIR)/bin/cnvnator_wrapper.py $(TARGET_BIN)
 	cp $(CNVNATOR_DIR)/bin/cnvnator2VCF.pl $(TARGET_BIN)
 	cp $(CNVNATOR_DIR)/bin/annotate_rd.py $(TARGET_BIN)
+endif
 
 tabix:
 	$(MAKE) -C $(TABIX_DIR)
