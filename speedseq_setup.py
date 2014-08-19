@@ -240,16 +240,16 @@ def main(args):
 		print "Installing pysam...\n"
 		subprocess.call("sudo pip install pysam", shell=True)
 
-    	# #gemini install
-	# gemini = INSTALLER("gemini", args.quiet)
-	# gemini.check_install("gemini")
-	# if (gemini.isInstalled):
-	# 	gemini.get_update()
-	# if (gemini.notInstalled or gemini.update):
-	# 	url = "https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py"
-	# 	gemini.download("wget", url)
-	# 	gemini.install("python2.7", "/usr/local/share/gemini")
-	# 	gemini.cp_bin("/usr/local/gemini/bin", args.targetbin)
+    	#gemini install
+	gemini = INSTALLER("gemini", args.quiet)
+	gemini.check_install("gemini")
+	if (gemini.isInstalled):
+		gemini.get_update()
+	if (gemini.notInstalled or gemini.update):
+		url = "https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py"
+		gemini.download("wget", url)
+		gemini.install("python2.7", "/usr/local/share/gemini")
+		gemini.cp_bin("/usr/local/gemini/bin", args.targetbin)
 	
 	print "Checking installations...\n"
 	bwa.check_install("bwa")

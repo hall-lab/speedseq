@@ -190,20 +190,25 @@ http://www.ensembl.org/info/docs/tools/vep/index.html
 
 VEP can be installed and used by SpeedSeq with the following commands:
 
-1. Download the software and install
+1. Install required PERL modules
+   ```
+   sudo yum -y install "perl(Archive::Extract)" "perl(CGI)" "perl(DBI)" "perl(Time::HiRes)" "perl(Archive::Tar)" "perl(Archive::Zip)"
+   ```
+
+2. Download the software and install
    ```
    curl -OL https://github.com/Ensembl/ensembl-tools/archive/release/76.zip
    unzip 76.zip
    perl ensembl-tools-release-76/scripts/variant_effect_predictor/INSTALL.pl -a ac -s homo_sapiens -y GRCh37 --CACHEDIR ~/.vep
    ```
 
-2. Copy files to a directory in $PATH
+3. Copy files to a directory in $PATH
    ```
    sudo cp ensembl-tools-release-76/scripts/variant_effect_predictor/variant_effect_predictor.pl /usr/local/bin
    sudo cp -r ensembl-tools-release-76/scripts/variant_effect_predictor/Bio /usr/local/bin
    ```
 
-3. Edit [speedseq.config](bin/speedseq.config) to set correct paths for the `VEP` and `VEP_CACHE_DIR` variables.
+4. Edit [speedseq.config](bin/speedseq.config) to set correct paths for the `VEP` and `VEP_CACHE_DIR` variables.
 
 #### GEMINI
 https://github.com/arq5x/gemini
