@@ -1375,7 +1375,7 @@ cat $TEMP_DIR/$OUTBASE.sv.vcf | awk '$0!~\"^#\" {exit}; 1' > $TEMP_DIR/header.tx
 # split the VCF file into slices of 100 lines each
 mkdir -p $TEMP_DIR/gt
 cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v \"^#\" | split -a 5 -d -l 100 - $TEMP_DIR/gt/spl
-for s in `ls $TEMP_DIR/gt/spl* | grep -v \"vcf\$\"`
+for s in \`ls $TEMP_DIR/gt/spl* | grep -v \"vcf\$\"\`
 do
     cat $TEMP_DIR/header.txt \$s > \$s.vcf
 done
