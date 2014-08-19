@@ -4,6 +4,7 @@ bin/bedpeToBed12
 bin/bedpeToVcf
 bin/bgzip
 bin/cnvnator-multi
+src/cnvnator/bin/cnvnator-multi
 bin/cnvnator2VCF.pl
 bin/cnvnator_wrapper.py
 bin/annotate_rd.py

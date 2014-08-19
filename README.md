@@ -63,7 +63,7 @@ sudo yum update
 sudo yum -y install cmake gcc-c++ gcc git make python27 python-devel python-yaml ncurses-devel zlib-devel numpy python-pip
 
 # PERL modules for VEP
-sudo yum -y install "perl(Archive::Extract)" "perl(CGI)" "perl(DBI)" "perl(Time::HiRes)" "perl(Archive::Tar)"
+sudo yum -y install "perl(Archive::Extract)" "perl(CGI)" "perl(DBI)" "perl(Time::HiRes)" "perl(Archive::Tar)" "perl(Archive::Zip)"
 ```
  
 or 
@@ -184,6 +184,26 @@ CNVnator can be installed and used by SpeedSeq with the following commands:
    ```
 
    Then set the path to the `chroms` directory as `CNVNATOR_CHROMS_DIR` in [speedseq.config](bin/speedseq.config)
+
+#### VEP
+http://www.ensembl.org/info/docs/tools/vep/index.html
+
+VEP can be installed and used by SpeedSeq with the following commands:
+
+1. Download the software and install
+   ```
+   curl -OL https://github.com/Ensembl/ensembl-tools/archive/release/76.zip
+   unzip 76.zip
+   perl ensembl-tools-release-76/scripts/variant_effect_predictor/INSTALL.pl -a ac -s homo_sapiens -y GRCh37 --CACHEDIR ~/.vep
+   ```
+
+2. Copy files to a directory in $PATH
+   ```
+   sudo cp ensembl-tools-release-76/scripts/variant_effect_predictor/variant_effect_predictor.pl /usr/local/bin
+   sudo cp -r ensembl-tools-release-76/scripts/variant_effect_predictor/Bio /usr/local/bin
+   ```
+
+3. Edit [speedseq.config](bin/speedseq.config) to set correct paths for the `VEP` and `VEP_CACHE_DIR` variables.
 
 #### GEMINI
 https://github.com/arq5x/gemini
@@ -409,6 +429,7 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 -x FILE          BED file to exclude
 -g               genotype SV breakends with svtyper
 -d               calculate read-depth with CNVnator
+-A BOOL          annotate the vcf with VEP (true or false) (default: true)
 -m INT           minimum weight for a call [default: 4]
 -r FLOAT         trim threshold [0]
 -L INT           read length [auto]
