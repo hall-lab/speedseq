@@ -1411,6 +1411,7 @@ done
     		echo "$SVTYPER -v $vcf -B $FULL_BAM -S $SPL_BAM -m $MEAN -sd $STDEV -rl $READ_LENGTH > $vcf.gt ; mv $vcf.gt $vcf"
 	    done | parallel -j $THREADS
 	done
+	cat $TEMP_DIR/gt/*.vcf | awk '$0!~"^#" {exit}; 1' > $TEMP_DIR/header.txt
 	cat $TEMP_DIR/gt/*.vcf | grep -v "^#" | cat $TEMP_DIR/header.txt - > $TEMP_DIR/$OUTBASE.sv.vcf
     fi
 
