@@ -344,6 +344,7 @@ options:
          -A BOOL  annotate the vcf with VEP (true or false) (default: true)
          -K FILE  path to speedseq.config file (default: same directory as speedseq)
          -v       verbose
+         -k       keep temporary files
          -h       show this message
 "
     }
@@ -364,8 +365,9 @@ options:
     ANNOTATE="true"
     MINQUAL=1
     VERBOSE=0
+    KEEP=0
 
-    while getopts ":ho:w:t:T:A:q:vK:" OPTION
+    while getopts ":ho:w:t:T:A:q:vkK:" OPTION
     do
         case "${OPTION}" in
             h)
@@ -393,6 +395,9 @@ options:
             v)
                 VERBOSE=1
                 ;;
+	    k)
+		KEEP=1
+		;;
 	    K)
 		CONFIG="$OPTARG"
 		;;
@@ -503,7 +508,7 @@ options:
             -f $REF \\
             --region \$chrom:\$start..\$end \\
             $BAM_STRING \\
-            | awk '\$6>=$MINQUAL' \\
+            | awk '\$0~\"^#\" || \$6>=$MINQUAL' \\
             > ${TEMP_DIR}/$OUTBASE.$i.vcf"
     fi
     
@@ -513,7 +518,7 @@ options:
         -f $REF \
         --region $i \
         $BAM_STRING \
-        | awk '\$6>=$MINQUAL' \
+        | awk '\$0~\"^#\" || \$6>=$MINQUAL' \
         > ${TEMP_DIR}/$OUTBASE.$i.vcf"
     done > $TEMP_DIR/var_command.txt
 
@@ -616,12 +621,15 @@ options:
     $TABIX -f -p vcf $OUTPUT.vcf.gz
 
     # clean up
-    if [[ $VERBOSE -eq 1 ]]
+    if [[ "$KEEP" -eq 0 ]]
     then
-	echo -e "
+	if [[ $VERBOSE -eq 1 ]]
+	then
+	    echo -e "
         rm -r $TEMP_DIR"
+	fi
+	rm -r $TEMP_DIR
     fi
-    rm -r $TEMP_DIR
 
     echo "Done"
 
@@ -651,6 +659,7 @@ options:
          -o STR   output prefix [tumor.bam]
          -w FILE  BED file of windowed genomic intervals
          -t INT   threads [1]
+         -s       only output somatic variants
          -F FLOAT Require at least this fraction of observations supporting
                     an alternate allele within a single individual in order
                     to evaluate the position [0.05]
@@ -659,9 +668,11 @@ options:
                     to evaluate the position [2]
          -q FLOAT minimum variant quality to output [1]
          -T DIR   temp directory [./temp]
+
          -A BOOL  annotate the vcf with VEP (true or false) (default: true)
          -K FILE  path to speedseq.config file (default: same directory as speedseq)
          -v       verbose
+         -k       keep tempory files
          -h       show this message
 "
     }
@@ -684,9 +695,11 @@ options:
     TEMP_DIR="./temp"
     ANNOTATE="true"
     MINQUAL=1
+    ONLY_SOMATIC=0
     VERBOSE=0
+    KEEP=0
 
-    while getopts ":ho:w:t:F:C:T:A:q:vK:" OPTION
+    while getopts ":ho:w:t:F:C:T:A:q:svkK:" OPTION
     do
         case "${OPTION}" in
             h)
@@ -717,9 +730,15 @@ options:
 	    q)
 		MINQUAL="$OPTARG"
 		;;
+	    s)
+		ONLY_SOMATIC=1
+		;;
             v)
                 VERBOSE=1
                 ;;
+	    k)
+		KEEP=1
+		;;
 	    K)
 		CONFIG="$OPTARG"
 		;;
@@ -834,7 +853,7 @@ options:
             --min-alternate-count ${MIN_ALT_COUNT} \\
             --region \$chrom:\$start..\$end \\
             $NORMAL_BAM_FMT $TUMOR_BAM_FMT \\
-            | awk '\$6>=$MINQUAL' \\
+            | awk '\$0~\"^#\" || \$6>=$MINQUAL' \\
             > ${TEMP_DIR}/$OUTBASE.\$chrom:\$start..\$end.vcf"
     fi
     for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
@@ -846,7 +865,7 @@ options:
         --min-alternate-count ${MIN_ALT_COUNT} \
         --region $i \
         $NORMAL_BAM_FMT $TUMOR_BAM_FMT \
-        | awk '\$6>=$MINQUAL' \
+        | awk '\$0~\"^#\" || \$6>=$MINQUAL' \\
         > ${TEMP_DIR}/$OUTBASE.$i.vcf"
     done > $TEMP_DIR/var_command.txt
 
@@ -949,13 +968,16 @@ options:
     $TABIX -f -p vcf $OUTPUT.vcf.gz
 
     # clean up
-    if [[ $VERBOSE -eq 1 ]]
+    if [[ "$KEEP" -eq 0 ]]
     then
-	echo -e "
+	if [[ $VERBOSE -eq 1 ]]
+	then
+	    echo -e "
         rm -r $TEMP_DIR"
+	fi
+	rm -r $TEMP_DIR
     fi
-    rm -r $TEMP_DIR
-
+	
     echo "Done"
 
     # exit cleanly
