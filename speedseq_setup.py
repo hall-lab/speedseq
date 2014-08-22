@@ -172,18 +172,6 @@ def main(args):
 	packageManager.install()
 	check_dependencies()
 
-	#bwa install
-	bwa = INSTALLER("bwa", args.quiet)
-	bwa.check_install("bwa")
-	if (bwa.isInstalled):
-		bwa.get_update()
-	if (bwa.notInstalled or bwa.update):
-		url = "http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.8.tar.bz2"
-		bwa.download("curl", url)
-		bwa.unpack("tar")
-		bwa.install("make", "bwa-0.7.8")
-		bwa.cp_bin("bwa-0.7.8/bwa", args.targetbin)
-
 	#parallel install
 	parallel = INSTALLER("parallel", args.quiet)
 	parallel.check_install("parallel")

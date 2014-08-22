@@ -3,6 +3,7 @@ VERSION=0.0.1
 TARGET_BIN=bin
 SRC=src
 
+BWA_DIR=$(SRC)/bwa
 SAMBLASTER_DIR=$(SRC)/samblaster
 FREEBAYES_DIR=$(SRC)/freebayes
 LUMPY_DIR=$(SRC)/lumpy-sv
@@ -12,7 +13,11 @@ TABIX_DIR=$(SRC)/tabix
 VAWK_DIR=$(SRC)/vawk
 SVTOOLS_DIR=$(SRC)/svtools
 
-all:	samblaster freebayes lumpy svtyper tabix vawk svtools cnvnator-multi
+all:	bwa samblaster freebayes lumpy svtyper tabix vawk svtools cnvnator-multi
+
+bwa:
+	$(MAKE) -C $(BWA_DIR)
+	cp $(BWA_DIR)/bwa $(TARGET_BIN)
 
 samblaster:
 	$(MAKE) -C $(SAMBLASTER_DIR)
@@ -59,10 +64,10 @@ svtools:
 
 clean:
 	rm -f bin/bedpeToBed12 bin/bedpeToVcf bin/bgzip bin/cnvnator bin/cnvnator2VCF.pl bin/cnvnator_wrapper.py bin/freebayes bin/lumpy bin/pairend_distro.py bin/samblaster bin/splitReadSamToBedpe bin/splitterToBreakpoint bin/svtyper bin/tabix bin/vawk bin/vcfToBedpe
+	$(MAKE) -C $(BWA_DIR) clean
 	$(MAKE) -C $(SAMBLASTER_DIR) clean
 	$(MAKE) -C $(FREEBAYES_DIR) clean
 	$(MAKE) -C $(LUMPY_DIR) clean
 	$(MAKE) -C $(CNVNATOR_DIR) clean
 	$(MAKE) -C $(LUMPY_DIR) clean
 	$(MAKE) -C $(TABIX_DIR) clean
-
