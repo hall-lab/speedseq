@@ -120,18 +120,6 @@ We recommend using the GRCh37 human genome for SpeedSeq, available here:
 
 ####Obtain each of the external pipeline tools and install:
 	
-#### BWA
-http://bio-bwa.sourceforge.net/
-
-BWA can be installed and used by SpeedSeq with the following commands: 
-```
-curl -OL http://sourceforge.net/projects/bio-bwa/files/bwa-0.7.8.tar.bz2
-tar -xvf bwa-0.7.8.tar.bz2
-cd bwa-0.7.8
-make
-sudo cp bwa /usr/local/bin
-```
-
 #### Sambamba
 https://github.com/lomereiter/sambamba
 
