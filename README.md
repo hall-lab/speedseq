@@ -395,7 +395,9 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 -C INT           require at least this count of observations supporting
                    an alternate allele within a single individual in order
                    to evaluate the position [2]
--q FLOAT         minimum variant quality to output [default: 1]
+-n FLOAT         minimum normal log odds ratio for PASS [2.3]
+-u FLOAT         minimum tumor log odds ratio for PASS [6.3]
+-q FLOAT         minimum QUAL score to output non-passing somatic variants [1e-6]
 -T DIR           temp directory [./temp]
 -A BOOL          annotate the vcf with snpEff (true or false) (default: true)
 -K FILE          path to speedseq.config file (default: same directory as speedseq)

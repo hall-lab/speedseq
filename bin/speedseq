@@ -72,7 +72,7 @@ function somatic_filter() {
             $7="PASS"
             print
         }
-        else if ($6>=MINQUAL) {
+        else if ($6>=MINQUAL && $10~"^0/0" && ! match($11,"^0/0")) {
             print
         }
     }' OFS="\t"
@@ -695,7 +695,9 @@ options:
          -C INT   Require at least this count of observations supporting
                     an alternate allele within a single individual in order
                     to evaluate the position [2]
-         -q FLOAT minimum QUAL score to output non-passing variants [1]
+         -n FLOAT minimum normal log odds ratio for PASS [2.3]
+         -u FLOAT minimum tumor log odds ratio for PASS [6.3]
+         -q FLOAT minimum QUAL score to output non-passing somatic variants [1e-6]
          -T DIR   temp directory [./temp]
 
          -A BOOL  annotate the vcf with VEP (true or false) (default: true)
@@ -723,14 +725,14 @@ options:
     MIN_ALT_COUNT=2
     TEMP_DIR="./temp"
     ANNOTATE="true"
-    MINQUAL=1
+    MINQUAL=1e-6
     TUMOR_THRES=6.3
     NORMAL_THRES=2.3
     ONLY_SOMATIC=0
     VERBOSE=0
     KEEP=0
 
-    while getopts ":ho:w:t:F:C:T:A:q:svkK:" OPTION
+    while getopts ":ho:w:t:F:C:T:A:q:n:u:svkK:" OPTION
     do
         case "${OPTION}" in
             h)
@@ -760,6 +762,12 @@ options:
                 ;;
 	    q)
 		MINQUAL="$OPTARG"
+		;;
+	    n)
+		NORMAL_THRES=2.3
+		;;
+	    u)
+		TUMOR_THRES=6.3
 		;;
 	    s)
 		ONLY_SOMATIC=1
@@ -897,7 +905,7 @@ options:
         --min-alternate-count ${MIN_ALT_COUNT} \
         --region $i \
         $NORMAL_BAM_FMT $TUMOR_BAM_FMT \
-        | awk -v MINQUAL=\"$MINQUAL\" -v TUMOR_THRES=\"$TUMOR_THRES\" -v NORMAL_THRES=\"$NORMAL_THRES\" 'BEGIN {NORMAL=10; TUMOR=11; GL_IDX=0;} { if (\$0~\"^#\") { print ; next; } if (! GL_IDX) { split(\$9,fmt,\":\") ; for (i=1;i<=length(fmt);++i) { if (fmt[i]==\"GL\") GL_IDX=i } } split(\$NORMAL,N,\":\"); split(N[GL_IDX],NGL,\",\"); split(\$TUMOR,T,\":\"); split(T[GL_IDX],TGL,\",\"); LOD_NORM=NGL[1]-NGL[2]; LOD_TUMOR_HET=TGL[2]-TGL[1]; LOD_TUMOR_HOM=TGL[3]-TGL[1]; if (LOD_TUMOR_HET > LOD_TUMOR_HOM) { LOD_TUMOR=LOD_TUMOR_HET } else { LOD_TUMOR=LOD_TUMOR_HOM } if (LOD_NORM > NORMAL_THRES && LOD_TUMOR > TUMOR_THRES) { \$7=\"PASS\" ; print } else if (\$6>=MINQUAL) { print } }' OFS=\"\t\" \
+        | awk -v MINQUAL=\"$MINQUAL\" -v TUMOR_THRES=\"$TUMOR_THRES\" -v NORMAL_THRES=\"$NORMAL_THRES\" 'BEGIN {NORMAL=10; TUMOR=11; GL_IDX=0;} { if (\$0~\"^#\") { print ; next; } if (! GL_IDX) { split(\$9,fmt,\":\") ; for (i=1;i<=length(fmt);++i) { if (fmt[i]==\"GL\") GL_IDX=i } } split(\$NORMAL,N,\":\"); split(N[GL_IDX],NGL,\",\"); split(\$TUMOR,T,\":\"); split(T[GL_IDX],TGL,\",\"); LOD_NORM=NGL[1]-NGL[2]; LOD_TUMOR_HET=TGL[2]-TGL[1]; LOD_TUMOR_HOM=TGL[3]-TGL[1]; if (LOD_TUMOR_HET > LOD_TUMOR_HOM) { LOD_TUMOR=LOD_TUMOR_HET } else { LOD_TUMOR=LOD_TUMOR_HOM } if (LOD_NORM > NORMAL_THRES && LOD_TUMOR > TUMOR_THRES) { \$7=\"PASS\" ; print } else if (\$6>=MINQUAL && \$10~\"^0/0\" && ! match(\$11,\"^0/0\")) { print } }' OFS=\"\t\" \
         > ${TEMP_DIR}/$OUTBASE.$i.vcf"
     done > $TEMP_DIR/var_command.txt
 
