@@ -889,14 +889,15 @@ options:
     fi
     for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
     do
-	echo "$FREEBAYES -f $REF \
+	# see the function somatic_filter for a more readable version of this awk command
+	echo -e "$FREEBAYES -f $REF \
         --pooled-discrete \
         --genotype-qualities \
         --min-alternate-fraction ${MIN_ALT_FRACTION} \
         --min-alternate-count ${MIN_ALT_COUNT} \
         --region $i \
         $NORMAL_BAM_FMT $TUMOR_BAM_FMT \
-        | somatic_filter $MINQUAL $TUMOR_THRES $NORMAL_THRES \
+        | awk -v MINQUAL=\"$MINQUAL\" -v TUMOR_THRES=\"$TUMOR_THRES\" -v NORMAL_THRES=\"$NORMAL_THRES\" 'BEGIN {NORMAL=10; TUMOR=11; GL_IDX=0;} { if (\$0~\"^#\") { print ; next; } if (! GL_IDX) { split(\$9,fmt,\":\") ; for (i=1;i<=length(fmt);++i) { if (fmt[i]==\"GL\") GL_IDX=i } } split(\$NORMAL,N,\":\"); split(N[GL_IDX],NGL,\",\"); split(\$TUMOR,T,\":\"); split(T[GL_IDX],TGL,\",\"); LOD_NORM=NGL[1]-NGL[2]; LOD_TUMOR_HET=TGL[2]-TGL[1]; LOD_TUMOR_HOM=TGL[3]-TGL[1]; if (LOD_TUMOR_HET > LOD_TUMOR_HOM) { LOD_TUMOR=LOD_TUMOR_HET } else { LOD_TUMOR=LOD_TUMOR_HOM } if (LOD_NORM > NORMAL_THRES && LOD_TUMOR > TUMOR_THRES) { \$7=\"PASS\" ; print } else if (\$6>=MINQUAL) { print } }' OFS=\"\t\" \
         > ${TEMP_DIR}/$OUTBASE.$i.vcf"
     done > $TEMP_DIR/var_command.txt
 
@@ -1013,7 +1014,6 @@ options:
 
     # exit cleanly
     exit 0
-
 }
 
 function sv() {
