@@ -49,6 +49,35 @@ options: -h       show this message
 "
 }
 
+function somatic_filter() {
+    awk -v MINQUAL="$1" -v TUMOR_THRES="$2" -v NORMAL_THRES="$3" 'BEGIN {NORMAL=10; TUMOR=11; GL_IDX=0;}
+    {
+        if ($0~"^#") { print ; next; }
+        if (! GL_IDX) {
+            split($9,fmt,":")
+            for (i=1;i<=length(fmt);++i) { if (fmt[i]=="GL") GL_IDX=i }
+        }
+        split($NORMAL,N,":");
+        split(N[GL_IDX],NGL,",");
+        split($TUMOR,T,":");
+        split(T[GL_IDX],TGL,",");
+        LOD_NORM=NGL[1]-NGL[2];
+        LOD_TUMOR_HET=TGL[2]-TGL[1];
+        LOD_TUMOR_HOM=TGL[3]-TGL[1];
+
+        if (LOD_TUMOR_HET > LOD_TUMOR_HOM) { LOD_TUMOR=LOD_TUMOR_HET }
+        else { LOD_TUMOR=LOD_TUMOR_HOM }
+
+        if (LOD_NORM > NORMAL_THRES && LOD_TUMOR > TUMOR_THRES) {
+            $7="PASS"
+            print
+        }
+        else if ($6>=MINQUAL) {
+            print
+        }
+    }' OFS="\t"
+}
+
 # alignment with BWA-MEM
 function aln() {
     function aln_usage() {
@@ -666,7 +695,7 @@ options:
          -C INT   Require at least this count of observations supporting
                     an alternate allele within a single individual in order
                     to evaluate the position [2]
-         -q FLOAT minimum variant quality to output [1]
+         -q FLOAT minimum QUAL score to output non-passing variants [1]
          -T DIR   temp directory [./temp]
 
          -A BOOL  annotate the vcf with VEP (true or false) (default: true)
@@ -695,6 +724,8 @@ options:
     TEMP_DIR="./temp"
     ANNOTATE="true"
     MINQUAL=1
+    TUMOR_THRES=6.3
+    NORMAL_THRES=2.3
     ONLY_SOMATIC=0
     VERBOSE=0
     KEEP=0
@@ -853,7 +884,7 @@ options:
             --min-alternate-count ${MIN_ALT_COUNT} \\
             --region \$chrom:\$start..\$end \\
             $NORMAL_BAM_FMT $TUMOR_BAM_FMT \\
-            | awk '\$0~\"^#\" || \$6>=$MINQUAL' \\
+            | somatic_filter $MINQUAL $TUMOR_THRES $NORMAL_THRES \\
             > ${TEMP_DIR}/$OUTBASE.\$chrom:\$start..\$end.vcf"
     fi
     for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
@@ -865,7 +896,7 @@ options:
         --min-alternate-count ${MIN_ALT_COUNT} \
         --region $i \
         $NORMAL_BAM_FMT $TUMOR_BAM_FMT \
-        | awk '\$0~\"^#\" || \$6>=$MINQUAL' \\
+        | somatic_filter $MINQUAL $TUMOR_THRES $NORMAL_THRES \
         > ${TEMP_DIR}/$OUTBASE.$i.vcf"
     done > $TEMP_DIR/var_command.txt
 
