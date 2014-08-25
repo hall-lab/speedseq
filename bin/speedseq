@@ -695,9 +695,9 @@ options:
          -C INT   Require at least this count of observations supporting
                     an alternate allele within a single individual in order
                     to evaluate the position [2]
-         -n FLOAT minimum normal log odds ratio for PASS [2.3]
-         -u FLOAT minimum tumor log odds ratio for PASS [6.3]
-         -q FLOAT minimum QUAL score to output non-passing somatic variants [1e-6]
+         -n FLOAT minimum normal log odds ratio for PASS [7]
+         -u FLOAT minimum tumor log odds ratio for PASS [7]
+         -q FLOAT minimum QUAL score to output non-passing somatic variants [1e-5]
          -T DIR   temp directory [./temp]
 
          -A BOOL  annotate the vcf with VEP (true or false) (default: true)
@@ -725,9 +725,9 @@ options:
     MIN_ALT_COUNT=2
     TEMP_DIR="./temp"
     ANNOTATE="true"
-    MINQUAL=1e-6
-    TUMOR_THRES=6.3
-    NORMAL_THRES=2.3
+    MINQUAL=1e-5
+    TUMOR_THRES=7
+    NORMAL_THRES=7
     ONLY_SOMATIC=0
     VERBOSE=0
     KEEP=0
