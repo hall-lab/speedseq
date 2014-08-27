@@ -764,10 +764,10 @@ options:
 		MINQUAL="$OPTARG"
 		;;
 	    n)
-		NORMAL_THRES=2.3
+		NORMAL_THRES="$OPTARG"
 		;;
 	    u)
-		TUMOR_THRES=6.3
+		TUMOR_THRES="$OPTARG"
 		;;
 	    s)
 		ONLY_SOMATIC=1
