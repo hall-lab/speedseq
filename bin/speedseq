@@ -538,7 +538,7 @@ options:
             --region \$chrom:\$start..\$end \\
             $BAM_STRING \\
             | awk '\$0~\"^#\" || \$6>=$MINQUAL' \\
-            > ${TEMP_DIR}/$OUTBASE.$i.vcf"
+            > ${TEMP_DIR}/$OUTBASE.\$i.vcf"
     fi
     
     for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`

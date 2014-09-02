@@ -319,7 +319,6 @@ def sv_readdepth(vcf_file, sample, root, window, vcf_out, debug, cnvnator_path):
         v = line.rstrip().split('\t')
         var = Variant(v, vcf)
         if var.get_info('SVTYPE') != 'BND':
-            print var.get_var_string()
             var.genotype(sample).set_format('CN', cn_list[i])
             i += 1
 
