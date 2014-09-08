@@ -240,7 +240,6 @@ def main(args):
 		gemini.cp_bin("/usr/local/gemini/bin", args.targetbin)
 	
 	print "Checking installations...\n"
-	bwa.check_install("bwa")
 	parallel.check_install("parallel")
 	sambamba.check_install("sambamba")
 	vep.check_install("variant_effect_predictor.pl")
