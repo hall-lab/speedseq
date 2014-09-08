@@ -1358,11 +1358,11 @@ $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FM
         "
     fi
     # call lumpy
-    $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES \
-    	$EXCLUDE_BED_FMT \
-    	$LUMPY_DISC_STRING \
-    	$LUMPY_SPL_STRING \
-    	> $TEMP_DIR/$OUTBASE.sv.bedpe
+    # $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES \
+    # 	$EXCLUDE_BED_FMT \
+    # 	$LUMPY_DISC_STRING \
+    # 	$LUMPY_SPL_STRING \
+    # 	> $TEMP_DIR/$OUTBASE.sv.bedpe
 
     if [[ "$VERBOSE" -eq 1 ]]
     then
@@ -1519,7 +1519,7 @@ $ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/
 	    echo -e "
 # Annotate structural variants with VEP
 cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
-    | awk '\$0~\"^#\" || \$5\!~\"[\\\\\[\\\\\]]\"' \\
+    | awk '\$0~\"^#\" || \$5\!~\"[\\\\\[\\\\\]]\" && ($1<=22 || $1==\"X\" || $1==\"Y\")' \\
     | $VEP \\
     --fork $THREADS \\
     -o /dev/stdout \\
@@ -1537,13 +1537,13 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
     --total_length \\
     --vcf \\
     --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE \\
-    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v \"^#\" | awk '\$5~\"[\\\\\[\\\\\]]\"') \\
+    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v \"^#\" | awk '\$5~\"[\\\\\[\\\\\]]\" || (\$1>22 && \$1!=\"X\" && \$1!=\"Y\")') \\
     > $TEMP_DIR/$OUTBASE.vep.sv.vcf
     "
 	fi
 
 	cat  $TEMP_DIR/$OUTBASE.sv.vcf \
-	    | awk '$0~"^#" || $5!~"[\\[\\]]"' \
+	    | awk '$0~"^#" || ($5!~"[\\[\\]]" && ($1<=22 || $1=="X" || $1=="Y"))' \
 	    | $VEP \
             --fork $THREADS \
             -o /dev/stdout \
@@ -1561,7 +1561,7 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
             --total_length \
             --vcf \
             --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE \
-	    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v "^#" | awk '$5~"[\\[\\]]"') \
+	    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v "^#" | awk '$5~"[\\[\\]]" || ($1>22 && $1!="X" && $1!="Y")') \
 	    > $TEMP_DIR/$OUTBASE.vep.sv.vcf
 
 	mv $TEMP_DIR/$OUTBASE.vep.sv.vcf $TEMP_DIR/$OUTBASE.sv.vcf
