@@ -1358,11 +1358,11 @@ $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FM
         "
     fi
     # call lumpy
-    # $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES \
-    # 	$EXCLUDE_BED_FMT \
-    # 	$LUMPY_DISC_STRING \
-    # 	$LUMPY_SPL_STRING \
-    # 	> $TEMP_DIR/$OUTBASE.sv.bedpe
+    $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES \
+    	$EXCLUDE_BED_FMT \
+    	$LUMPY_DISC_STRING \
+    	$LUMPY_SPL_STRING \
+    	> $TEMP_DIR/$OUTBASE.sv.bedpe
 
     if [[ "$VERBOSE" -eq 1 ]]
     then
