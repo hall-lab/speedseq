@@ -140,7 +140,7 @@ global options:
     VERBOSE=0
     SORT_MEM=20 # amount of memory for sorting, in gigabytes
 
-    while getopts ":hw:o:R:pic:m:t:T:vK:" OPTION
+    while getopts ":hw:o:R:pic:m:M:t:T:vK:" OPTION
     do
 	case "${OPTION}" in
 	    h)
