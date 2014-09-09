@@ -304,6 +304,11 @@ These options determine the behavior of SAMBLASTER
                 for a read to be included in splitter file [default: 20]
 ```
 
+#####Sambamba options
+```
+-M              amount of memory in GB to be used for sorting [default: 20]
+```
+
 #####Global options
 
 ```

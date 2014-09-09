@@ -109,6 +109,9 @@ samblaster options:
          -c INT   maximum number of split alignments for a read to be included in splitter file [2]
          -m INT   minimum non-overlapping base pairs between two alignments for a read to be included in splitter file [20]
 
+sambamba options:
+         -M       amount of memory in GB to be used for sorting [20]
+
 global options:
          -K FILE  path to speedseq.config file (default: same directory as speedseq)
          -v       verbose
@@ -135,7 +138,7 @@ global options:
     THREADS=1
     TEMP_DIR="./temp"
     VERBOSE=0
-    SORT_MEM=40 # amount of memory for sorting, in gigabytes
+    SORT_MEM=20 # amount of memory for sorting, in gigabytes
 
     while getopts ":hw:o:R:pic:m:t:T:vK:" OPTION
     do
@@ -162,6 +165,9 @@ global options:
 		;;
 	    m)
 		MIN_NON_OVERLAP="$OPTARG"
+		;;
+	    M)
+		SORT_MEM="$OPTARG"
 		;;
 	    t)
 		THREADS="$OPTARG"
