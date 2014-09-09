@@ -11,7 +11,12 @@ function source_binaries() {
     if [[ -e $1 ]]
     then
 	echo "Sourcing executables from $1 ..."
-	source $1
+	if [[ $1 == /* ]]
+	then
+	    source $1
+	else
+	    source ./$1
+	fi
     else
 	echo "Config file $1 not found. Attempting to auto-source executables"
 	SPEEDSEQ_HOME=$( dirname `which speedseq` )
