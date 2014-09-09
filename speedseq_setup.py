@@ -100,7 +100,7 @@ class INSTALLER(object):
 			self.installcmd = "./configure && sudo make && sudo make install"
 		elif (method == "perl"):
 			#This only applies to VEP
-			self.installcmd = "perl " + self.installdir + "/INSTALL.pl -c ./annotations/vep_cache -a ac -s homo_sapiens -y GRCh37"
+			self.installcmd = "perl " + self.installdir + "/INSTALL.pl -c ../annotations/vep_cache -a ac -s homo_sapiens -y GRCh37"
 		elif (method == "python2.7"):
 			#This only applies to gemini, uses pip install
 			self.installcmd = "python2.7 gemini_install.py /usr/local " + self.installdir + " && gemini update"
