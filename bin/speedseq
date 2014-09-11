@@ -185,7 +185,7 @@ global options:
 	esac
     done
 
-    if [[ INTERLEAVED -eq 1 ]]
+    if [[ "$INTERLEAVED" -eq 1 ]]
     then
 	REF="${@:${OPTIND}:1}"
 	FQ="${@:$((${OPTIND}+1)):1}"
