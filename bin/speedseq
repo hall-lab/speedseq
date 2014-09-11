@@ -102,6 +102,7 @@ alignment options:
          -o STR   output prefix [in1.fq]
          -R       read group header line such as \"@RG\tID:libraryname\tSM:samplename\" (required)
          -p       first fastq file consists of interleaved paired-end sequences
+         -b       re-align from a coordinate sorted BAM file (does not require fastq files)
          -t INT   threads [1]
          -T DIR   temp directory [./temp]
 
@@ -139,9 +140,10 @@ global options:
     THREADS=1
     TEMP_DIR="./temp"
     VERBOSE=0
+    REALIGN_BAM=0
     SORT_MEM=20 # amount of memory for sorting, in gigabytes
 
-    while getopts ":hw:o:R:pic:m:M:t:T:vK:" OPTION
+    while getopts ":hw:o:R:pic:m:M:t:T:vbK:" OPTION
     do
 	case "${OPTION}" in
 	    h)
@@ -176,6 +178,9 @@ global options:
 	    T)
 		TEMP_DIR="$OPTARG"
 		;;
+	    b)
+		REALIGN_BAM=1
+		;;
 	    v)
 		VERBOSE=1
 		;;
@@ -184,6 +189,11 @@ global options:
 		;;
 	esac
     done
+
+    if [[ $REALIGN_BAM -eq 1 ]]
+    then
+	echo "hi"
+    fi
 
     if [[ INTERLEAVED -eq 1 ]]
     then
@@ -1642,6 +1652,9 @@ case "$1" in
 	;;
     'sv')
 	sv "${@:2}"
+	;;
+    're-aln')
+	re-aln "${@:2}"
 	;;
     *)
 	usage
