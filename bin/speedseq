@@ -36,6 +36,7 @@ function source_binaries() {
 	PYTHON27=`which python2.7 || true`
 	MBUFFER=$SPEEDSEQ_HOME/bin/mbuffer
 	BAMTOFASTQ=$SPEEDSEQ_HOME/bin/bamtofastq.py
+	BAMHEADRG=$SPEEDSEQ_HOME/bin/bamheadrg.py
     fi
 }
 
@@ -59,7 +60,7 @@ options: -h       show this message
 }
 
 function somatic_filter() {
-    gawk -v MINQUAL="$1" -v TUMOR_THRES="$2" -v NORMAL_THRES="$3" 'BEGIN {NORMAL=10; TUMOR=11; GL_IDX=0;}
+    awk -v MINQUAL="$1" -v TUMOR_THRES="$2" -v NORMAL_THRES="$3" 'BEGIN {NORMAL=10; TUMOR=11; GL_IDX=0;}
     {
         if ($0~"^#") { print ; next; }
         if (! GL_IDX) {
@@ -545,10 +546,10 @@ options:
 	if [[ $VERBOSE -eq 1 ]]
 	then
 	    echo -e "
-        $SAMBAMBA view -H ${BAM_LIST[0]} | grep \"^@SQ\" | cut -f 2- | gawk '{ gsub(\"^SN:\",\"\",\$1); gsub(\"^LN:\",\"\",\$2); print \$1\"\\\t0\\\t\"\$2; }' > $TEMP_DIR/windows.bed"
+        $SAMBAMBA view -H ${BAM_LIST[0]} | grep \"^@SQ\" | cut -f 2- | awk '{ gsub(\"^SN:\",\"\",\$1); gsub(\"^LN:\",\"\",\$2); print \$1\"\\\t0\\\t\"\$2; }' > $TEMP_DIR/windows.bed"
 	fi
 
-	$SAMBAMBA view -H ${BAM_LIST[0]} | grep "^@SQ" | cut -f 2- | gawk '{ gsub("^SN:","",$1); gsub("^LN:","",$2); print $1"\t0\t"$2; }' > $TEMP_DIR/windows.bed
+	$SAMBAMBA view -H ${BAM_LIST[0]} | grep "^@SQ" | cut -f 2- | awk '{ gsub("^SN:","",$1); gsub("^LN:","",$2); print $1"\t0\t"$2; }' > $TEMP_DIR/windows.bed
 	WINDOWS="$TEMP_DIR/windows.bed"
     fi
     
@@ -560,17 +561,17 @@ options:
             -f $REF \\
             --region \$chrom:\$start..\$end \\
             $BAM_STRING \\
-            | gawk '\$0~\"^#\" || \$6>=$MINQUAL' \\
+            | awk '\$0~\"^#\" || \$6>=$MINQUAL' \\
             > ${TEMP_DIR}/$OUTBASE.\$i.vcf"
     fi
     
-    for i in `cat $WINDOWS | gawk '{print $1":"$2".."$3}'`
+    for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
     do
         echo "$FREEBAYES \
         -f $REF \
         --region $i \
         $BAM_STRING \
-        | gawk '\$0~\"^#\" || \$6>=$MINQUAL' \
+        | awk '\$0~\"^#\" || \$6>=$MINQUAL' \
         > ${TEMP_DIR}/$OUTBASE.$i.vcf"
     done > $TEMP_DIR/var_command.txt
 
@@ -583,7 +584,7 @@ options:
     cat $TEMP_DIR/var_command.txt | parallel -j $THREADS
 
     # make vcf header
-    i=`head -n 1 $WINDOWS | gawk '{print $1":"$2".."$3}'`
+    i=`head -n 1 $WINDOWS | awk '{print $1":"$2".."$3}'`
     if [[ $VERBOSE -eq 1 ]]
     then
 	echo -e "
@@ -621,7 +622,7 @@ options:
                 | $BGZIP -c > $OUTPUT.vcf.gz"
 	fi
 
-	for i in `cat $WINDOWS | gawk '{print $1":"$2".."$3}'`
+	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
 	do
             # add "|| true" so it doesn't bail upon failure.
 	    cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
@@ -655,7 +656,7 @@ options:
                 | $BGZIP -c > $OUTPUT.vcf.gz"
         fi
 
-	for i in `cat $WINDOWS | gawk '{print $1":"$2".."$3}'`
+	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
 	do
             # if this fails then it bails out the script
 	    cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
@@ -896,9 +897,9 @@ options:
 	if [[ $VERBOSE -eq 1 ]]
 	then
 	    echo -e "
-        $SAMBAMBA view -H ${NORMAL_BAM_LIST[0]} | grep \"^@SQ\" | cut -f 2- | gawk '{ gsub(\"^SN:\",\"\",\$1); gsub(\"^LN:\",\"\",\$2); print \$1\"\\\t0\\\t\"\$2; }' > $TEMP_DIR/windows.bed"
+        $SAMBAMBA view -H ${NORMAL_BAM_LIST[0]} | grep \"^@SQ\" | cut -f 2- | awk '{ gsub(\"^SN:\",\"\",\$1); gsub(\"^LN:\",\"\",\$2); print \$1\"\\\t0\\\t\"\$2; }' > $TEMP_DIR/windows.bed"
 	fi
-        $SAMBAMBA view -H ${NORMAL_BAM_LIST[0]} | grep "^@SQ" | cut -f 2- | gawk '{ gsub("^SN:","",$1); gsub("^LN:","",$2); print $1"\t0\t"$2; }' > $TEMP_DIR/windows.bed
+        $SAMBAMBA view -H ${NORMAL_BAM_LIST[0]} | grep "^@SQ" | cut -f 2- | awk '{ gsub("^SN:","",$1); gsub("^LN:","",$2); print $1"\t0\t"$2; }' > $TEMP_DIR/windows.bed
         WINDOWS="$TEMP_DIR/windows.bed"
     fi
 
@@ -918,9 +919,9 @@ options:
             | somatic_filter $MINQUAL $TUMOR_THRES $NORMAL_THRES \\
             > ${TEMP_DIR}/$OUTBASE.\$chrom:\$start..\$end.vcf"
     fi
-    for i in `cat $WINDOWS | gawk '{print $1":"$2".."$3}'`
+    for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
     do
-	# see the function somatic_filter for a more readable version of this gawk command
+	# see the function somatic_filter for a more readable version of this awk command
 	echo -e "$FREEBAYES -f $REF \
         --pooled-discrete \
         --genotype-qualities \
@@ -928,7 +929,7 @@ options:
         --min-alternate-count ${MIN_ALT_COUNT} \
         --region $i \
         $NORMAL_BAM_FMT $TUMOR_BAM_FMT \
-        | gawk -v MINQUAL=\"$MINQUAL\" -v TUMOR_THRES=\"$TUMOR_THRES\" -v NORMAL_THRES=\"$NORMAL_THRES\" 'BEGIN {NORMAL=10; TUMOR=11; GL_IDX=0;} { if (\$0~\"^#\") { print ; next; } if (! GL_IDX) { split(\$9,fmt,\":\") ; for (i=1;i<=length(fmt);++i) { if (fmt[i]==\"GL\") GL_IDX=i } } split(\$NORMAL,N,\":\"); split(N[GL_IDX],NGL,\",\"); split(\$TUMOR,T,\":\"); split(T[GL_IDX],TGL,\",\"); LOD_NORM=NGL[1]-NGL[2]; LOD_TUMOR_HET=TGL[2]-TGL[1]; LOD_TUMOR_HOM=TGL[3]-TGL[1]; if (LOD_TUMOR_HET > LOD_TUMOR_HOM) { LOD_TUMOR=LOD_TUMOR_HET } else { LOD_TUMOR=LOD_TUMOR_HOM } if (LOD_NORM >= NORMAL_THRES && LOD_TUMOR >= TUMOR_THRES) { \$7=\"PASS\" ; print } else if (\$6>=MINQUAL && \$10~\"^0/0\" && ! match(\$11,\"^0/0\")) { print } }' OFS=\"\t\" \
+        | awk -v MINQUAL=\"$MINQUAL\" -v TUMOR_THRES=\"$TUMOR_THRES\" -v NORMAL_THRES=\"$NORMAL_THRES\" 'BEGIN {NORMAL=10; TUMOR=11; GL_IDX=0;} { if (\$0~\"^#\") { print ; next; } if (! GL_IDX) { split(\$9,fmt,\":\") ; for (i=1;i<=length(fmt);++i) { if (fmt[i]==\"GL\") GL_IDX=i } } split(\$NORMAL,N,\":\"); split(N[GL_IDX],NGL,\",\"); split(\$TUMOR,T,\":\"); split(T[GL_IDX],TGL,\",\"); LOD_NORM=NGL[1]-NGL[2]; LOD_TUMOR_HET=TGL[2]-TGL[1]; LOD_TUMOR_HOM=TGL[3]-TGL[1]; if (LOD_TUMOR_HET > LOD_TUMOR_HOM) { LOD_TUMOR=LOD_TUMOR_HET } else { LOD_TUMOR=LOD_TUMOR_HOM } if (LOD_NORM >= NORMAL_THRES && LOD_TUMOR >= TUMOR_THRES) { \$7=\"PASS\" ; print } else if (\$6>=MINQUAL && \$10~\"^0/0\" && ! match(\$11,\"^0/0\")) { print } }' OFS=\"\t\" \
         > ${TEMP_DIR}/$OUTBASE.$i.vcf"
     done > $TEMP_DIR/var_command.txt
 
@@ -941,7 +942,7 @@ options:
     cat $TEMP_DIR/var_command.txt | parallel -j $THREADS
 
     # make vcf header
-    i=`head -n 1 $WINDOWS | gawk '{print $1":"$2".."$3}'`
+    i=`head -n 1 $WINDOWS | awk '{print $1":"$2".."$3}'`
     if [[ $VERBOSE -eq 1 ]]
     then
 	echo -e "
@@ -980,7 +981,7 @@ options:
                 --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE \\
                 | $BGZIP -c > $OUTPUT.vcf.gz"
 	fi    
-	for i in `cat $WINDOWS | gawk '{print $1":"$2".."$3}'`
+	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
 	do
             # if this fails then it bails out the script, unless || true present
             cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
@@ -1013,7 +1014,7 @@ options:
             | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \\
             | $BGZIP -c > $OUTPUT.vcf.gz"
 	fi    
-	for i in `cat $WINDOWS | gawk '{print $1":"$2".."$3}'`
+	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
 	do
             # if this fails then it bails out the script
             cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
@@ -1311,9 +1312,9 @@ global options:
         SPL_BAM=${SPL_BAM_LIST[$i]}
         DISC_BAM=${DISC_BAM_LIST[$i]}
 
-	FULL_SAMPLE=`$SAMBAMBA view -H $FULL_BAM | grep -m 1 "^@RG" | gawk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
-	SPL_SAMPLE=`$SAMBAMBA view -H $SPL_BAM | grep -m 1 "^@RG" | gawk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
-	DISC_SAMPLE=`$SAMBAMBA view -H $DISC_BAM | grep -m 1 "^@RG" | gawk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
+	FULL_SAMPLE=`$SAMBAMBA view -H $FULL_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
+	SPL_SAMPLE=`$SAMBAMBA view -H $SPL_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
+	DISC_SAMPLE=`$SAMBAMBA view -H $DISC_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
 
 	echo -e "$DISC_SAMPLE\t$(($i+1))0\tPE\t$DISC_BAM"
 	echo -e "$SPL_SAMPLE\t$(($i+1))1\tSR\t$SPL_BAM"
@@ -1355,7 +1356,7 @@ global options:
             # calc readlength if not provided
             if test -z "$READ_LENGTH"
             then
-		READ_LENGTH=`$SAMBAMBA view $FULL_BAM | head -n 10000 | gawk 'BEGIN { MAX_LEN=0 } { LEN=length($10); if (LEN>MAX_LEN) MAX_LEN=LEN } END { print MAX_LEN }'`
+		READ_LENGTH=`$SAMBAMBA view $FULL_BAM | head -n 10000 | awk 'BEGIN { MAX_LEN=0 } { LEN=length($10); if (LEN>MAX_LEN) MAX_LEN=LEN } END { print MAX_LEN }'`
             fi
 
 	    if [[ "VERBOSE" -eq 1 ]]
@@ -1404,7 +1405,7 @@ $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FM
 # convert to VCF, ensure that each variant has at least one sample with MIN_WEIGHT support
 cat $TEMP_DIR/$OUTBASE.sv.bedpe \\
     | $PYTHON27 $BEDPETOVCF -t LUMPY -c $TEMP_DIR/$OUTBASE.sample.config -f $REF \\
-    | gawk -v MIN_WEIGHT=$MIN_WEIGHT 'BEGIN {S_IDX=0} {
+    | awk -v MIN_WEIGHT=$MIN_WEIGHT 'BEGIN {S_IDX=0} {
         if (\$0~\"^#\") print
         else {
             if (S_IDX==0) {
@@ -1430,7 +1431,7 @@ cat $TEMP_DIR/$OUTBASE.sv.bedpe \\
     # convert to VCF, ensure that each variant has at least one sample with MIN_WEIGHT support
     cat $TEMP_DIR/$OUTBASE.sv.bedpe \
 	| $PYTHON27 $BEDPETOVCF -t LUMPY -c $TEMP_DIR/$OUTBASE.sample.config -f $REF \
-	| gawk -v MIN_WEIGHT=$MIN_WEIGHT 'BEGIN {S_IDX=0} {
+	| awk -v MIN_WEIGHT=$MIN_WEIGHT 'BEGIN {S_IDX=0} {
             if ($0~"^#") print
             else {
                 if (S_IDX==0) {
@@ -1455,11 +1456,11 @@ cat $TEMP_DIR/$OUTBASE.sv.bedpe \\
     then
 	echo -e "
 # make header
-cat $TEMP_DIR/$OUTBASE.sv.vcf | gawk '$0!~\"^#\" {exit}; 1' > $TEMP_DIR/header.txt
+cat $TEMP_DIR/$OUTBASE.sv.vcf | awk '$0!~\"^#\" {exit}; 1' > $TEMP_DIR/header.txt
         "
     fi
     # make header
-    cat $TEMP_DIR/$OUTBASE.sv.vcf | gawk '$0!~"^#" {exit}; 1' > $TEMP_DIR/header.txt
+    cat $TEMP_DIR/$OUTBASE.sv.vcf | awk '$0!~"^#" {exit}; 1' > $TEMP_DIR/header.txt
 
     # genotype in parallel
     if [[ GENOTYPE -eq 1 ]]
@@ -1493,7 +1494,7 @@ done
 
             MEAN=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^mean" | sed 's/mean\://g'`
             STDEV=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^stdev" | sed 's/stdev\://g'`
-	    READ_LENGTH=`$SAMBAMBA view $FULL_BAM | head -n 10000 | gawk 'BEGIN { MAX_LEN=0 } { LEN=length($10); if (LEN>MAX_LEN) MAX_LEN=LEN } END { print MAX_LEN }'`
+	    READ_LENGTH=`$SAMBAMBA view $FULL_BAM | head -n 10000 | awk 'BEGIN { MAX_LEN=0 } { LEN=length($10); if (LEN>MAX_LEN) MAX_LEN=LEN } END { print MAX_LEN }'`
 
 	    if [[ "$VERBOSE" -eq 1 ]]
 	    then
@@ -1506,7 +1507,7 @@ done
     		echo "$PYTHON27 $SVTYPER -v $vcf -B $FULL_BAM -S $SPL_BAM -m $MEAN -sd $STDEV -rl $READ_LENGTH > $vcf.gt ; mv $vcf.gt $vcf"
 	    done | parallel -j $THREADS
 	done
-	cat $TEMP_DIR/gt/*.vcf | gawk '$0!~"^#" {exit}; 1' > $TEMP_DIR/header.txt
+	cat $TEMP_DIR/gt/*.vcf | awk '$0!~"^#" {exit}; 1' > $TEMP_DIR/header.txt
 	cat $TEMP_DIR/gt/*.vcf | grep -v "^#" | cat $TEMP_DIR/header.txt - > $TEMP_DIR/$OUTBASE.sv.vcf
     fi
 
@@ -1517,7 +1518,7 @@ done
 	echo "readdepth is $READDEPTH"
 
 	WINDOW_SIZE=100
-	SAMPLE=`cat $TEMP_DIR/$OUTBASE.sample.config | gawk '{ print $1 }' | head -n 1`
+	SAMPLE=`cat $TEMP_DIR/$OUTBASE.sample.config | awk '{ print $1 }' | head -n 1`
 
 	if [[ "$VERBOSE" -eq 1 ]]
 	then
@@ -1553,7 +1554,7 @@ $PYTHON27 $ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r 
 	    echo -e "
 # Annotate structural variants with VEP
 cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
-    | gawk '\$0~\"^#\" || \$5\!~\"[\\\\\[\\\\\]]\" && ($1<=22 || $1==\"X\" || $1==\"Y\")' \\
+    | awk '\$0~\"^#\" || \$5\!~\"[\\\\\[\\\\\]]\" && ($1<=22 || $1==\"X\" || $1==\"Y\")' \\
     | $VEP \\
     --fork $THREADS \\
     -o /dev/stdout \\
@@ -1571,13 +1572,13 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
     --total_length \\
     --vcf \\
     --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE \\
-    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v \"^#\" | gawk '\$5~\"[\\\\\[\\\\\]]\" || (\$1>22 && \$1!=\"X\" && \$1!=\"Y\")') \\
+    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v \"^#\" | awk '\$5~\"[\\\\\[\\\\\]]\" || (\$1>22 && \$1!=\"X\" && \$1!=\"Y\")') \\
     > $TEMP_DIR/$OUTBASE.vep.sv.vcf
     "
 	fi
 
 	cat  $TEMP_DIR/$OUTBASE.sv.vcf \
-	    | gawk '$0~"^#" || ($5!~"[\\[\\]]" && ($1<=22 || $1=="X" || $1=="Y"))' \
+	    | awk '$0~"^#" || ($5!~"[\\[\\]]" && ($1<=22 || $1=="X" || $1=="Y"))' \
 	    | $VEP \
             --fork $THREADS \
             -o /dev/stdout \
@@ -1595,7 +1596,7 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
             --total_length \
             --vcf \
             --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE \
-	    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v "^#" | gawk '$5~"[\\[\\]]" || ($1>22 && $1!="X" && $1!="Y")') \
+	    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v "^#" | awk '$5~"[\\[\\]]" || ($1>22 && $1!="X" && $1!="Y")') \
 	    > $TEMP_DIR/$OUTBASE.vep.sv.vcf
 
 	mv $TEMP_DIR/$OUTBASE.vep.sv.vcf $TEMP_DIR/$OUTBASE.sv.vcf
@@ -1673,7 +1674,7 @@ global options:
     TEMP_DIR="./temp"
     VERBOSE=0
     INS_DIST=""
-    REALIGN_RG=""
+    REALIGN_RG_FMT=""
     RENAME=""
     SORT_MEM=20 # amount of memory for sorting, in gigabytes
 
@@ -1716,7 +1717,8 @@ global options:
 		TEMP_DIR="$OPTARG"
 		;;
 	    g)
-		REALIGN_RG="-r $OPTARG"
+		REALIGN_RG="$OPTARG"
+		REALIGN_RG_FMT="-r $OPTARG"
 		;;
 	    I)
 		INS_DIST="-I $OPTARG"
@@ -1777,6 +1779,11 @@ global options:
 	re-align_usage
 	echo -e "Error: bamtofastq.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
+    elif [[ -z "$BAMHEADRG" ]]
+    then
+	re-align_usage
+	echo -e "Error: bamheadrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+	exit 1
     fi
 
     # # Check for readgroup flag
@@ -1799,9 +1806,9 @@ global options:
     FQ="$TEMP_DIR/fq_pipe"
     if [[ $VERBOSE -eq 1 ]]
     then
-	echo "$PYTHON27 $BAMTOFASTQ $REALIGN_RG $RENAME -i $IN_BAM | $MBUFFER -m 1G > $TEMP_DIR/fq_pipe &"
+	echo "$PYTHON27 $BAMTOFASTQ $REALIGN_RG_FMT $RENAME -i $IN_BAM | $MBUFFER -m 1G > $TEMP_DIR/fq_pipe &"
     fi
-    $PYTHON27 $BAMTOFASTQ $REALIGN_RG $RENAME -i $IN_BAM | $MBUFFER -m 1G > $TEMP_DIR/fq_pipe &
+    $PYTHON27 $BAMTOFASTQ $REALIGN_RG_FMT $RENAME -i $IN_BAM | $MBUFFER -m 1G > $TEMP_DIR/fq_pipe &
 
     echo "Aligning..."
     if [[ $VERBOSE -eq 1 ]]
@@ -1827,6 +1834,7 @@ global options:
     then
 	echo -e "
     $BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ | \\
+        $PYTHON27 $BAMHEADRG -b $IN_BAM $REALIGN_RG_FMT | \\
 	$SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
 	$SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
 	$SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
@@ -1837,8 +1845,9 @@ global options:
 	$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin"
     fi
 
-    echo "
+    echo -e "
     $BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ | \
+        $PYTHON27 $BAMHEADRG -b $IN_BAM $REALIGN_RG_FMT | \
 	$SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
 	$SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
 	$SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
