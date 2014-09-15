@@ -1797,29 +1797,17 @@ global options:
     # set the output name
     OUTBASE=`basename "$OUTPUT"`
 
-    # create the virtual file for fastq pipe
-    mkdir -p $TEMP_DIR
-    if [[ ! -e $TEMP_DIR/fq_pipe ]]
-    then
-	mkfifo $TEMP_DIR/fq_pipe
-    fi
-    FQ="$TEMP_DIR/fq_pipe"
-    if [[ $VERBOSE -eq 1 ]]
-    then
-	echo "$PYTHON27 $BAMTOFASTQ $REALIGN_RG_FMT $RENAME -i $IN_BAM | $MBUFFER -m 1G > $TEMP_DIR/fq_pipe &"
-    fi
-    $PYTHON27 $BAMTOFASTQ $REALIGN_RG_FMT $RENAME -i $IN_BAM | $MBUFFER -m 1G > $TEMP_DIR/fq_pipe &
-
     echo "Aligning..."
     if [[ $VERBOSE -eq 1 ]]
     then
 	echo "
+        mkdir -p $TEMP_DIR $TEMP_DIR/full $TEMP_DIR/spl $TEMP_DIR/disc
         mkdir -p $TEMP_DIR/full $TEMP_DIR/spl $TEMP_DIR/disc
-        mkfifo $TEMP_DIR/spl_pipe $TEMP_DIR/disc_pipe"
+        mkfifo $TEMP_DIR/spl_pipe $TEMP_DIR/disc_pipe $TEMP_DIR/fq_pipe"
     fi
 
-    # create temp files
-    mkdir -p $TEMP_DIR/full $TEMP_DIR/spl $TEMP_DIR/disc
+    # create temp files and pipes
+    mkdir -p $TEMP_DIR $TEMP_DIR/full $TEMP_DIR/spl $TEMP_DIR/disc
     if [[ ! -e $TEMP_DIR/spl_pipe ]]
     then
 	mkfifo $TEMP_DIR/spl_pipe
@@ -1828,6 +1816,19 @@ global options:
     then
 	mkfifo $TEMP_DIR/disc_pipe
     fi
+    if [[ ! -e $TEMP_DIR/fq_pipe ]]
+    then
+	mkfifo $TEMP_DIR/fq_pipe
+    fi
+    FQ="$TEMP_DIR/fq_pipe"
+
+    # create the virtual file for fastq pipe
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo "
+        $PYTHON27 $BAMTOFASTQ $REALIGN_RG_FMT $RENAME -i $IN_BAM | $MBUFFER -m 1G > $TEMP_DIR/fq_pipe &"
+    fi
+    $PYTHON27 $BAMTOFASTQ $REALIGN_RG_FMT $RENAME -i $IN_BAM | $MBUFFER -m 1G > $TEMP_DIR/fq_pipe &
 
     # alignment command
     if [[ $VERBOSE -eq 1 ]]
