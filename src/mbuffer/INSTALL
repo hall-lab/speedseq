@@ -1,0 +1,12 @@
+# To install run
+./configure
+
+# with the options you desire.
+# To get a list of the possible options, run:
+./configure --help
+
+# possible options are
+./configure --enable-debug --enable-networking --disable-multivolume
+
+# Then just do a:
+make && make install
