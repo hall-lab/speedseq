@@ -60,6 +60,7 @@ bin/tagBam
 bin/unionBedGraphs
 bin/windowBed
 bin/windowMaker
+bin/mbuffer
 
 # Compiled source #
 ###################
