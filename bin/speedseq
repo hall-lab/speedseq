@@ -561,6 +561,8 @@ options:
             -f $REF \\
             --region \$chrom:\$start..\$end \\
             $BAM_STRING \\
+            --experimental-gls \\
+            --min-repeat-entropy 1 \\
             | awk '\$0~\"^#\" || \$6>=$MINQUAL' \\
             > ${TEMP_DIR}/$OUTBASE.\$i.vcf"
     fi
@@ -570,6 +572,8 @@ options:
         echo "$FREEBAYES \
         -f $REF \
         --region $i \
+        --experimental-gls \
+        --min-repeat-entropy 1 \
         $BAM_STRING \
         | awk '\$0~\"^#\" || \$6>=$MINQUAL' \
         > ${TEMP_DIR}/$OUTBASE.$i.vcf"
@@ -1393,11 +1397,11 @@ $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FM
         "
     fi
     # call lumpy
-    # $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES \
-    # 	$EXCLUDE_BED_FMT \
-    # 	$LUMPY_DISC_STRING \
-    # 	$LUMPY_SPL_STRING \
-    # 	> $TEMP_DIR/$OUTBASE.sv.bedpe
+    $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES \
+    	$EXCLUDE_BED_FMT \
+    	$LUMPY_DISC_STRING \
+    	$LUMPY_SPL_STRING \
+    	> $TEMP_DIR/$OUTBASE.sv.bedpe
 
     if [[ "$VERBOSE" -eq 1 ]]
     then
@@ -1554,11 +1558,12 @@ $PYTHON27 $ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r 
 	    echo -e "
 # Annotate structural variants with VEP
 cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
-    | awk '\$0~\"^#\" || \$5\!~\"[\\\\\[\\\\\]]\" && ($1<=22 || $1==\"X\" || $1==\"Y\")' \\
+    | awk '\$0~\"^#\" || ($1<=22 || $1==\"X\" || $1==\"Y\")' \\
     | $VEP \\
     --fork $THREADS \\
     -o /dev/stdout \\
     --force_overwrite \\
+    --format vcf \\
     --offline \\
     --no_stats \\
     --cache \\
@@ -1572,17 +1577,18 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
     --total_length \\
     --vcf \\
     --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE \\
-    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v \"^#\" | awk '\$5~\"[\\\\\[\\\\\]]\" || (\$1>22 && \$1!=\"X\" && \$1!=\"Y\")') \\
+    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v \"^#\" | awk '(\$1>22 && \$1!=\"X\" && \$1!=\"Y\")') \\
     > $TEMP_DIR/$OUTBASE.vep.sv.vcf
     "
 	fi
 
 	cat  $TEMP_DIR/$OUTBASE.sv.vcf \
-	    | awk '$0~"^#" || ($5!~"[\\[\\]]" && ($1<=22 || $1=="X" || $1=="Y"))' \
+	    | awk '$0~"^#" || (($1<=22 || $1=="X" || $1=="Y"))' \
 	    | $VEP \
             --fork $THREADS \
             -o /dev/stdout \
             --force_overwrite \
+	    --format vcf \
             --offline \
             --no_stats \
             --cache \
@@ -1596,7 +1602,7 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
             --total_length \
             --vcf \
             --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE \
-	    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v "^#" | awk '$5~"[\\[\\]]" || ($1>22 && $1!="X" && $1!="Y")') \
+	    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v "^#" | awk '($1>22 && $1!="X" && $1!="Y")') \
 	    > $TEMP_DIR/$OUTBASE.vep.sv.vcf
 
 	mv $TEMP_DIR/$OUTBASE.vep.sv.vcf $TEMP_DIR/$OUTBASE.sv.vcf
