@@ -1523,35 +1523,39 @@ done
     # WARNING: CNVNATOR currently only works on a single sample with one BAM file
     if [[ "$READDEPTH" -eq 1 ]]
     then
-	echo "readdepth is $READDEPTH"
-
+	echo "Calculating read depth"
 	WINDOW_SIZE=100
-	SAMPLE=`cat $TEMP_DIR/$OUTBASE.sample.config | awk '{ print $1 }' | head -n 1`
 
-	if [[ "$VERBOSE" -eq 1 ]]
-	then
-	    echo "
-# run cnvnator-multi
-$PYTHON27 $CNVNATOR_WRAPPER --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w 100 -b ${FULL_BAM_LIST[$i]} -o $TEMP_DIR/$OUTBASE.rd -c $CNVNATOR_CHROMS_DIR -g GRCh37
-            "
-	fi
-	$PYTHON27 $CNVNATOR_WRAPPER --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w 100 -b ${FULL_BAM_LIST[$i]} -o $TEMP_DIR/$OUTBASE.readdepth -c $CNVNATOR_CHROMS_DIR -g GRCh37
+	for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
+	do
+	    FULL_BAM=${FULL_BAM_LIST[$i]}
+	    SAMPLE=`cat $TEMP_DIR/$OUTBASE.sample.config | awk -v FULL_BAM=$FULL_BAM '{ if ($4==FULL_BAM) { print $1; exit } }'`
 
-	# Calculate read-depth of LUMPY calls
-	if [[ "$VERBOSE" -eq 1 ]]
-	then
-	    echo "
-# Calculate read-depth of LUMPY calls
-$PYTHON27 $ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BAM_LIST[$i]}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.sv.rd.vcf
-            "
-	fi
-	$PYTHON27 $ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BAM_LIST[$i]}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.rd.sv.vcf
+	    if [[ "$VERBOSE" -eq 1 ]]
+	    then
+		echo "
+    # run cnvnator-multi
+    $PYTHON27 $CNVNATOR_WRAPPER --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w 100 -b ${FULL_BAM} -o $TEMP_DIR/$OUTBASE.rd -c $CNVNATOR_CHROMS_DIR -g GRCh37
+		"
+	    fi
+	    $PYTHON27 $CNVNATOR_WRAPPER --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w 100 -b ${FULL_BAM} -o $TEMP_DIR/$OUTBASE.readdepth -c $CNVNATOR_CHROMS_DIR -g GRCh37
 
-	if [[ "$VERBOSE" -eq 1 ]]
-	then
-	    echo "mv $TEMP_DIR/$OUTBASE.rd.sv.vcf $TEMP_DIR/$OUTBASE.rd.sv.vcf"
-	fi
-	mv $TEMP_DIR/$OUTBASE.rd.sv.vcf $TEMP_DIR/$OUTBASE.sv.vcf
+	    # Calculate read-depth of LUMPY calls
+	    if [[ "$VERBOSE" -eq 1 ]]
+	    then
+		echo "
+    # Calculate read-depth of LUMPY calls
+    $PYTHON27 $ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BAM}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.sv.rd.vcf
+		"
+	    fi
+	    $PYTHON27 $ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BAM}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.rd.sv.vcf
+
+	    if [[ "$VERBOSE" -eq 1 ]]
+	    then
+		echo "mv $TEMP_DIR/$OUTBASE.rd.sv.vcf $TEMP_DIR/$OUTBASE.rd.sv.vcf"
+	    fi
+	    mv $TEMP_DIR/$OUTBASE.rd.sv.vcf $TEMP_DIR/$OUTBASE.sv.vcf
+	done
     fi
 
     # Annotate structural variants with VEP
@@ -1858,7 +1862,7 @@ global options:
 
     echo -e "
     $BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ | \
-        $PYTHON27 $BAMHEADRG -b $IN_BAM $REALIGN_RG_FMT | \
+        $PYTHON27 $BAMHEADRG -b <($SAMBAMBA view -f bam -l 0 $IN_BAM) $REALIGN_RG_FMT | \
 	$SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
 	$SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
 	$SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
