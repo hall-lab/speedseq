@@ -3,6 +3,7 @@ VERSION=0.0.1
 TARGET_BIN=bin
 SRC=src
 
+SPEEDSEQ_DIR=$(shell pwd)
 BWA_DIR=$(SRC)/bwa
 SAMBLASTER_DIR=$(SRC)/samblaster
 FREEBAYES_DIR=$(SRC)/freebayes
@@ -12,8 +13,10 @@ CNVNATOR_DIR=$(SRC)/cnvnator
 TABIX_DIR=$(SRC)/tabix
 VAWK_DIR=$(SRC)/vawk
 SVTOOLS_DIR=$(SRC)/svtools
+MBUFFER_DIR=$(SRC)/mbuffer
+SCRIPTS_DIR=$(SRC)/scripts
 
-all:	bwa samblaster freebayes lumpy svtyper tabix vawk svtools cnvnator-multi
+all:	bwa samblaster freebayes lumpy svtyper tabix vawk svtools mbuffer scripts cnvnator-multi
 
 bwa:
 	$(MAKE) -C $(BWA_DIR)
@@ -62,6 +65,15 @@ svtools:
 	cp $(SVTOOLS_DIR)/splitterToBreakpoint $(TARGET_BIN)
 	cp $(SVTOOLS_DIR)/vcfToBedpe $(TARGET_BIN)
 
+mbuffer:
+	cd $(MBUFFER_DIR); ./configure --prefix=$(shell pwd)
+	$(MAKE) -C $(MBUFFER_DIR)
+	cp $(MBUFFER_DIR)/mbuffer $(TARGET_BIN)
+
+scripts:
+	cp $(SCRIPTS_DIR)/bamtofastq.py $(TARGET_BIN)
+	cp $(SCRIPTS_DIR)/bamheadrg.py $(TARGET_BIN)
+
 clean:
 	rm -f bin/bedpeToBed12 bin/bedpeToVcf bin/bgzip bin/cnvnator bin/cnvnator2VCF.pl bin/cnvnator_wrapper.py bin/freebayes bin/lumpy bin/pairend_distro.py bin/samblaster bin/splitReadSamToBedpe bin/splitterToBreakpoint bin/svtyper bin/tabix bin/vawk bin/vcfToBedpe
 	$(MAKE) -C $(BWA_DIR) clean
@@ -71,3 +83,4 @@ clean:
 	$(MAKE) -C $(CNVNATOR_DIR) clean
 	$(MAKE) -C $(LUMPY_DIR) clean
 	$(MAKE) -C $(TABIX_DIR) clean
+	$(MAKE) -C $(MBUFFER_DIR) clean

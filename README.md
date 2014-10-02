@@ -243,10 +243,10 @@ sudo cp src/parallel /usr/local/bin/
 
 ##Usage
 
-SpeedSeq is a modular pipeline with four components: [`aln`](#speedseq-aln), [`var`](#speedseq-var), [`somatic`](#speedseq-somatic), and [`sv`](#speedseq-sv).
+SpeedSeq is a modular pipeline with four components: [`align`](#speedseq-align), [`var`](#speedseq-var), [`somatic`](#speedseq-somatic), and [`sv`](#speedseq-sv).
 
-* [`speedseq aln`](#speedseq-aln)
-  * Take paired-end fastq sequences as input, and produce a duplicate-marked, sorted, indexed BAM file that can be processed with other speedseq modules. Currently, speedseq aln does not support single-end reads.
+* [`speedseq align`](#speedseq-align)
+  * Take paired-end fastq sequences as input, and produce a duplicate-marked, sorted, indexed BAM file that can be processed with other speedseq modules. Currently, speedseq align does not support single-end reads.
 * [`speedseq var`](#speedseq-var)
   * Run FreeBayes one or more BAM files
 * [`speedseq somatic`](#speedseq-somatic)
@@ -254,11 +254,11 @@ SpeedSeq is a modular pipeline with four components: [`aln`](#speedseq-aln), [`v
 * [`speedseq sv`](#speedseq-sv)
   * Run LUMPY on one or more BAM files, with breakend genotyping and read-depth calculation.
 
-###speedseq aln
+###speedseq align
 
-`speedseq aln` takes paired-end fastq sequences as input, and produces a duplicate-marked, sorted, indexed BAM file that can be processed with other SpeedSeq modules. Currently, `speedseq aln` does not support single-end reads.
+`speedseq align` takes paired-end fastq sequences as input, and produces a duplicate-marked, sorted, indexed BAM file that can be processed with other SpeedSeq modules. Currently, `speedseq align` does not support single-end reads.
 
-Internally, `speedseq aln` runs the following steps to produce [three output BAM files](#output):
+Internally, `speedseq align` runs the following steps to produce [three output BAM files](#output):
 
 1. Alignment with BWA-MEM
    * Prior to alignment, run `bwa index genome.fasta` on the reference genome
@@ -268,7 +268,7 @@ Internally, `speedseq aln` runs the following steps to produce [three output BAM
 5. BAM indexing with Sambamba
 
 ```
-usage:   speedseq aln [options] <reference.fa> <in1.fq> [in2.fq]
+usage:   speedseq align [options] <reference.fa> <in1.fq> [in2.fq]
 ```
 
 #####Positional arguments
@@ -319,14 +319,14 @@ These options determine the behavior of SAMBLASTER
 
 ####Output
 
-`speedseq aln` produces three sorted, indexed BAM files (plus their corresponding .bai index files):
+`speedseq align` produces three sorted, indexed BAM files (plus their corresponding .bai index files):
 
 * `outprefix.bam`
   * The full, duplicate-marked, sorted BAM file for the library. This file may serve as input for [`speedseq var`](#speedseq-var), [`speedseq somatic`](#speedseq-somatic), and [`speedseq sv`](#speedseq-sv).
 * `outprefix.splitters.bam`
-  * This BAM file contains split reads called by the BWA-MEM alignment of the library. It may be used as the `-S` flag input to [`speedseq sv`](#speedseq-sv). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a [`speedseq aln`](#speedseq-aln) command line parameter.
+  * This BAM file contains split reads called by the BWA-MEM alignment of the library. It may be used as the `-S` flag input to [`speedseq sv`](#speedseq-sv). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a [`speedseq align`](#speedseq-align) command line parameter.
 * `outprefix.discordants.bam`
-  * This BAM file contains discordant read-pairs called by the BWA-MEM alignment of the library. These reads may be discordant by strand orientation, intrachromosomal distance, or interchromosomal mapping. This BAM file may be used as the `-D` flag input to [`speedseq sv`](#speedseq-sv). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a [`speedseq aln`](#speedseq-aln) command line parameter.
+  * This BAM file contains discordant read-pairs called by the BWA-MEM alignment of the library. These reads may be discordant by strand orientation, intrachromosomal distance, or interchromosomal mapping. This BAM file may be used as the `-D` flag input to [`speedseq sv`](#speedseq-sv). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a [`speedseq align`](#speedseq-align) command line parameter.
 
 ###speedseq var
 
@@ -518,17 +518,17 @@ In the [`speedseq sv`](#speedseq-sv) module, we recommend excluding the genomic 
 
 ###Call variants on a single sample
 
-1. Use `speedseq aln` to produce a sorted, duplicate-marked, BAM alignment from paired-end fastq data.
+1. Use `speedseq align` to produce a sorted, duplicate-marked, BAM alignment from paired-end fastq data.
 
   ```
-  speedseq aln -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
+  speedseq align -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
       human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
   ```
 
   Note: if using an interleaved paired-end fastq file, use the `-p` flag
 
   ```
-  speedseq aln -p -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
+  speedseq align -p -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
       human_g1k_v37.fasta NA12878.interleaved.fq.gz
   ```
 
@@ -554,16 +554,16 @@ In the [`speedseq sv`](#speedseq-sv) module, we recommend excluding the genomic 
 
 ###Call variants on a single sample sequenced with multiple libraries
 
-1. Use `speedseq aln` to produce a sorted, duplicate-marked, BAM alignment of each library.
+1. Use `speedseq align` to produce a sorted, duplicate-marked, BAM alignment of each library.
 
   ```
-  speedseq aln -o NA12878_S1 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
+  speedseq align -o NA12878_S1 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
       human_g1k_v37.fasta NA12878.S1.1.fq.gz NA12878.S1.2.fq.gz
 
-  speedseq aln -o NA12878_S2 -R "@RG\tID:NA12878.S2\tSM:NA12878" \
+  speedseq align -o NA12878_S2 -R "@RG\tID:NA12878.S2\tSM:NA12878" \
       human_g1k_v37.fasta NA12878.S2.1.fq.gz NA12878.S2.2.fq.gz
 
-  speedseq aln -o NA12878_S3 -R "@RG\tID:NA12878.S3\tSM:NA12878" \
+  speedseq align -o NA12878_S3 -R "@RG\tID:NA12878.S3\tSM:NA12878" \
       human_g1k_v37.fasta NA12878.S3.1.fq.gz NA12878.S3.2.fq.gz
   ```
 
@@ -586,16 +586,16 @@ In the [`speedseq sv`](#speedseq-sv) module, we recommend excluding the genomic 
 
 ###Call variants on multiple samples
 
-1. Use `speedseq aln` to produce sorted, duplicate-marked, BAM alignments for each sample.
+1. Use `speedseq align` to produce sorted, duplicate-marked, BAM alignments for each sample.
 
   ```
-  speedseq aln -o NA12877 -R "@RG\tID:NA12877.S1\tSM:NA12877" \
+  speedseq align -o NA12877 -R "@RG\tID:NA12877.S1\tSM:NA12877" \
       human_g1k_v37.fasta NA12877.1.fq.gz NA12877.2.fq.gz
 
-  speedseq aln -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
+  speedseq align -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
       human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
 
-  speedseq aln -o NA12879 -R "@RG\tID:NA12879.S1\tSM:NA12879" \
+  speedseq align -o NA12879 -R "@RG\tID:NA12879.S1\tSM:NA12879" \
       human_g1k_v37.fasta NA12879.1.fq.gz NA12879.2.fq.gz
   ```
 
@@ -619,14 +619,14 @@ In the [`speedseq sv`](#speedseq-sv) module, we recommend excluding the genomic 
 
 ###Call variants on a tumor/normal pair
 
-1. Use `speedseq aln` to produce sorted, duplicate-marked, BAM alignments for the tumor/normal pair
+1. Use `speedseq align` to produce sorted, duplicate-marked, BAM alignments for the tumor/normal pair
 
   ```
-  speedseq aln -p -o TCGA-B6-A0I6.normal \
+  speedseq align -p -o TCGA-B6-A0I6.normal \
       -R "@RG\tID:TCGA-B6-A0I6-10A-01D-A128-09\tSM:TCGA-B6-A0I6-10A-01D-A128-09" \
       human_g1k_v37.fasta TCGA-B6-A0I6-10A-01D-A128-09.interleaved.fq.gz
 
-  speedseq aln -p -o TCGA-B6-A0I6.tumor \
+  speedseq align -p -o TCGA-B6-A0I6.tumor \
       -R "@RG\tID:TCGA-B6-A0I6-01A-11D-A128-09\tSM:TCGA-B6-A0I6-01A-11D-A128-09" \
       human_g1k_v37.fasta TCGA-B6-A0I6-01A-11D-A128-09.interleaved.fq.gz
   ```

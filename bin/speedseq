@@ -31,9 +31,12 @@ function source_binaries() {
 	TABIX=`which tabix || true`
 	LUMPY=`which lumpy || true`
 	PAIREND_DISTRO=`which pairend_distro.py || true`
-	BEDPETOVCF="$SPEEDSEQ_HOME/src/sv-tools/bedpeToVcf"
-	SVTYPER="$SPEEDSEQ_HOME/src/svtyper/svtyper"
+	BEDPETOVCF=$SPEEDSEQ_HOME/bin/bedpeToVcf
+	SVTYPER=$SPEEDSEQ_HOME/bin/svtyper
 	PYTHON27=`which python2.7 || true`
+	MBUFFER=$SPEEDSEQ_HOME/bin/mbuffer
+	BAMTOFASTQ=$SPEEDSEQ_HOME/bin/bamtofastq.py
+	BAMHEADRG=$SPEEDSEQ_HOME/bin/bamheadrg.py
     fi
 }
 
@@ -46,10 +49,11 @@ Author: Colby Chiang (cc2qe@virginia.edu)
 
 usage:   speedseq <command> [options]
 
-command: aln      align fastq files with BWA-MEM
+command: align    align fastq files with BWA-MEM
          var      call variants with freebayes
          somatic  call somatic variants in a tumor/normal pair with freebayes
          sv       call SVs with lumpy
+         re-align re-align from a coordinate sorted BAM file
 
 options: -h       show this message
 "
@@ -85,10 +89,10 @@ function somatic_filter() {
 }
 
 # alignment with BWA-MEM
-function aln() {
-    function aln_usage() {
+function align() {
+    function align_usage() {
 	echo "
-usage:   speedseq aln [options] <reference.fa> <in1.fq> [in2.fq]
+usage:   speedseq align [options] <reference.fa> <in1.fq> [in2.fq]
 
 positional args:
          reference.fa
@@ -104,6 +108,10 @@ alignment options:
          -p       first fastq file consists of interleaved paired-end sequences
          -t INT   threads [1]
          -T DIR   temp directory [./temp]
+         -I FLOAT[,FLOAT[,INT[,INT]]]
+                  specify the mean, standard deviation (10% of the mean if absent), max
+                    (4 sigma from the mean if absent) and min of the insert size distribution.
+                    FR orientation only. [inferred]
 
 samblaster options:
          -i       include duplicates in splitters and discordants
@@ -123,7 +131,7 @@ global options:
     # Check options passed in.
     if test -z "$2"
     then
-	aln_usage
+	align_usage
 	exit 1
     fi
 
@@ -139,13 +147,14 @@ global options:
     THREADS=1
     TEMP_DIR="./temp"
     VERBOSE=0
+    INS_DIST=""
     SORT_MEM=20 # amount of memory for sorting, in gigabytes
 
-    while getopts ":hw:o:R:pic:m:M:t:T:vK:" OPTION
+    while getopts ":hw:o:R:pic:m:M:t:T:I:vK:" OPTION
     do
 	case "${OPTION}" in
 	    h)
-		aln_usage
+		align_usage
 		exit 1
 		;;
 	    R)
@@ -176,6 +185,9 @@ global options:
 	    T)
 		TEMP_DIR="$OPTARG"
 		;;
+	    I)
+		INS_DIST="-I $OPTARG"
+		;;
 	    v)
 		VERBOSE=1
 		;;
@@ -197,12 +209,12 @@ global options:
         # Check that the ref and fastq files exist
 	if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
 	then
-            aln_usage
+            align_usage
             echo -e "Error: Reference file $REF not found.\n"
             exit 1
 	elif [[ -z "$FQ" ]] || [[ ! -e "$FQ" ]]
 	then
-            aln_usage
+            align_usage
             echo -e "Error: Fastq file $FQ not found.\n"
             exit 1
 	fi
@@ -218,17 +230,17 @@ global options:
         # Check that the ref and fastq files exist
 	if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
 	then
-            aln_usage
+            align_usage
             echo -e "Error: Reference file $REF not found.\n"
             exit 1
 	elif [[ -z "$FQ1" ]] || [[ ! -e "$FQ1" ]]
 	then
-            aln_usage
+            align_usage
             echo -e "Error: Fastq file $FQ1 not found.\n"
             exit 1
 	elif [[ -z "$FQ2" ]] || [[ ! -e "$FQ2" ]]
 	then
-            aln_usage
+            align_usage
             echo -e "Error: Fastq file $FQ2 not found. (single-end reads not supported)\n"
             exit 1
 	fi
@@ -239,7 +251,7 @@ global options:
     # Check for readgroup flag
     if [[ -z $RG_FMT ]]
     then
-	aln_usage
+	align_usage
 	echo -e "Error: no readgroup found. Please set a readgroup with the -R flag.\n"
 	exit 1
     fi
@@ -249,17 +261,17 @@ global options:
 
     if [[ -z "$BWA" ]]
     then
-	aln_usage
+	align_usage
         echo -e "Error: bwa executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z  "$SAMBLASTER" ]]
     then
-	aln_usage
+	align_usage
         echo -e "Error: samblaster executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z "$SAMBAMBA" ]]
     then
-	aln_usage
+	align_usage
         echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     fi
@@ -285,12 +297,12 @@ global options:
     fi
 
     # alignment command
-    if [[ $INTERLEAVED -eq 1 ]]
+    if [[ "$INTERLEAVED" -eq 1 ]] || [[ "$REALIGN_BAM" -eq 1 ]]
     then
 	if [[ $VERBOSE -eq 1 ]]
 	then
 	    echo -e "
-        $BWA mem -t $THREADS -M -p $RG_FMT $REF $FQ | \\
+        $BWA mem -t $THREADS -M -p $INS_DIST $RG_FMT $REF $FQ | \\
             $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
@@ -302,7 +314,7 @@ global options:
 	fi
 
 	echo "
-        $BWA mem -t $THREADS -M -p $RG_FMT $REF $FQ | \
+        $BWA mem -t $THREADS -M -p $INS_DIST $RG_FMT $REF $FQ | \
 	    $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
 	    $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
@@ -316,7 +328,7 @@ global options:
 	if [[ $VERBOSE -eq 1 ]]
 	then
         echo -e "
-        $BWA mem -t $THREADS -M $RG_FMT $REF $FQ1 $FQ2 | \\
+        $BWA mem -t $THREADS -M $INS_DIST $RG_FMT $REF $FQ1 $FQ2 | \\
             $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
@@ -328,7 +340,7 @@ global options:
 	fi
 
         echo "
-        $BWA mem -t $THREADS -M $RG_FMT $REF $FQ1 $FQ2 | \
+        $BWA mem -t $THREADS -M $INS_DIST $RG_FMT $REF $FQ1 $FQ2 | \
             $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
@@ -549,6 +561,8 @@ options:
             -f $REF \\
             --region \$chrom:\$start..\$end \\
             $BAM_STRING \\
+            --experimental-gls \\
+            --min-repeat-entropy 1 \\
             | awk '\$0~\"^#\" || \$6>=$MINQUAL' \\
             > ${TEMP_DIR}/$OUTBASE.\$i.vcf"
     fi
@@ -558,6 +572,8 @@ options:
         echo "$FREEBAYES \
         -f $REF \
         --region $i \
+        --experimental-gls \
+        --min-repeat-entropy 1 \
         $BAM_STRING \
         | awk '\$0~\"^#\" || \$6>=$MINQUAL' \
         > ${TEMP_DIR}/$OUTBASE.$i.vcf"
@@ -899,6 +915,8 @@ options:
 	echo -e "
         $FREEBAYES -f $REF \\
             --pooled-discrete \\
+            --pooled-continuous \\
+            --min-repeat-entropy 1 \\
             --genotype-qualities \\
             --min-alternate-fraction ${MIN_ALT_FRACTION} \\
             --min-alternate-count ${MIN_ALT_COUNT} \\
@@ -912,7 +930,9 @@ options:
 	# see the function somatic_filter for a more readable version of this awk command
 	echo -e "$FREEBAYES -f $REF \
         --pooled-discrete \
+        --pooled-continuous \
         --genotype-qualities \
+        --min-repeat-entropy 1 \
         --min-alternate-fraction ${MIN_ALT_FRACTION} \
         --min-alternate-count ${MIN_ALT_COUNT} \
         --region $i \
@@ -1346,7 +1366,18 @@ global options:
             then
 		READ_LENGTH=`$SAMBAMBA view $FULL_BAM | head -n 10000 | awk 'BEGIN { MAX_LEN=0 } { LEN=length($10); if (LEN>MAX_LEN) MAX_LEN=LEN } END { print MAX_LEN }'`
             fi
-	    
+
+	    if [[ "VERBOSE" -eq 1 ]]
+	    then
+		echo "
+# calculate stats
+$SAMBAMBA view -F \"paired and proper_pair and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)\" $FULL_BAM \\
+    | head -n 10000000 | tail -n 1000000 \\
+    | $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$FULL_BASE.x4.histo \\
+    > ${TEMP_DIR}/$FULL_BASE.insert.stats
+	    "
+	    fi
+
             # calculate stats
             $SAMBAMBA view -F "paired and proper_pair and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)" $FULL_BAM \
 		| head -n 10000000 | tail -n 1000000 \
@@ -1383,10 +1414,10 @@ $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FM
 cat $TEMP_DIR/$OUTBASE.sv.bedpe \\
     | $PYTHON27 $BEDPETOVCF -t LUMPY -c $TEMP_DIR/$OUTBASE.sample.config -f $REF \\
     | awk -v MIN_WEIGHT=$MIN_WEIGHT 'BEGIN {S_IDX=0} {
-        if ($0~\"^#\") print
+        if (\$0~\"^#\") print
         else {
             if (S_IDX==0) {
-                split($9,fmt,\":\");
+                split(\$9,fmt,\":\");
                 for (i=1;i<=length(fmt);++i) {
                     if (fmt[i]==\"SUP\") S_IDX=i
                 }
@@ -1394,7 +1425,7 @@ cat $TEMP_DIR/$OUTBASE.sv.bedpe \\
             else {
                 PASS=0
                 for (i=10;i<=NF;++i) {
-                    split($i,a,\":\");
+                    split(\$i,a,\":\");
                     if (a[S_IDX]>=MIN_WEIGHT) PASS=1;
                 }
             }
@@ -1492,35 +1523,39 @@ done
     # WARNING: CNVNATOR currently only works on a single sample with one BAM file
     if [[ "$READDEPTH" -eq 1 ]]
     then
-	echo "readdepth is $READDEPTH"
-
+	echo "Calculating read depth"
 	WINDOW_SIZE=100
-	SAMPLE=`cat $TEMP_DIR/$OUTBASE.sample.config | awk '{ print $1 }' | head -n 1`
 
-	if [[ "$VERBOSE" -eq 1 ]]
-	then
-	    echo "
-# run cnvnator-multi
-$PYTHON27 $CNVNATOR_WRAPPER --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w 100 -b ${FULL_BAM_LIST[$i]} -o $TEMP_DIR/$OUTBASE.rd -c $CNVNATOR_CHROMS_DIR -g GRCh37
-            "
-	fi
-	$PYTHON27 $CNVNATOR_WRAPPER --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w 100 -b ${FULL_BAM_LIST[$i]} -o $TEMP_DIR/$OUTBASE.readdepth -c $CNVNATOR_CHROMS_DIR -g GRCh37
+	for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
+	do
+	    FULL_BAM=${FULL_BAM_LIST[$i]}
+	    SAMPLE=`cat $TEMP_DIR/$OUTBASE.sample.config | awk -v FULL_BAM=$FULL_BAM '{ if ($4==FULL_BAM) { print $1; exit } }'`
 
-	# Calculate read-depth of LUMPY calls
-	if [[ "$VERBOSE" -eq 1 ]]
-	then
-	    echo "
-# Calculate read-depth of LUMPY calls
-$PYTHON27 $ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BAM_LIST[$i]}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.sv.rd.vcf
-            "
-	fi
-	$PYTHON27 $ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BAM_LIST[$i]}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.rd.sv.vcf
+	    if [[ "$VERBOSE" -eq 1 ]]
+	    then
+		echo "
+    # run cnvnator-multi
+    $PYTHON27 $CNVNATOR_WRAPPER --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w 100 -b ${FULL_BAM} -o $TEMP_DIR/$OUTBASE.rd -c $CNVNATOR_CHROMS_DIR -g GRCh37
+		"
+	    fi
+	    $PYTHON27 $CNVNATOR_WRAPPER --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w 100 -b ${FULL_BAM} -o $TEMP_DIR/$OUTBASE.readdepth -c $CNVNATOR_CHROMS_DIR -g GRCh37
 
-	if [[ "$VERBOSE" -eq 1 ]]
-	then
-	    echo "mv $TEMP_DIR/$OUTBASE.rd.sv.vcf $TEMP_DIR/$OUTBASE.rd.sv.vcf"
-	fi
-	mv $TEMP_DIR/$OUTBASE.rd.sv.vcf $TEMP_DIR/$OUTBASE.sv.vcf
+	    # Calculate read-depth of LUMPY calls
+	    if [[ "$VERBOSE" -eq 1 ]]
+	    then
+		echo "
+    # Calculate read-depth of LUMPY calls
+    $PYTHON27 $ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BAM}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.sv.rd.vcf
+		"
+	    fi
+	    $PYTHON27 $ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BAM}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.rd.sv.vcf
+
+	    if [[ "$VERBOSE" -eq 1 ]]
+	    then
+		echo "mv $TEMP_DIR/$OUTBASE.rd.sv.vcf $TEMP_DIR/$OUTBASE.rd.sv.vcf"
+	    fi
+	    mv $TEMP_DIR/$OUTBASE.rd.sv.vcf $TEMP_DIR/$OUTBASE.sv.vcf
+	done
     fi
 
     # Annotate structural variants with VEP
@@ -1531,11 +1566,12 @@ $PYTHON27 $ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r 
 	    echo -e "
 # Annotate structural variants with VEP
 cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
-    | awk '\$0~\"^#\" || \$5\!~\"[\\\\\[\\\\\]]\" && ($1<=22 || $1==\"X\" || $1==\"Y\")' \\
+    | awk '\$0~\"^#\" || ($1<=22 || $1==\"X\" || $1==\"Y\")' \\
     | $VEP \\
     --fork $THREADS \\
     -o /dev/stdout \\
     --force_overwrite \\
+    --format vcf \\
     --offline \\
     --no_stats \\
     --cache \\
@@ -1549,17 +1585,18 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
     --total_length \\
     --vcf \\
     --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE \\
-    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v \"^#\" | awk '\$5~\"[\\\\\[\\\\\]]\" || (\$1>22 && \$1!=\"X\" && \$1!=\"Y\")') \\
+    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v \"^#\" | awk '(\$1>22 && \$1!=\"X\" && \$1!=\"Y\")') \\
     > $TEMP_DIR/$OUTBASE.vep.sv.vcf
     "
 	fi
 
 	cat  $TEMP_DIR/$OUTBASE.sv.vcf \
-	    | awk '$0~"^#" || ($5!~"[\\[\\]]" && ($1<=22 || $1=="X" || $1=="Y"))' \
+	    | awk '$0~"^#" || (($1<=22 || $1=="X" || $1=="Y"))' \
 	    | $VEP \
             --fork $THREADS \
             -o /dev/stdout \
             --force_overwrite \
+	    --format vcf \
             --offline \
             --no_stats \
             --cache \
@@ -1573,7 +1610,7 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
             --total_length \
             --vcf \
             --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE \
-	    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v "^#" | awk '$5~"[\\[\\]]" || ($1>22 && $1!="X" && $1!="Y")') \
+	    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v "^#" | awk '($1>22 && $1!="X" && $1!="Y")') \
 	    > $TEMP_DIR/$OUTBASE.vep.sv.vcf
 
 	mv $TEMP_DIR/$OUTBASE.vep.sv.vcf $TEMP_DIR/$OUTBASE.sv.vcf
@@ -1590,6 +1627,271 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
     fi
 
     echo "done"
+
+    # exit cleanly
+    exit 0
+}
+
+function re-align() {
+    function re-align_usage() {
+	echo "
+usage:   speedseq re-align [options] <reference.fa> <in.bam>
+
+positional args:
+         reference.fa
+                  fasta file (indexed with bwa)
+         in.bam   re-align from a coordinate sorted BAM file
+
+alignment options:
+         -o STR   output prefix [in.realign]
+         -I FLOAT[,FLOAT[,INT[,INT]]]
+                  specify the mean, standard deviation (10% of the mean if absent), max
+                    (4 sigma from the mean if absent) and min of the insert size distribution.
+                    FR orientation only. [inferred]
+         -g STR   re-align this read group from the coordinate sorted BAM file
+         -n       rename reads for smaller file size (ONLY WORKS FOR re-alignment right now)
+         -t INT   threads [1]
+         -T DIR   temp directory [./temp]
+
+samblaster options:
+         -i       include duplicates in splitters and discordants
+         -c INT   maximum number of split alignments for a read to be included in splitter file [2]
+         -m INT   minimum non-overlapping base pairs between two alignments for a read to be included in splitter file [20]
+
+sambamba options:
+         -M       amount of memory in GB to be used for sorting [20]
+
+global options:
+         -K FILE  path to speedseq.config file (default: same directory as speedseq)
+         -v       verbose
+         -h       show this message
+"
+    }
+
+    # Check options passed in.
+    if test -z "$2"
+    then
+	re-align_usage
+	exit 1
+    fi
+
+    # set defaults
+    SPEEDSEQ_DIR=`dirname $0`
+    CONFIG="$SPEEDSEQ_DIR/speedseq.config"
+    INTERLEAVED=0
+    RG_FMT=""
+    OUTPUT=""
+    INCLUDE_DUPS="--excludeDups"
+    MAX_SPLIT_COUNT=2
+    MIN_NON_OVERLAP=20
+    THREADS=1
+    TEMP_DIR="./temp"
+    VERBOSE=0
+    INS_DIST=""
+    REALIGN_RG_FMT=""
+    RENAME=""
+    SORT_MEM=20 # amount of memory for sorting, in gigabytes
+
+    while getopts ":hw:o:R:pic:m:M:t:T:g:I:nvK:" OPTION
+    do
+	case "${OPTION}" in
+	    h)
+		re-align_usage
+		exit 1
+		;;
+	    R)
+		RG="$OPTARG"
+		RG_FMT="-R '$OPTARG'"
+		;;
+	    p)
+		INTERLEAVED=1
+		;;
+	    o)
+		OUTPUT="$OPTARG"
+		;;
+	    i)
+		INCLUDE_DUPS=""
+		;;
+	    c)
+		MAX_SPLIT_COUNT="$OPTARG"
+		;;
+	    m)
+		MIN_NON_OVERLAP="$OPTARG"
+		;;
+	    M)
+		SORT_MEM="$OPTARG"
+		;;
+	    n)
+		RENAME="-n"
+		;;
+	    t)
+		THREADS="$OPTARG"
+		;;
+	    T)
+		TEMP_DIR="$OPTARG"
+		;;
+	    g)
+		REALIGN_RG="$OPTARG"
+		REALIGN_RG_FMT="-r $OPTARG"
+		;;
+	    I)
+		INS_DIST="-I $OPTARG"
+		;;
+	    v)
+		VERBOSE=1
+		;;
+	    K)
+		CONFIG="$OPTARG"
+		;;
+	esac
+    done
+
+    REF="${@:${OPTIND}:1}"
+    IN_BAM="${@:$((${OPTIND}+1)):1}"
+    if [[ -z "$OUTPUT" ]]
+    then
+	OUTPUT=`basename "$IN_BAM" ".bam"`".realign"
+    fi
+
+    # Check that the ref and bam files exist
+    if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
+    then
+	re-align_usage
+	echo -e "Error: Reference file $REF not found.\n"
+	exit 1
+    elif [[ -z "$IN_BAM" ]] || [[ ! -e "$IN_BAM" ]]
+    then
+	re-align_usage
+	echo -e "Error: BAM file $IN_BAM not found.\n"
+	exit 1
+    fi
+
+    # Check the for the relevant binaries
+    source_binaries $CONFIG
+    if [[ -z "$BWA" ]]
+    then
+	re-align_usage
+        echo -e "Error: bwa executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z  "$SAMBLASTER" ]]
+    then
+	re-align_usage
+        echo -e "Error: samblaster executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z "$SAMBAMBA" ]]
+    then
+	re-align_usage
+        echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z "$MBUFFER" ]]
+    then
+	re-align_usage
+	echo -e "Error: mbuffer executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+	exit 1
+    elif [[ -z "$BAMTOFASTQ" ]]
+    then
+	re-align_usage
+	echo -e "Error: bamtofastq.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+	exit 1
+    elif [[ -z "$BAMHEADRG" ]]
+    then
+	re-align_usage
+	echo -e "Error: bamheadrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+	exit 1
+    fi
+
+    # # Check for readgroup flag
+    # if [[ -z $RG_FMT ]]
+    # then
+    # 	align_usage
+    # 	echo -e "Error: no readgroup found. Please set a readgroup with the -R flag.\n"
+    # 	exit 1
+    # fi
+
+    # set the output name
+    OUTBASE=`basename "$OUTPUT"`
+
+    echo "Aligning..."
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo "
+        mkdir -p $TEMP_DIR $TEMP_DIR/full $TEMP_DIR/spl $TEMP_DIR/disc
+        mkdir -p $TEMP_DIR/full $TEMP_DIR/spl $TEMP_DIR/disc
+        mkfifo $TEMP_DIR/spl_pipe $TEMP_DIR/disc_pipe $TEMP_DIR/fq_pipe"
+    fi
+
+    # create temp files and pipes
+    mkdir -p $TEMP_DIR $TEMP_DIR/full $TEMP_DIR/spl $TEMP_DIR/disc
+    if [[ ! -e $TEMP_DIR/spl_pipe ]]
+    then
+	mkfifo $TEMP_DIR/spl_pipe
+    fi
+    if [[ ! -e $TEMP_DIR/disc_pipe ]]
+    then
+	mkfifo $TEMP_DIR/disc_pipe
+    fi
+    if [[ ! -e $TEMP_DIR/fq_pipe ]]
+    then
+	mkfifo $TEMP_DIR/fq_pipe
+    fi
+    FQ="$TEMP_DIR/fq_pipe"
+
+    # create the virtual file for fastq pipe
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo "
+        $PYTHON27 $BAMTOFASTQ $REALIGN_RG_FMT $RENAME -i $IN_BAM | $MBUFFER -m 1G > $TEMP_DIR/fq_pipe &"
+    fi
+    $PYTHON27 $BAMTOFASTQ $REALIGN_RG_FMT $RENAME -i $IN_BAM | $MBUFFER -m 1G > $TEMP_DIR/fq_pipe &
+
+    # alignment command
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo -e "
+    $BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ | \\
+        $PYTHON27 $BAMHEADRG -b $IN_BAM $REALIGN_RG_FMT | \\
+	$SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
+	$SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
+	$SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
+
+    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \\
+	$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
+    $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \\
+	$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin"
+    fi
+
+    echo -e "
+    $BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ | \
+        $PYTHON27 $BAMHEADRG -b <($SAMBAMBA view -f bam -l 0 $IN_BAM) $REALIGN_RG_FMT | \
+	$SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
+	$SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
+	$SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
+
+    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \
+	$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
+    $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
+	$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
+    " | parallel -j 3
+    
+    # index the files
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo -e "
+        $SAMBAMBA index $OUTPUT.bam
+            $SAMBAMBA index $OUTPUT.discordants.bam
+            $SAMBAMBA index $OUTPUT.splitters.bam"
+    fi
+
+    echo "
+    $SAMBAMBA index $OUTPUT.bam
+    $SAMBAMBA index $OUTPUT.discordants.bam
+    $SAMBAMBA index $OUTPUT.splitters.bam
+    " | parallel -j 3
+
+    # clean up
+    rm -r $TEMP_DIR
+
+    echo "Done"
 
     # exit cleanly
     exit 0
@@ -1620,8 +1922,8 @@ done
 
 # call the function
 case "$1" in 
-    'aln')
-	aln "${@:2}"
+    'align')
+	align "${@:2}"
 	;;
     'var')
 	var "${@:2}"
@@ -1631,6 +1933,9 @@ case "$1" in
 	;;
     'sv')
 	sv "${@:2}"
+	;;
+    're-align')
+	re-align "${@:2}"
 	;;
     *)
 	usage
