@@ -1422,7 +1422,7 @@ cat $TEMP_DIR/$OUTBASE.sv.bedpe \\
                     if (fmt[i]==\"SUP\") S_IDX=i
                 }
             }
-            else {
+            if (S_IDX!=0) {
                 PASS=0
                 for (i=10;i<=NF;++i) {
                     split(\$i,a,\":\");
@@ -1448,7 +1448,7 @@ cat $TEMP_DIR/$OUTBASE.sv.bedpe \\
                         if (fmt[i]=="SUP") S_IDX=i
                     }
                 }
-                else {
+                if (S_IDX!=0) {
                     PASS=0
                     for (i=10;i<=NF;++i) {
                         split($i,a,":");
@@ -1566,7 +1566,7 @@ done
 	    echo -e "
 # Annotate structural variants with VEP
 cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
-    | awk '\$0~\"^#\" || ($1<=22 || $1==\"X\" || $1==\"Y\")' \\
+    | awk '\$0~\"^#\" || (\$1<=22 || \$1==\"X\" || \$1==\"Y\")' \\
     | $VEP \\
     --fork $THREADS \\
     -o /dev/stdout \\
