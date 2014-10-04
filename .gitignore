@@ -61,6 +61,8 @@ bin/unionBedGraphs
 bin/windowBed
 bin/windowMaker
 bin/mbuffer
+bin/bamheadrg.py
+bin/bamtofastq.py
 
 # Compiled source #
 ###################

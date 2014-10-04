@@ -290,6 +290,11 @@ global options:
 	align_usage
         echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
+    elif [[ -z "$PARALLEL" ]]
+    then
+	align_usage
+        echo -e "Error: parallel executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
     fi
 
     echo "Aligning..."
@@ -518,6 +523,12 @@ options:
 	var_usage
         echo -e "Error: VEP cache directory not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
+    elif [[ -z "$PARALLEL" ]]
+    then
+	var_usage
+        echo -e "Error: parallel executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+
     fi
 
     # Check that ANNOTATE is either true or false
@@ -873,6 +884,11 @@ options:
     then
         somatic_usage
         echo -e "Error: VEP cache directory not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ ! -f "$PARALLEL" ]]
+    then
+        somatic_usage
+        echo -e "Error: parallel executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     fi
 
@@ -1790,15 +1806,12 @@ global options:
 	re-align_usage
 	echo -e "Error: bamheadrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
+    elif [[ ! -z "$PARALLEL" ]]
+    then
+        re-align_usage
+        echo -e "Error: parallel executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
     fi
-
-    # # Check for readgroup flag
-    # if [[ -z $RG_FMT ]]
-    # then
-    # 	align_usage
-    # 	echo -e "Error: no readgroup found. Please set a readgroup with the -R flag.\n"
-    # 	exit 1
-    # fi
 
     # set the output name
     OUTBASE=`basename "$OUTPUT"`
