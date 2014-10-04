@@ -36,10 +36,25 @@ def bamtofastq(bamfile, is_sam, readgroup, rename):
     d = {}
     counter = 0
     for al in bam.fetch():
-        if al.is_secondary or (rg_list and al.opt('RG') not in rg_list): continue
+        # must be primary read alignment
+        if (al.is_secondary):
+            continue
+
+        # must be in a user specified readgroup
+        if rg_list and al.opt('RG') not in rg_list:
+            continue
+
+        # ensures the read is not hard-clipped. important
+        # when the BAM doesn't have shorter hits flagged as
+        # secondary
+        if 5 in [x[0] for x in al.cigar]:
+            continue
+
+        # add read name to dictionary if not already there
         key = al.qname
         if key not in d:
             d.setdefault(key,al)
+        # print matched read pairs
         else:
             # RG:Z:ID
             RG1 = d[key].opt('RG')
