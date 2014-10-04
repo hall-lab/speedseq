@@ -19,24 +19,40 @@ function source_binaries() {
 	fi
     else
 	echo "Config file $1 not found. Attempting to auto-source executables"
+	# general
 	SPEEDSEQ_HOME=$( dirname `which speedseq` )
-	BWA=`which bwa || true`
-	SAMBLASTER=`which samblaster || true`
 	SAMBAMBA=`which sambamba || true`
-	FREEBAYES=`which freebayes || true`
 	BEDTOOLS=`which bedtools || true`
-	VEP=`which variant_effect_predictor.pl || true`
-	VEP_CACHE_DIR="$HOME/.vep/"
 	BGZIP=`which bgzip || true`
 	TABIX=`which tabix || true`
+	PARALLEL=`which parallel || true`
+	PYTHON27=`which python2.7 || true`
+
+	# align
+	BWA=`which bwa || true`
+	SAMBLASTER=`which samblaster || true`
+
+	# var/somatic
+	FREEBAYES=`which freebayes || true`
+	VEP=`which variant_effect_predictor.pl || true`
+	VEP_CACHE_DIR=$SPEEDSEQ_HOME/annotations/vep_cache
+
+	# sv
 	LUMPY=`which lumpy || true`
 	PAIREND_DISTRO=`which pairend_distro.py || true`
-	BEDPETOVCF=$SPEEDSEQ_HOME/bin/bedpeToVcf
-	SVTYPER=$SPEEDSEQ_HOME/bin/svtyper
-	PYTHON27=`which python2.7 || true`
-	MBUFFER=$SPEEDSEQ_HOME/bin/mbuffer
-	BAMTOFASTQ=$SPEEDSEQ_HOME/bin/bamtofastq.py
-	BAMHEADRG=$SPEEDSEQ_HOME/bin/bamheadrg.py
+	BEDPETOVCF=`which bedpeToVcf || true`
+	SVTYPER=`which svtyper || true`
+
+        # CNVnator
+	CNVNATOR_WRAPPER=`which cnvnator_wrapper.py || true`
+	CNVNATOR_MULTI=`which cnvnator-multi || true`
+	ANNOTATE_RD=`which annotate_rd.py || true`
+	CNVNATOR_CHROMS_DIR=~/genomes/GRCh37/chroms
+
+	# re-align
+	BAMTOFASTQ=`which bamtofastq.py || true`
+	MBUFFER=`which mbuffer || true`
+	BAMHEADRG=`which bamheadrg.py || true`
     fi
 }
 
@@ -323,7 +339,7 @@ global options:
 	    $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
         $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
 	    $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
-        " | parallel -j 3
+        " | $PARALLEL -j 3
     else
 	if [[ $VERBOSE -eq 1 ]]
 	then
@@ -349,7 +365,7 @@ global options:
             $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
         $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
             $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
-        " | parallel -j 3
+        " | $PARALLEL -j 3
     fi
     
     # index the files
@@ -365,7 +381,7 @@ global options:
     $SAMBAMBA index $OUTPUT.bam
     $SAMBAMBA index $OUTPUT.discordants.bam
     $SAMBAMBA index $OUTPUT.splitters.bam
-    " | parallel -j 3
+    " | $PARALLEL -j 3
 
     # clean up
     rm -r $TEMP_DIR
@@ -583,9 +599,9 @@ options:
     if [[ $VERBOSE ]]
     then
 	echo "
-        cat $TEMP_DIR/var_command.txt | parallel -j $THREADS"
+        cat $TEMP_DIR/var_command.txt | $PARALLEL -j $THREADS"
     fi
-    cat $TEMP_DIR/var_command.txt | parallel -j $THREADS
+    cat $TEMP_DIR/var_command.txt | $PARALLEL -j $THREADS
 
     # make vcf header
     i=`head -n 1 $WINDOWS | awk '{print $1":"$2".."$3}'`
@@ -945,9 +961,9 @@ options:
     if [[ $VERBOSE -eq 1 ]]
     then
 	echo -e "
-        cat $TEMP_DIR/var_command.txt | parallel -j $THREADS"
+        cat $TEMP_DIR/var_command.txt | $PARALLEL -j $THREADS"
     fi
-    cat $TEMP_DIR/var_command.txt | parallel -j $THREADS
+    cat $TEMP_DIR/var_command.txt | $PARALLEL -j $THREADS
 
     # make vcf header
     i=`head -n 1 $WINDOWS | awk '{print $1":"$2".."$3}'`
@@ -1470,53 +1486,29 @@ cat $TEMP_DIR/$OUTBASE.sv.vcf | awk '$0!~\"^#\" {exit}; 1' > $TEMP_DIR/header.tx
     # make header
     cat $TEMP_DIR/$OUTBASE.sv.vcf | awk '$0!~"^#" {exit}; 1' > $TEMP_DIR/header.txt
 
-    # genotype in parallel
+    # genotype
+    # WARNING: svtyper only works when there is one BAM per sample, not multi-library samples
     if [[ GENOTYPE -eq 1 ]]
     then
-	if [[ "$VERBOSE" -eq 1 ]]
-	then
-	    echo -e "
-# split the VCF file into slices of 100 lines each
-mkdir -p $TEMP_DIR/gt
-cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v \"^#\" | split -a 5 -d -l 100 - $TEMP_DIR/gt/spl
-for s in \`ls $TEMP_DIR/gt/spl* | grep -v \"vcf\$\"\`
-do
-    cat $TEMP_DIR/header.txt \$s > \$s.vcf
-done
-            "
-	fi
-	# split the VCF file into slices of 100 lines each
-	mkdir -p $TEMP_DIR/gt
-	cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v "^#" | split -a 5 -d -l 100 - $TEMP_DIR/gt/spl
-	for s in `ls $TEMP_DIR/gt/spl* | grep -v "vcf$"`
-	do
-	    cat $TEMP_DIR/header.txt $s > $s.vcf
-	done
-
-	# genotype each of the variants in parallel
 	for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
 	do
 	    FULL_BAM=${FULL_BAM_LIST[$i]}
 	    SPL_BAM=${SPL_BAM_LIST[$i]}
-            FULL_BASE=`basename "$FULL_BAM"`
+	    FULL_BASE=`basename "$FULL_BAM"`
 
-            MEAN=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^mean" | sed 's/mean\://g'`
-            STDEV=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^stdev" | sed 's/stdev\://g'`
+	    MEAN=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^mean" | sed 's/mean\://g'`
+	    STDEV=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^stdev" | sed 's/stdev\://g'`
 	    READ_LENGTH=`$SAMBAMBA view $FULL_BAM | head -n 10000 | awk 'BEGIN { MAX_LEN=0 } { LEN=length($10); if (LEN>MAX_LEN) MAX_LEN=LEN } END { print MAX_LEN }'`
 
 	    if [[ "$VERBOSE" -eq 1 ]]
 	    then
-		echo "# genotype each of the variants in parallel"
-    		echo -e "$PYTHON27 $SVTYPER -v \$vcf -B $FULL_BAM -S $SPL_BAM -m $MEAN -sd $STDEV -rl $READ_LENGTH > \$vcf.gt ; mv \$vcf.gt \$vcf"
+		echo "# genotype structural variants"
+		echo -e "$PYTHON27 $SVTYPER -v $TEMP_DIR/$OUTBASE.sv.vcf -B $FULL_BAM -S $SPL_BAM -m $MEAN -sd $STDEV -rl $READ_LENGTH > \$vcf.gt ; mv \$vcf.gt \$vcf"
 	    fi
 
-	    for vcf in `ls $TEMP_DIR/gt/spl*.vcf`
-	    do
-    		echo "$PYTHON27 $SVTYPER -v $vcf -B $FULL_BAM -S $SPL_BAM -m $MEAN -sd $STDEV -rl $READ_LENGTH > $vcf.gt ; mv $vcf.gt $vcf"
-	    done | parallel -j $THREADS
+	    # genotype structural variants
+	    $PYTHON27 $SVTYPER -v $TEMP_DIR/$OUTBASE.sv.vcf -B $FULL_BAM -S $SPL_BAM -m $MEAN -sd $STDEV -rl $READ_LENGTH > $TEMP_DIR/$OUTBASE.sv.gt.vcf ; mv $TEMP_DIR/$OUTBASE.sv.gt.vcf $TEMP_DIR/$OUTBASE.sv.vcf
 	done
-	cat $TEMP_DIR/gt/*.vcf | awk '$0!~"^#" {exit}; 1' > $TEMP_DIR/header.txt
-	cat $TEMP_DIR/gt/*.vcf | grep -v "^#" | cat $TEMP_DIR/header.txt - > $TEMP_DIR/$OUTBASE.sv.vcf
     fi
 
     # run cnvnator
@@ -1871,7 +1863,7 @@ global options:
 	$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
     $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
 	$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
-    " | parallel -j 3
+    " | $PARALLEL -j 3
     
     # index the files
     if [[ $VERBOSE -eq 1 ]]
@@ -1886,7 +1878,7 @@ global options:
     $SAMBAMBA index $OUTPUT.bam
     $SAMBAMBA index $OUTPUT.discordants.bam
     $SAMBAMBA index $OUTPUT.splitters.bam
-    " | parallel -j 3
+    " | $PARALLEL -j 3
 
     # clean up
     rm -r $TEMP_DIR
