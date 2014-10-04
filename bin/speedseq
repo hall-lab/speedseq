@@ -56,6 +56,17 @@ function source_binaries() {
     fi
 }
 
+# ensure that the require python modules are installed before
+# beginning analysis
+function check_python_modules() {
+    PYTHON_TEST=$1
+    echo -e "\nChecking for required python modules ($PYTHON_TEST)..."
+
+    $PYTHON_TEST -c "import imp; imp.find_module('pysam')"
+    $PYTHON_TEST -c "import imp; imp.find_module('numpy')"
+    $PYTHON_TEST -c "import imp; imp.find_module('scipy')"
+}
+
 ## global usage
 function usage() {
     echo "
@@ -1292,6 +1303,9 @@ global options:
 	fi
     fi
 
+    # check for required python modules (pysam, numpy, scipy, etc)
+    check_python_modules $PYTHON27
+
     # Check that the required files exist
     if [[ ! -f $REF ]]
     then
@@ -1812,6 +1826,9 @@ global options:
         echo -e "Error: parallel executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     fi
+
+    # check for required python modules (pysam, numpy, scipy, etc)
+    check_python_modules $PYTHON27
 
     # set the output name
     OUTBASE=`basename "$OUTPUT"`
