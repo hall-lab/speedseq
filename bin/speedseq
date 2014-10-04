@@ -1640,7 +1640,10 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
 
     # write output
     cp $TEMP_DIR/$OUTBASE.sv.bedpe $OUTPUT.sv.bedpe
-    cp $TEMP_DIR/$OUTBASE.sv.vcf $OUTPUT.sv.vcf
+    $BEDTOOLS sort -header -i $TEMP_DIR/$OUTBASE.sv.vcf \
+	| $BGZIP -c \
+	> $OUTPUT.sv.vcf.gz
+    $TABIX -p vcf $OUTPUT.sv.vcf.gz
 
     # clean up
     if [[ "$KEEP" -eq 0 ]]
