@@ -104,3 +104,11 @@ bin/bamtofastq.py
 Icon?
 ehthumbs.db
 Thumbs.db
+
+# mbuffer compile files #
+#########################
+src/mbuffer/Makefile
+src/mbuffer/config.h
+src/mbuffer/config.status
+src/mbuffer/mbuffer
+src/mbuffer/mbuffer.1
