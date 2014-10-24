@@ -958,7 +958,6 @@ options:
 	echo -e "
         $FREEBAYES -f $REF \\
             --pooled-discrete \\
-            --pooled-continuous \\
             --min-repeat-entropy 1 \\
             --genotype-qualities \\
             --min-alternate-fraction ${MIN_ALT_FRACTION} \\
@@ -973,7 +972,6 @@ options:
 	# see the function somatic_filter for a more readable version of this awk command
 	echo -e "$FREEBAYES -f $REF \
         --pooled-discrete \
-        --pooled-continuous \
         --genotype-qualities \
         --min-repeat-entropy 1 \
         --min-alternate-fraction ${MIN_ALT_FRACTION} \
