@@ -855,9 +855,8 @@ options:
         esac
     done
 
-    # parse the BAM strings
-    NORMAL_BAM_STRING="${@:$((${OPTIND}+1))}"
-    TUMOR_BAM_STRING="${@:$((${OPTIND}+2))}"
+    NORMAL_BAM_STRING="${@:$((${OPTIND}+1)):1}"
+    TUMOR_BAM_STRING="${@:$((${OPTIND}+2)):1}"
     TUMOR_BAM_LIST=(`echo $TUMOR_BAM_STRING | tr "," " "`)
     NORMAL_BAM_LIST=`echo $NORMAL_BAM_STRING | tr "," " "`
 
@@ -958,6 +957,7 @@ options:
     # write command to call variants on each of the windows in parallel
     NORMAL_BAM_FMT=`echo $NORMAL_BAM_STRING | tr "," " "`
     TUMOR_BAM_FMT=`echo $TUMOR_BAM_STRING | tr "," " "`
+
     if [[ $VERBOSE -eq 1 ]]
     then
 	echo -e "
