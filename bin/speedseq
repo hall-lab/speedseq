@@ -25,6 +25,7 @@ function source_binaries() {
 	BEDTOOLS=`which bedtools || true`
 	BGZIP=`which bgzip || true`
 	TABIX=`which tabix || true`
+	VAWK=`which vawk || true`
 	PARALLEL=`which parallel || true`
 	PYTHON27=`which python2.7 || true`
 
@@ -539,7 +540,11 @@ options:
 	var_usage
         echo -e "Error: parallel executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-
+    elif [[ -z "$VAWK" ]]
+    then
+	var_usage
+        echo -e "Error: vawk executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
     fi
 
     # Check that ANNOTATE is either true or false
@@ -601,7 +606,7 @@ options:
             $BAM_STRING \\
             --experimental-gls \\
             --min-repeat-entropy 1 \\
-            | awk '\$0~\"^#\" || \$6>=$MINQUAL' \\
+            | $VAWK --header '\$6>=$MINQUAL && I\$RPR>0 && I\$RPL>0' \\
             > ${TEMP_DIR}/$OUTBASE.\$i.vcf"
     fi
     
@@ -613,7 +618,7 @@ options:
         --experimental-gls \
         --min-repeat-entropy 1 \
         $BAM_STRING \
-        | awk '\$0~\"^#\" || \$6>=$MINQUAL' \
+        | $VAWK --header '\$6>=$MINQUAL && I\$RPR>0 && I\$RPL>0' \
         > ${TEMP_DIR}/$OUTBASE.$i.vcf"
     done > $TEMP_DIR/var_command.txt
 
