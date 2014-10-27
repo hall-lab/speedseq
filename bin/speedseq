@@ -88,7 +88,7 @@ options: -h       show this message
 }
 
 function somatic_filter() {
-    awk -v MINQUAL="$1" -v TUMOR_THRES="$2" -v NORMAL_THRES="$3" 'BEGIN {NORMAL=10; TUMOR=11; GL_IDX=0;}
+    awk -v MINQUAL="$1" -v SSC_THRES="$2" -v ONLY_SOMATIC="$3" 'BEGIN {NORMAL=10; TUMOR=11; GL_IDX=0;}
     {
         if ($0~"^#") { print ; next; }
         if (! GL_IDX) {
@@ -106,11 +106,17 @@ function somatic_filter() {
         if (LOD_TUMOR_HET > LOD_TUMOR_HOM) { LOD_TUMOR=LOD_TUMOR_HET }
         else { LOD_TUMOR=LOD_TUMOR_HOM }
 
-        if (LOD_NORM >= NORMAL_THRES && LOD_TUMOR >= TUMOR_THRES) {
+        if (LOD_NORM >= 0 || LOD_TUMOR >= 0) {
+            PQUAL=LOD_NORM*LOD_TUMOR
+        }
+        else { PQUAL=-10000 }
+        if (PQUAL>=SSC_THRES) {
             $7="PASS"
+            $8="SSC="PQUAL";"$8
             print
         }
-        else if ($6>=MINQUAL && $10~"^0/0" && ! match($11,"^0/0")) {
+        else if (!ONLY_SOMATIC && $6>=MINQUAL && $10~"^0/0" && ! match($11,"^0/0")) {
+            $8="SSC="PQUAL";"$8
             print
         }
     }' OFS="\t"
@@ -766,8 +772,7 @@ options:
          -C INT   Require at least this count of observations supporting
                     an alternate allele within a single individual in order
                     to evaluate the position [2]
-         -n FLOAT minimum normal log odds ratio for PASS [7]
-         -u FLOAT minimum tumor log odds ratio for PASS [7]
+         -S FLOAT minimum somatic score (SSC) for PASS [50]
          -q FLOAT minimum QUAL score to output non-passing somatic variants [1e-5]
          -T DIR   temp directory [./temp]
 
@@ -797,13 +802,12 @@ options:
     TEMP_DIR="./temp"
     ANNOTATE="true"
     MINQUAL=1e-5
-    TUMOR_THRES=7
-    NORMAL_THRES=7
     ONLY_SOMATIC=0
+    SSC_THRES=50
     VERBOSE=0
     KEEP=0
 
-    while getopts ":ho:w:t:F:C:T:A:q:n:u:svkK:" OPTION
+    while getopts ":ho:w:t:F:C:T:A:q:S:svkK:" OPTION
     do
         case "${OPTION}" in
             h)
@@ -834,11 +838,8 @@ options:
 	    q)
 		MINQUAL="$OPTARG"
 		;;
-	    n)
-		NORMAL_THRES="$OPTARG"
-		;;
-	    u)
-		TUMOR_THRES="$OPTARG"
+	    S)
+		SSC_THRES="$OPTARG"
 		;;
 	    s)
 		ONLY_SOMATIC=1
@@ -969,7 +970,7 @@ options:
             --min-alternate-count ${MIN_ALT_COUNT} \\
             --region \$chrom:\$start..\$end \\
             $NORMAL_BAM_FMT $TUMOR_BAM_FMT \\
-            | somatic_filter $MINQUAL $TUMOR_THRES $NORMAL_THRES \\
+            | somatic_filter $MINQUAL $SSC_THRES $ONLY_SOMATIC \\
             > ${TEMP_DIR}/$OUTBASE.\$chrom:\$start..\$end.vcf"
     fi
     for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
@@ -983,7 +984,7 @@ options:
         --min-alternate-count ${MIN_ALT_COUNT} \
         --region $i \
         $NORMAL_BAM_FMT $TUMOR_BAM_FMT \
-        | awk -v MINQUAL=\"$MINQUAL\" -v TUMOR_THRES=\"$TUMOR_THRES\" -v NORMAL_THRES=\"$NORMAL_THRES\" 'BEGIN {NORMAL=10; TUMOR=11; GL_IDX=0;} { if (\$0~\"^#\") { print ; next; } if (! GL_IDX) { split(\$9,fmt,\":\") ; for (i=1;i<=length(fmt);++i) { if (fmt[i]==\"GL\") GL_IDX=i } } split(\$NORMAL,N,\":\"); split(N[GL_IDX],NGL,\",\"); split(\$TUMOR,T,\":\"); split(T[GL_IDX],TGL,\",\"); LOD_NORM=NGL[1]-NGL[2]; LOD_TUMOR_HET=TGL[2]-TGL[1]; LOD_TUMOR_HOM=TGL[3]-TGL[1]; if (LOD_TUMOR_HET > LOD_TUMOR_HOM) { LOD_TUMOR=LOD_TUMOR_HET } else { LOD_TUMOR=LOD_TUMOR_HOM } if (LOD_NORM >= NORMAL_THRES && LOD_TUMOR >= TUMOR_THRES) { \$7=\"PASS\" ; print } else if (\$6>=MINQUAL && \$10~\"^0/0\" && ! match(\$11,\"^0/0\")) { print } }' OFS=\"\t\" \
+        | awk -v ONLY_SOMATIC=\"$ONLY_SOMATIC\" -v MINQUAL=\"$MINQUAL\" -v SSC=\"$SSC_THRES\" 'BEGIN {NORMAL=10; TUMOR=11; GL_IDX=0;} { if (\$0~\"^#\") { print ; next; } if (! GL_IDX) { split(\$9,fmt,\":\") ; for (i=1;i<=length(fmt);++i) { if (fmt[i]==\"GL\") GL_IDX=i } } split(\$NORMAL,N,\":\"); split(N[GL_IDX],NGL,\",\"); split(\$TUMOR,T,\":\"); split(T[GL_IDX],TGL,\",\"); LOD_NORM=NGL[1]-NGL[2]; LOD_TUMOR_HET=TGL[2]-TGL[1]; LOD_TUMOR_HOM=TGL[3]-TGL[1]; if (LOD_TUMOR_HET > LOD_TUMOR_HOM) { LOD_TUMOR=LOD_TUMOR_HET } else { LOD_TUMOR=LOD_TUMOR_HOM } if (LOD_NORM >= 0 || LOD_TUMOR >= 0) { PQUAL=LOD_NORM*LOD_TUMOR } else { PQUAL=-10000 } if (PQUAL>=SSC_THRES) { \$7=\"PASS\" ; \$8=\"SSC=\"PQUAL\";\"\$8 ; print } else if (!ONLY_SOMATIC && \$6>=MINQUAL && \$10~\"^0/0\" && ! match(\$11,\"^0/0\")) { \$8=\"SSC=\"PQUAL\";\"\$8 ; print } }' OFS=\"\t\" \
         > ${TEMP_DIR}/$OUTBASE.$i.vcf"
     done > $TEMP_DIR/var_command.txt
 
@@ -1000,9 +1001,10 @@ options:
     if [[ $VERBOSE -eq 1 ]]
     then
 	echo -e "
-        grep \"^#\" $TEMP_DIR/$OUTBASE.$i.vcf > $TEMP_DIR/header.txt"
+        grep \"^##\" $TEMP_DIR/$OUTBASE.$i.vcf \\
+        | cat - <(echo '##INFO=<ID=SSC,Number=1,Type=Float,Description=\"Somatic score\">') <(grep \"^#CHROM\" $TEMP_DIR/$OUTBASE.$i.vcf) > $TEMP_DIR/header.txt"
     fi
-    grep "^#" $TEMP_DIR/$OUTBASE.$i.vcf > $TEMP_DIR/header.txt
+    grep "^##" $TEMP_DIR/$OUTBASE.$i.vcf | cat - <(echo '##INFO=<ID=SSC,Number=1,Type=Float,Description="Somatic score">') <(grep "^#CHROM" $TEMP_DIR/$OUTBASE.$i.vcf) > $TEMP_DIR/header.txt
 
     # get the tumor and normal readgroups
     TUMOR_RG=`cat ${TEMP_DIR}/header.txt | tail -n 1 | cut -f 10`
