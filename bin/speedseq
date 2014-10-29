@@ -770,7 +770,7 @@ options:
          -C INT   Require at least this count of observations supporting
                     an alternate allele within a single individual in order
                     to evaluate the position [2]
-         -S FLOAT minimum somatic score (SSC) for PASS [50]
+         -S FLOAT minimum somatic score (SSC) for PASS [18]
          -q FLOAT minimum QUAL score to output non-passing somatic variants [1e-5]
          -T DIR   temp directory [./temp]
 
