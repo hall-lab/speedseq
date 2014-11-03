@@ -1085,6 +1085,16 @@ options:
     fi
     $TABIX -f -p vcf $OUTPUT.vcf.gz
 
+    # produce PED file for GEMINI loading
+    NORMAL_SAMPLE=`$SAMBAMBA view -H ${NORMAL_BAM_LIST[0]} | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
+    TUMOR_SAMPLE=`$SAMBAMBA view -H ${TUMOR_BAM_LIST[0]} | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo "# Make PED file"
+	echo "echo -e \"1\t$NORMAL_SAMPLE\tNone\tNone\t0\t1\n1\t$TUMOR_SAMPLE\tNone\tNone\t0\t2\" > $OUTPUT.ped"
+    fi
+    echo -e "1\t$NORMAL_SAMPLE\tNone\tNone\t0\t1\n1\t$TUMOR_SAMPLE\tNone\tNone\t0\t2" > $OUTPUT.ped
+
     # clean up
     if [[ "$KEEP" -eq 0 ]]
     then
