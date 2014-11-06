@@ -152,6 +152,10 @@ def which(prgm):
 	return None
 
 def main(args):
+	# Compile embedded software
+	print "Compiling embedded software...\n"
+	make()
+
 	# Make temp directory if it doesn't exist
         try:
 		os.stat(args.tempdir)
@@ -165,9 +169,6 @@ def main(args):
 		os.chdir(args.tempdir)
 	else:
 		raise OSError("cd: " + args.tempdir + ": No such file or directory")
-
-	# Compile embedded software
-	make()
 
 	#Linux install
 	packageManager = PACMAN(args.quiet)
