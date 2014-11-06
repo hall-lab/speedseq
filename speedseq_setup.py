@@ -166,11 +166,25 @@ def main(args):
 	else:
 		raise OSError("cd: " + args.tempdir + ": No such file or directory")
 
+	# Compile embedded software
+	make()
+
 	#Linux install
 	packageManager = PACMAN(args.quiet)
 	packageManager.check_installer()
 	packageManager.install()
 	check_dependencies()
+
+	#sambamba install
+	sambamba = INSTALLER("sambamba", args.quiet)
+	sambamba.check_install("sambamba")
+	if (sambamba.isInstalled):
+		sambamba.get_update()
+	if (sambamba.notInstalled or sambamba.update):
+		url = "https://github.com/lomereiter/sambamba/releases/download/v0.4.7/sambamba_v0.4.7_centos5.tar.bz2"
+		sambamba.download("curl", url)
+		sambamba.unpack("tar")
+		sambamba.cp_bin("sambamba_v0.4.7", args.targetbin + "/sambamba")
 
 	#parallel install
 	parallel = INSTALLER("parallel", args.quiet)
@@ -184,30 +198,6 @@ def main(args):
 		parallel.install("confmake", "parallel-20100424")
 		parallel.cp_bin("parallel-20100424/src/parallel", args.targetbin)
 
-	#sambamba install
-	sambamba = INSTALLER("sambamba", args.quiet)
-	sambamba.check_install("sambamba")
-	if (sambamba.isInstalled):
-		sambamba.get_update()
-	if (sambamba.notInstalled or sambamba.update):
-		url = "https://github.com/lomereiter/sambamba/releases/download/v0.4.7/sambamba_v0.4.7_centos5.tar.bz2"
-		sambamba.download("curl", url)
-		sambamba.unpack("tar")
-		sambamba.cp_bin("sambamba_v0.4.7", args.targetbin + "/sambamba")
-
-	#VEP install
-	vep = INSTALLER("vep", args.quiet)
-	vep.check_install("variant_effect_predictor.pl")
-	if (vep.isInstalled):
-		vep.get_update()
-	if (vep.notInstalled or vep.update):
-		url = "https://github.com/Ensembl/ensembl-tools/archive/release/76.zip"
-		vep.download("curl", url)
-		vep.unpack("unzip")
-		vep.install("perl", "ensembl-tools-release-76/scripts/variant_effect_predictor")
-		vep.cp_bin("ensembl-tools-release-76/scripts/variant_effect_predictor/variant_effect_predictor.pl", args.targetbin)
-		vep.cp_bin("Bio", args.targetbin + "/Bio")
-	
 	#BEDtools install
 	bedtools = INSTALLER("bedtools", args.quiet)
 	bedtools.check_install("bedtools")
@@ -228,6 +218,19 @@ def main(args):
 		print "Installing pysam...\n"
 		subprocess.call("sudo pip install pysam", shell=True)
 
+	#VEP install
+	vep = INSTALLER("vep", args.quiet)
+	vep.check_install("variant_effect_predictor.pl")
+	if (vep.isInstalled):
+		vep.get_update()
+	if (vep.notInstalled or vep.update):
+		url = "https://github.com/Ensembl/ensembl-tools/archive/release/76.zip"
+		vep.download("curl", url)
+		vep.unpack("unzip")
+		vep.install("perl", "ensembl-tools-release-76/scripts/variant_effect_predictor")
+		vep.cp_bin("ensembl-tools-release-76/scripts/variant_effect_predictor/variant_effect_predictor.pl", args.targetbin)
+		vep.cp_bin("Bio", args.targetbin + "/Bio")
+	
     	#gemini install
 	gemini = INSTALLER("gemini", args.quiet)
 	gemini.check_install("gemini")
@@ -249,9 +252,6 @@ def main(args):
 	if not keep:
 		os.chdir(prevdir)
 		shutil.rmtree(args.tempdir)
-
-	print "Compiling embedded software...\n"
-	make()
 
 def check_dependencies():
 		"""Ensure required tools for installation are present.
