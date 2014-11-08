@@ -1,6 +1,6 @@
 #speedseq         
 
-**Current version:** 0.0.1a
+**Current version:** 0.0.2
 
 Created by Colby Chiang, Ryan M. Layer, Greg G. Faust, Michael R. Lindberg, Aaron R. Quinlan, and Ira M. Hall.
 
