@@ -60,6 +60,9 @@ bin/tagBam
 bin/unionBedGraphs
 bin/windowBed
 bin/windowMaker
+bin/mbuffer
+bin/bamheadrg.py
+bin/bamtofastq.py
 
 # Compiled source #
 ###################
@@ -101,3 +104,11 @@ bin/windowMaker
 Icon?
 ehthumbs.db
 Thumbs.db
+
+# mbuffer compile files #
+#########################
+src/mbuffer/Makefile
+src/mbuffer/config.h
+src/mbuffer/config.status
+src/mbuffer/mbuffer
+src/mbuffer/mbuffer.1

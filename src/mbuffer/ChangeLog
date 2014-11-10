@@ -1,0 +1,530 @@
+20140310:
+- added memory advise for buffer memory
+- compatibility fix for Solars st driver
+- prevent buffer overflow attack via defaults file
+- ignore defaults file from other users
+- updated documentation for use with cron
+- minor bugfixes
+
+20140126:
+- new feature: set option defaults in ~/.mbuffer.rc
+- enhancement: write status to the log file
+- enhancement: added option to suppress status logging
+- fix: formatting fix for summary message
+
+20130220:
+- reverted incorrect fix for -P 100, which may lead to data corruption
+- reenable hash libraries (no correlation with data corruption)
+- bail out if any output fails to initialize
+- refixed hang on -P 100
+- reduced sending overhead
+- fixed handling of option -f
+
+20130209:
+- hash names should be compared case insensitive for convenience
+- safeguard against missing argument to option --hash
+- support for hash calculation withdrawn, due to potential data
+corruption, when the buffer runs full
+
+20121111:
+- build fix for some platforms
+- several minor code cleanups (removed some warnings)
+- support float values as argument to memory options
+- added a watchdog that terminates mbuffer if input
+  or output activity stalls (option -W)
+
+20120505:
+- fixed IPv6 client initialization on FreeBSD
+- fix: suppress summary on stderr if -q is used with -l
+- fix: option -P 100 may lead to hang
+
+20110724:
+- fix: garbage might be written after input error
+- enhancement: prompt for additional volumes for argument "-n 0"
+- enhancement: prompt for next volume on I/O error if -n is set
+  (some tape devices incorrectly return -1/EIO instead of 0)
+- enhancement: added option to append to output file
+- update: remove use of deprecated interface sigignore
+
+20110317:
+- fix: terminate ASAP if no working output is available
+- enhancement: added option to terminate on any error
+- fix: mbuffer blocks on SIGTTIN when started in background
+- fix: display correct dimensions (e.g. kiB instead of kB)
+
+20110119:
+- Anniversary: 10 years of mbuffer
+- fix for building on cygwin in a separate directory
+- fix: incorrect sanity check concerning hashing and multivolume support
+  (patch by Sean Walmsley)
+
+20101230:
+- enhancement: hash should show up in log file
+- enhancement: report last block number on volume
+- enhancement: report times for each volume and tape changes
+- cosmetic fix: need to convert thread ids to long for linux
+- build enhancement: better cygwin and packaging environment support
+
+20100526:
+- fix: potential deadlock on SIGINT related to watermark algorithm
+- fix: high watermark algorithm interferes with rate limitation
+
+20100327:
+- fix: hash calculation is omitted if no output is set
+- fix: test procedure doesn't wait on Solaris 8
+- some cosemtic fixes for the man page
+- summary output to logfile should be independet of quiet mode
+
+20091227:
+- enforceSpeedLimit must use monotonic time source to prevent being
+  disturbed by ntp
+- made test suite configurable and clean-up itself
+  (submitted by Peter Pentchev)
+- made IPv6 code optional
+- added check for block size of input device
+- only determine 64bit compile flag if no CFLAGS given
+- fix lockup on input error
+- don't cancel non-existing thread in quiet mode
+  (caused SegV on Linux)
+- BSD header inclusion update
+- SIGINT cancellation fixes (systems other than Solaris need a hack)
+
+20091122:
+- fix superfluous ai_flags causing error on Solaris 8
+- fix assertion failure after rejected connection
+- configure fix for 64-bit builds
+- minor lint cleanup
+- added workaround for cancellation issues on Solaris 8/9
+
+20091110:
+- fix SIGINT hanging when input is idle
+- several IPv6 fixes
+- compile for 64 bit by default if available
+
+20091012:
+- hash calculation is faster if done in a separate thread
+- new option --hash to select other algorithms of libmhash than md5
+- omit creation of superfluous inputThread in absence of status output
+- fix potential race condition during startup in high watermark code
+  [reported by Michal Soltys]
+- reduce number of semaphore calls in high watermark code
+- fix a potential deadlock on SIGINT
+- fixed a typo in watermark example
+
+20090628:
+- added IPv6 support
+- added support for port name lookup
+- added another verbosity level for I/O messages
+- refix libmhash initialization
+
+20090215:
+- fix status thread hang on very small transfer sizes
+- fix libmhash initialization
+- -q should not suppress output of -H
+- reduced termination latency with status display running
+- update for summary display
+- changed default shell make shell to /bin/sh
+
+20090113:
+- fix for assertion failure of 64bit binaries in network code
+
+20090106:
+- BSD compatibility update
+- replace use of deprecated atoi with strtol
+- better argument checking for numeric options
+- enhanced semaphore limits checking
+- add phony targets
+
+20081207:
+- fixed some typos in man page
+- TCP buffer tuning could be a little bit more intelligent
+- fixed formating of some info messages
+- tuneable TCP buffer with option --tcpbuffer
+
+20081113:
+- tune send and receive buffer of TCP stack to match block size
+- added target check to Makefile
+- fix: don't mix up file during open
+- code cleanup/unification for MD5
+- sendfile should also be used for writing to files
+- sync cleanup on output thread instead of input thread
+- fix: access to dest_t after free()
+- unified summary and join between verbose and silent mode
+- minor code cleanups
+
+20081023:
+- mbuffer should not abort on SIGTERM
+- mbuffer should not segv on invalid arguments for options -m, -s
+- transfer statistics should wait for the first block to be received
+- minor code path optimization
+- option -n should accept -n1
+
+20081015:
+- FIX REGRESSION: stdout may be corrupted by mbuffer
+  (This regression was the result of a patch to redirect
+   stdout of autoloader commands)
+
+20081014:
+- redirect autoloader stdout to mbuffer's stderr
+- added support for O_DIRECT (use option --direct)
+- options -o and -i should recognize "-" as stdin/stdout
+- direct use Solaris' native semaphore implementation
+- fixed cancellation issues
+- manpath needs to be created
+- sendfile should fallback to write if unsupported
+- fixed maximum addressable memory message
+- docu update
+
+20080910:
+- new feature: support for multiple ouptuts
+- new LICENSE: GPLv3
+- fixed a race-condition in logging
+- adjusted CFLAGS for gcc
+- warn about LD_LIBRARY_PATH interfering with build process
+- the exitcode of autoloader command should be checked
+- changed default buffer size to use 2% of available memory
+- changed default block size to system pagesize
+- added make target for lint
+
+20080507:
+- memory locking for file fails if -L is passed before -T
+- use MAP_SHARED instead of MAP_PRIVATE to simplify fork in system
+- missing arguments may cause a SegV
+- $(LIBS) should be after $(OBJECTS)
+
+20080502:
+- better support for device special files
+  (files under /dev shouldn't need -f to write to)
+- update to always handle largefile correctly
+- fix configure script for sendfile functionality
+- allow in-memory locking of file based buffers
+- minor docu updates
+- minor build update
+  (compile with -c -O, mbuffer.o is dependent on Makefile)
+
+20080329:
+- configure should check if ST_BLKSIZE feature is available
+- compile with -O instead of -g per default
+- hostnames may have underscores and/or dash
+- orthographic fix
+- use inline and restrict if available
+- honor --disable-assert
+- use directio for input, too
+
+20080212:
+- fixed a race-condition causing incorrectly written last block
+
+20080122:
+- fix wrong assertion on dup2
+- fix 'make distclean' to also remove mbuffer.exe
+- fix installation of manpage
+
+20080104:
+- updated status display
+- POSIX conformance update: read from stderr instead of relying on
+  /dev/tty exists, fallback to /dev/tty if stderr is unreadable
+- update to build on HPUX.11 (thanks go to testdrive.hp.com)
+- several configure fixes and updates
+- fixed invalid exitcode without console (Alex Kramarov)
+- correction for full/empty report
+
+20070911:
+- bugfix: search for MD5 functions with correct function names
+
+20070826:
+- bugfix: search for MD5 functions in libcrypto instead of libssl
+- bugfix: search for MD5 functions in libmd5 using different function
+          to avoid incorrect caching of results
+
+20070518:
+- bugfix: misplaced ifdef could lead to failures for options -d and -b
+  on systems that do not support device block size determination
+- fixed possible hang on SIGINT without status thread
+- write summary to stderr if no tty is available
+
+20070502:
+- added support for setting the output device's volume size explicitly
+  (patch by Sean Walmsley)
+- minor cleanups
+- make locking more solid
+  (in theory [only], a deadlock could have occurred)
+- assert() everything
+
+20070401:
+- prefix name of executable before every message
+- added some missing newlines
+- set dependency for "make install" on "make"
+  (i.e. "make install" also builds mbuffer)
+
+20070317:
+- fix: mbuffer erroneously return with EXIT_SUCCESS when it got 
+       interrupted by SIGINT or SIGTERM
+
+20060728:
+- changed signal handling to prevent syscalls returning with EINTR in
+  reader and writer
+- fix for warnings, fatals, and errors getting truncated
+- sleep before printing I/O rates for the first time to prevent showing
+  insane values
+
+20060704:
+- use condition variables to safely signal crossing of watermarks
+- include times full/empty (crossing of low/high watermark) in summary
+  (proposal by Alex Kramarov)
+- enhanced status and summary output to be display stats with a higher
+  precisions
+
+20060626:
+- bugfix and enhancement for rate limitation code
+- fixed regressions caused by switching from float to double
+- make sure outputThread doesn't start initially if -P is set
+- write debug logs a little bit more thread friendly 
+  (i.e. switched from stream- to normal file ops)
+
+20060616:
+- added speed limiting (options -r and -R)
+- fix errormessage in calcint
+- show option -d in usage output only if it is available
+- use of float really doesn't make any sense nowadays;
+  changed all floats to double
+
+20060421:
+- set exitcode to failure whenever an error occures
+- fixed a warning
+
+20060324:
+- added option -c to enable synchronous data integrity I/O:
+  This was enabled by default until now, but may cause a decrease in
+  performance as it requires a higher number of I/O ops. On systems
+  without full synchronous data integrity support, no difference will
+  be observable concerning performance. Systems that support it, will
+  gain increased performace without -c, but error reporting will be 
+  more precise with -c.
+- changed errormessages to include offset
+- added support for Solaris' directio hinting
+- made memlock support an automagic option (compiled in if available)
+- simplify CFLAGS overriding
+- more portable largefile support solution
+- minimized configure script
+- default to native compiler instead of gcc
+
+20060217:
+- made signal handling more standards conforming
+- use deferred cancellation instead of asynchronous
+- fixed some debug messages
+- use sendfile only for sockets
+
+20060126:
+- clarified some errormessages
+- fixed some typos
+- updated README file
+
+20051006:
+- added support for sendfile
+  (AFAIK only the Solaris version supports sending from buffers)
+- added memory locking support
+- added support to set buffer size as percentage of physical memory
+- open file with O_LARGEFILE per default
+- added some command-line options for existing functionality
+  (-H, -V)
+- compile as 64bit executable on opteron and sparc architectures by
+  default
+- defaulting to /var/tmp for buffer files, as /tmp is a swap based 
+  filesystem on some operating systems
+- use TMPDIR environment variable if available to determine where
+  to put a buffer file
+
+20051003:
+- increased maximum value of number of blocks
+- doku updates
+- openssl build fixes
+- fixed some warnings
+- install man page to correct location
+- reuse networking sockets
+- do not bail out if output does not support syncing
+  (thank you to Wolfgang Denk for some suggestions)
+
+20050730:
+- made mbuffer.c lint clean
+- fixed some types
+- Makefile fix for install
+
+20050726:
+- added support for openssl based md5 hashing
+- support of transfer summary in gigabyte
+- support for passing buffer size in gigabyte (G)
+  (please pass the relevant CFLAGS for 64Bit executables for
+   your compiler to configure)
+- added support for passing command to autoloader 
+  (patch submitted by Wolfgang Denk)
+- enhanced network parameter parsing
+- FIX: transient error in status display
+- FIX: mbuffer could hang on first SIGINT (chance 1/3)
+- fixed a bug in network client verification code
+- pass CFLAGS also to link phase
+- unlink tmpfile as early as possible
+- check close for errors
+  (see Chris Gerhard's Weblog concerning close on
+  http://blogs.sun.com/roller/page/chrisg?anchor=did_that_close_succeed)
+- additional sanity checks for buffer limits
+
+20050510:
+- fixed possible lockup upon SIGINT
+- fixed displayed time
+- updated display to change to MB instead of kB when > 3072kB
+
+20050321:
+- compile time fix for gentoo and suse 9.2
+- made --enable-debug and --enable-md5 work
+- gcc optimization flag set to -O2, -O as default
+
+20050125:
+- fixed operation of low watermark (-p)
+- made printf formating more standard conforming
+- start output before input thread
+- more minor fixes
+
+20050124 (unannounced interims version):
+- fixed summary bug reported
+- kicked automake
+- removed locale support (too much work to support properly)
+- changed debugmsg to a C99 macro, if debugging is switched off
+- fix: final newline of statusThread was printf()ed to stderr instead 
+  of Terminal
+- fix: potential incorrect written last block
+- fixed warnings: comparison of signed and unsigned
+- beautified summary
+- added low watermark (request by Greg Freemyer)
+  (restarts reading if dropped below - needed for FAST streamers;
+   I don't have such a beast and I never expected such a thing to exist...)
+  WARNING: changed argument -p to represent low watermark (was high watermark)
+           so that both options are easier to remember
+- eliminated dead code
+- changed status of networking code to stable
+- removed NDEBUG from config.h and configure, because assert()s are
+  always "a good thing TM"
+- encapsulated Terminal I/O within Mutex
+- md5 hashing option added (disabled by default, proposal by Greg Freemyer),
+  using either mhash or md5 library, whatever is available
+- some more cleanups
+
+20011008:
+- more detailed errormsg for host name resolving
+- beautified some messages
+- compile/linker fix
+
+20010807:
+- update for networking code: added client host checking
+- message update
+- docu update
+- localization added
+
+20010716:
+- fixed option -q to not block out usage of multi
+  volume support
+- docu update
+- minor debug message update
+- more autoloader sanity checks
+- changed status for networking stuff to BETA
+  i.e. new configure option "--enable-networking"
+
+20010704:
+- fixed possible termination hang on write error
+- fixed debugmessage for input thread
+- added support for autoloaders
+- update for experimental networking code
+- docu update
+
+20010703:
+- update for debug messages
+- update for experimental network code
+  (interface selection is now possible,
+   hostnames are resolved correctly and more;
+   seems like getting stable...)
+
+20010702:
+- corrected message for mem-allocation
+- added warning message for certain multi-volume use
+- enhanced debugging messages
+- (hopefully) last bugfix for multi-volume code
+
+20010628:
+- added Option -d to use blocksize of output device
+  for write (was default behaviour, but isn't needed
+  in most cases and slows data transfer down)
+- changed statusline (proposal by Dan Hollis)
+- minor bugfix for handling read errors (size of
+  writable block fragment is now set correctly)
+  [probably nobody ever cares anyway]
+- updates for experimental networking (configure)
+
+20010626:
+- bugfix: mbuffer didn't work anymore with pipes due
+  to incorrect set Outsize (0)
+
+20010624:
+- added experimental networking code
+- bugfix for multivolume-code which might have caused
+  problems on devices which have a size which is
+  no multiple of Blocksize
+- docu update
+
+20010622:
+- architecture switches for x86 changed to match gcc-3.0
+- 64 Bit updates for huge data amounts
+- docu update
+
+20010621:
+- bugfix for option -T
+
+20010619:
+- multi-volume support is now enabled by default
+- minor docu updates
+- fix for configure to work on Solaris 5.1
+
+20010528:
+- semantic fix for option -p to be consistend with buffer
+- bugfix: for dropped blocks in multi-volumen code
+- fix for lockup if SIG_BRK is sent during a volume request
+
+20010518:
+- Bugfix: multi volume output now should work
+	  (bugreport by Dan Hollis)
+- docu update
+- added some extra checks after running lint...
+
+20010515:
+- Docu update concerning usage of multi volume support
+- multi volume options consistency checking added
+
+20010509:
+- summary is now also displayed upon break and terminate
+- Bugfix: summary overflow
+- experimental feature: input of multiple volumes
+
+20010507:
+- status messages are now printed to the terminal not to stderr
+- Bugfix: for output blocksize code
+- documentation update
+- new: summary information
+- experimental feature: output to multiple volumes
+
+20010426:
+- Bugfix: fixed sleep, which limited the performace to 1MB/s
+          (credits go to Padraig Brady <padraig@antefacto.com>)
+- Bugfix: fixed incorrect display of total datatransfer for >2GB
+- Cosmetic: on sighup print newline on stderr
+- added manpage
+
+20010208:
+- Bugfix: option -p did not work
+- reworked option flags (-h is now -t, -t is now -T)
+- output is now done with the blocksize of the output stream
+  otherwise direct writing to a tape device failed under Linux
+
+20010124:
+- Bugfix: outputThread terminated too early in certain cases
+- Fix for correct termination if an error occured
+- added install rule in Makefile
+- status messages are now indebendend of other messages
+- a little bit more verbose debugging info
