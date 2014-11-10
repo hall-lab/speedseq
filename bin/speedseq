@@ -1836,9 +1836,10 @@ global options:
 	re-align_usage
 	echo -e "Error: bamheadrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
-    elif [[ ! -z "$PARALLEL" ]]
+    elif [[ -z "$PARALLEL" ]]
     then
         re-align_usage
+	echo parallel is $PARALLEL
         echo -e "Error: parallel executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     fi
