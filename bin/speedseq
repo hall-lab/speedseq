@@ -81,7 +81,7 @@ command: align    align FASTQ files with BWA-MEM
          var      call SNV and indel variants with FreeBayes
          somatic  call somatic SNV and indel variants in a tumor/normal pair with FreeBayes
          sv       call SVs with LUMPY
-         re-align re-align from a coordinate sorted BAM file
+         realign  re-align from a coordinate sorted BAM file
 
 options: -h       show this message
 "
@@ -1670,10 +1670,10 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
     exit 0
 }
 
-function re-align() {
-    function re-align_usage() {
+function realign() {
+    function realign_usage() {
 	echo "
-usage:   speedseq re-align [options] <reference.fa> <in.bam>
+usage:   speedseq realign [options] <reference.fa> <in.bam>
 
 positional args:
          reference.fa
@@ -1709,7 +1709,7 @@ global options:
     # Check options passed in.
     if test -z "$2"
     then
-	re-align_usage
+	realign_usage
 	exit 1
     fi
 
@@ -1734,7 +1734,7 @@ global options:
     do
 	case "${OPTION}" in
 	    h)
-		re-align_usage
+		realign_usage
 		exit 1
 		;;
 	    R)
@@ -1794,12 +1794,12 @@ global options:
     # Check that the ref and bam files exist
     if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
     then
-	re-align_usage
+	realign_usage
 	echo -e "Error: Reference file $REF not found.\n"
 	exit 1
     elif [[ -z "$IN_BAM" ]] || [[ ! -e "$IN_BAM" ]]
     then
-	re-align_usage
+	realign_usage
 	echo -e "Error: BAM file $IN_BAM not found.\n"
 	exit 1
     fi
@@ -1808,37 +1808,37 @@ global options:
     source_binaries $CONFIG
     if [[ -z "$BWA" ]]
     then
-	re-align_usage
+	realign_usage
         echo -e "Error: bwa executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z  "$SAMBLASTER" ]]
     then
-	re-align_usage
+	realign_usage
         echo -e "Error: samblaster executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z "$SAMBAMBA" ]]
     then
-	re-align_usage
+	realign_usage
         echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z "$MBUFFER" ]]
     then
-	re-align_usage
+	realign_usage
 	echo -e "Error: mbuffer executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
     elif [[ -z "$BAMTOFASTQ" ]]
     then
-	re-align_usage
+	realign_usage
 	echo -e "Error: bamtofastq.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
     elif [[ -z "$BAMHEADRG" ]]
     then
-	re-align_usage
+	realign_usage
 	echo -e "Error: bamheadrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
     elif [[ -z "$PARALLEL" ]]
     then
-        re-align_usage
+        realign_usage
 	echo parallel is $PARALLEL
         echo -e "Error: parallel executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
@@ -1973,8 +1973,8 @@ case "$1" in
     'sv')
 	sv "${@:2}"
 	;;
-    're-align')
-	re-align "${@:2}"
+    'realign')
+	realign "${@:2}"
 	;;
     *)
 	usage
