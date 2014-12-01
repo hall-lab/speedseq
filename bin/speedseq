@@ -1920,9 +1920,9 @@ global options:
 	if [[ $VERBOSE -eq 1 ]]
 	then
 	    echo "
-	    $PYTHON27 $BAMTOFASTQ $REALIGN_RG_FMT $RENAME -i $IN_BAM | $MBUFFER -m 1G > $TEMP_DIR/fq_pipe &"
+	    $PYTHON27 $BAMTOFASTQ $REALIGN_RG_FMT $RENAME -i $IN_BAM | $MBUFFER -q -m 1G > $TEMP_DIR/fq_pipe &"
 	fi
-	$PYTHON27 $BAMTOFASTQ $REALIGN_RG_FMT $RENAME -i $IN_BAM | $MBUFFER -m 1G > $TEMP_DIR/fq_pipe &
+	$PYTHON27 $BAMTOFASTQ $REALIGN_RG_FMT $RENAME -i $IN_BAM | $MBUFFER -q -m 1G > $TEMP_DIR/fq_pipe &
 
 	# alignment command
 	if [[ $VERBOSE -eq 1 ]]
@@ -1954,7 +1954,7 @@ global options:
 	" | $PARALLEL -j 3
 
 	# index the files unless they will be merged
-	if [[ $MERGE -eq 0 ]]
+	if [[ $MERGE -eq 0 ]] && [[ ${#REALIGN_RG_LIST[@]} -gt 1 ]]
 	then
 	    if [[ $VERBOSE -eq 1 ]]
 	    then
