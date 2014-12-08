@@ -140,7 +140,7 @@ alignment options:
          -R       read group header line such as \"@RG\tID:libraryname\tSM:samplename\" (required)
          -p       first fastq file consists of interleaved paired-end sequences
          -t INT   threads [1]
-         -T DIR   temp directory [./temp]
+         -T DIR   temp directory [./output_prefix.XXXXXXXXXXXX]
          -I FLOAT[,FLOAT[,INT[,INT]]]
                   specify the mean, standard deviation (10% of the mean if absent), max
                     (4 sigma from the mean if absent) and min of the insert size distribution.
@@ -178,7 +178,7 @@ global options:
     MAX_SPLIT_COUNT=2
     MIN_NON_OVERLAP=20
     THREADS=1
-    TEMP_DIR="./temp"
+    TEMP_DIR=""
     VERBOSE=0
     INS_DIST=""
     SORT_MEM=20 # amount of memory for sorting, in gigabytes
@@ -315,6 +315,11 @@ global options:
     fi
 
     echo "Aligning..."
+    # create temp directory if not specified by command argument
+    if [[ -z $TEMP_DIR ]]
+    then
+	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+    fi
 
     if [[ $VERBOSE -eq 1 ]]
     then
@@ -431,7 +436,7 @@ options:
          -w FILE  BED file of windowed genomic intervals
          -q FLOAT minimum variant QUAL score to output [1]
          -t INT   threads [1]
-         -T DIR   temp directory [./temp]
+         -T DIR   temp directory [./output_prefix.XXXXXXXXXXXX]
          -A BOOL  annotate the vcf with VEP (true or false) (default: true)
          -K FILE  path to speedseq.config file (default: same directory as speedseq)
          -v       verbose
@@ -452,7 +457,7 @@ options:
     CONFIG="$SPEEDSEQ_DIR/speedseq.config"
     THREADS=1
     MINQUAL=1
-    TEMP_DIR="./temp"
+    TEMP_DIR=""
     ANNOTATE="true"
     MINQUAL=1
     VERBOSE=0
@@ -579,14 +584,18 @@ options:
     done
 
     echo "Calling variants..."
-
     # make temporary directory
     if [[ $VERBOSE -eq 1 ]]
     then
 	echo "
-        mkdir -p $TEMP_DIR"
+        create temporary directory"
     fi
-    mkdir -p $TEMP_DIR
+    if [[ -z $TEMP_DIR ]]
+    then
+	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+    else
+	mkdir -p $TEMP_DIR	
+    fi
 
     # if no windows file, then make naive windows based on the chroms
     if [[ -z $WINDOWS ]]
@@ -777,7 +786,7 @@ options:
                     to evaluate the position [2]
          -S FLOAT minimum somatic score (SSC) for PASS [18]
          -q FLOAT minimum QUAL score to output non-passing somatic variants [1e-5]
-         -T DIR   temp directory [./temp]
+         -T DIR   temp directory [./output_prefix.XXXXXXXXXXXX]
 
          -A BOOL  annotate the vcf with VEP (true or false) (default: true)
          -K FILE  path to speedseq.config file (default: same directory as speedseq)
@@ -802,7 +811,7 @@ options:
     THREADS=1
     MIN_ALT_FRACTION=0.05
     MIN_ALT_COUNT=2
-    TEMP_DIR="./temp"
+    TEMP_DIR=""
     ANNOTATE="true"
     MINQUAL=1e-5
     ONLY_SOMATIC=0
@@ -937,14 +946,18 @@ options:
     done
 
     echo "Calling somatic variants..."
-    
     # make temporary directory
     if [[ $VERBOSE -eq 1 ]]
     then
-	echo -e "
-        mkdir -p $TEMP_DIR"
+	echo "
+        create temporary directory"
     fi
-    mkdir -p $TEMP_DIR
+    if [[ -z $TEMP_DIR ]]
+    then
+	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+    else
+	mkdir -p $TEMP_DIR	
+    fi
 
     # if no windows file, then make naive windows based on the chroms
     if [[ -z $WINDOWS ]]
@@ -1142,7 +1155,7 @@ sv options:
          -m INT   minimum weight for a call [4]
          -r FLOAT trim threshold [0]
          -L INT   read length [auto]
-         -T DIR   temp directory [./temp]
+         -T DIR   temp directory [./output_prefix.XXXXXXXXXXXX]
          -k       keep temporary files
 
          -s STR   lumpy split read parameters [auto]
@@ -1181,7 +1194,7 @@ global options:
     MIN_WEIGHT=4
     TRIM_THRES=0
     EXCLUDE_BED=
-    TEMP_DIR="./temp"
+    TEMP_DIR=""
     GENOTYPE=0
     READDEPTH=0
     VERBOSE=0
@@ -1381,7 +1394,17 @@ global options:
     OUTBASE=`basename "$OUTPUT"`
 
     # make temporary directory
-    mkdir -p ${TEMP_DIR}
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo "
+        create temporary directory"
+    fi
+    if [[ -z $TEMP_DIR ]]
+    then
+	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+    else
+	mkdir -p $TEMP_DIR	
+    fi
 
     # create the LUMPY config file for generating the VCF
     for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
@@ -1717,7 +1740,7 @@ alignment options:
          -n       rename reads for smaller file size
          -e       merge BAM files from different libraries
          -t INT   threads [1]
-         -T DIR   temp directory [./temp]
+         -T DIR   temp directory [./output_prefix.XXXXXXXXXXXX]
 
 samblaster options:
          -i       include duplicates in splitters and discordants
@@ -1751,7 +1774,7 @@ global options:
     MAX_SPLIT_COUNT=2
     MIN_NON_OVERLAP=20
     THREADS=1
-    TEMP_DIR="./temp"
+    TEMP_DIR=""
     VERBOSE=0
     INS_DIST=""
     REALIGN_RG_LIST=""
@@ -1912,6 +1935,19 @@ global options:
     OUTBASE=`basename "$OUTPUT"`
 
     echo "Aligning..."
+    # create temp directory if not specified by command argument
+    if [[ -z $TEMP_DIR ]]
+    then
+	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+    fi
+
+    if [[ $VERBOSE -eq 1 ]]
+    then
+	echo "
+        mkdir -p $TEMP_DIR/full $TEMP_DIR/spl $TEMP_DIR/disc
+        mkfifo $TEMP_DIR/spl_pipe $TEMP_DIR/disc_pipe"
+    fi
+
     if [[ $VERBOSE -eq 1 ]]
     then
 	echo "
