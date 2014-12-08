@@ -9,7 +9,7 @@
 	url = https://github.com/cc2qe/vawk.git
 [submodule "src/lumpy-sv"]
 	path = src/lumpy-sv
-	url = https://github.com/arq5x/lumpy-sv.git
+	url = https://github.com/cc2qe/lumpy-sv.git
 [submodule "src/tabix"]
 	path = src/tabix
 	url = https://github.com/samtools/tabix.git
