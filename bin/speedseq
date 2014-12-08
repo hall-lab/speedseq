@@ -644,17 +644,21 @@ options:
     grep "^#" $TEMP_DIR/$OUTBASE.$i.vcf > $TEMP_DIR/header.txt
 
     # merge the vcf region files
-
     if [[ "$ANNOTATE" == "true" ]]
     then
-        # merge the vcf region files, with VEP annotation
+	FORK=""
+	if [[ "$THREADS" -gt 1 ]]
+	then
+	    FORK="--fork $THREADS"
+	fi
+
 	if [[ $VERBOSE -eq 1 ]]
 	then
 	    echo -e "
             cat $TEMP_DIR/$OUTBASE.\"$chrom:\$start..\$end\".vcf | grep -v \"^#\" \\
                 | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \\
                 | $VEP \\
-                --fork $THREADS \\
+                $FORK \\
                 -o /dev/stdout \\
                 --force_overwrite \\
                 --offline \\
@@ -680,7 +684,7 @@ options:
 	done \
 	    | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \
 	    | $VEP \
-            --fork $THREADS \
+            $FORK \
             -o /dev/stdout \
 	    --force_overwrite \
             --offline \
@@ -1011,13 +1015,19 @@ options:
     if [[ "$ANNOTATE" == "true" ]]
     then
         # merge the vcf region files, with VEP annotation
+	FORK=""
+	if [[ "$THREADS" -gt 1 ]]
+	then
+	    FORK="--fork $THREADS"
+	fi
+
 	if [[ $VERBOSE -eq 1 ]]
 	then
 	    echo -e "
             cat $TEMP_DIR/$OUTBASE.\"\$chrom:\$start..\$end\".vcf | grep -v \"^#\" \\
                 | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \\
                 | $VEP \\
-                --fork $THREADS \\
+                $FORK \\
                 -o /dev/stdout \\
                 --force_overwrite \\
                 --offline \\
@@ -1042,7 +1052,7 @@ options:
 	done \
             | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \
             | $VEP \
-            --fork $THREADS \
+            $FORK \
             -o /dev/stdout \
 	    --force_overwrite \
             --offline \
@@ -1596,6 +1606,12 @@ cat $TEMP_DIR/$OUTBASE.sv.vcf | awk '$0!~\"^#\" {exit}; 1' > $TEMP_DIR/header.tx
     # Annotate structural variants with VEP
     if [[ "$ANNOTATE" == "true" ]]
     then
+	FORK=""
+	if [[ "$THREADS" -gt 1 ]]
+	then
+	    FORK="--fork $THREADS"
+	fi
+
 	if [[ "$VERBOSE" -eq 1 ]]
 	then
 	    echo -e "
@@ -1603,7 +1619,7 @@ cat $TEMP_DIR/$OUTBASE.sv.vcf | awk '$0!~\"^#\" {exit}; 1' > $TEMP_DIR/header.tx
 cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
     | awk '\$0~\"^#\" || (\$1<=22 || \$1==\"X\" || \$1==\"Y\")' \\
     | $VEP \\
-    --fork $THREADS \\
+    $FORK \\
     -o /dev/stdout \\
     --force_overwrite \\
     --format vcf \\
@@ -1628,7 +1644,7 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
 	cat  $TEMP_DIR/$OUTBASE.sv.vcf \
 	    | awk '$0~"^#" || (($1<=22 || $1=="X" || $1=="Y"))' \
 	    | $VEP \
-            --fork $THREADS \
+            $FORK \
             -o /dev/stdout \
             --force_overwrite \
 	    --format vcf \
