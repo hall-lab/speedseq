@@ -64,6 +64,7 @@ svtools:
 	cp $(SVTOOLS_DIR)/splitReadSamToBedpe $(TARGET_BIN)
 	cp $(SVTOOLS_DIR)/splitterToBreakpoint $(TARGET_BIN)
 	cp $(SVTOOLS_DIR)/vcfToBedpe $(TARGET_BIN)
+	cp $(SVTOOLS_DIR)/lumpyToBedpe $(TARGET_BIN)
 
 mbuffer:
 	cd $(MBUFFER_DIR); ./configure --prefix=$(shell pwd)

@@ -63,6 +63,7 @@ bin/windowMaker
 bin/mbuffer
 bin/bamheadrg.py
 bin/bamtofastq.py
+bin/lumpyToBedpe
 
 # Compiled source #
 ###################
