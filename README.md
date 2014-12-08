@@ -2,7 +2,7 @@
 
 **Current version:** 0.0.2
 
-Created by Colby Chiang, Ryan M. Layer, Greg G. Faust, Michael R. Lindberg, Aaron R. Quinlan, and Ira M. Hall.
+Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth, A R Quinlan, and I M Hall. 2014. SpeedSeq: Ultra-Fast Personal Genome Analysis and Interpretation. bioRxiv. [doi:10.1101/012179](http://dx.doi.org/10.1101/012179).
 
 Current support for Linux only
 
