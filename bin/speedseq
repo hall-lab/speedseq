@@ -1309,7 +1309,13 @@ global options:
 	sv_usage
         echo -e "Error: VEP cache directory not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
+    elif [[ -z "$VAWK" ]] && [[ "$ANNOTATE" == "true" ]]
+    then
+	sv_usage
+        echo -e "Error: vawk executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
     fi
+
 
     # if genotyping requested, look for svtyper
     if [[ "$GENOTYPE" -eq 1 ]] && [[ -z "$SVTYPER" ]]
@@ -1641,7 +1647,7 @@ cat $TEMP_DIR/$OUTBASE.sv.vcf | awk '$0!~\"^#\" {exit}; 1' > $TEMP_DIR/header.tx
 	    echo -e "
 # Annotate structural variants with VEP
 cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
-    | awk '\$0~\"^#\" || (\$1<=22 || \$1==\"X\" || \$1==\"Y\")' \\
+    | $PYTHON27 $VAWK --header '(\$1<=22 || \$1==\"X\" || \$1==\"Y\") && (I\$SVTYPE==\"BND\" || (I\$SVLEN<=50000 && I\$SVLEN>=-50000))' \\
     | $VEP \\
     $FORK \\
     -o /dev/stdout \\
@@ -1660,13 +1666,13 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
     --total_length \\
     --vcf \\
     --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE \\
-    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v \"^#\" | awk '(\$1>22 && \$1!=\"X\" && \$1!=\"Y\")') \\
+    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | $PYTHON27 $VAWK '(\$1>22 && \$1!=\"X\" && \$1!=\"Y\") || (I\$SVTYPE!=\"BND\" && (I\$SVLEN>50000 || I\$SVLEN<-50000))') \\
     > $TEMP_DIR/$OUTBASE.vep.sv.vcf
     "
 	fi
 
 	cat  $TEMP_DIR/$OUTBASE.sv.vcf \
-	    | awk '$0~"^#" || (($1<=22 || $1=="X" || $1=="Y"))' \
+	    | $PYTHON27 $VAWK --header '($1<=22 || $1=="X" || $1=="Y") && (I$SVTYPE=="BND" || (I$SVLEN<=50000 && I$SVLEN>=-50000))' \
 	    | $VEP \
             $FORK \
             -o /dev/stdout \
@@ -1685,7 +1691,7 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
             --total_length \
             --vcf \
             --fields Consequence,Codons,Amino_acids,Gene,SYMBOL,Feature,EXON,PolyPhen,SIFT,Protein_position,BIOTYPE \
-	    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | grep -v "^#" | awk '($1>22 && $1!="X" && $1!="Y")') \
+	    | cat - <(cat $TEMP_DIR/$OUTBASE.sv.vcf | $PYTHON27 $VAWK '($1>22 && $1!="X" && $1!="Y") || (I$SVTYPE!="BND" && (I$SVLEN>50000 || I$SVLEN<-50000))') \
 	    > $TEMP_DIR/$OUTBASE.vep.sv.vcf
 
 	mv $TEMP_DIR/$OUTBASE.vep.sv.vcf $TEMP_DIR/$OUTBASE.sv.vcf
