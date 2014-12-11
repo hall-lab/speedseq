@@ -1744,8 +1744,7 @@ alignment options:
          -g STR   re-align these read groups from the coordinate sorted BAM file (comma separated)
                     (default: re-align all readgroups)
          -n       rename reads for smaller file size
-         -e       merge BAM files from multiple libraries
-         -N       write the BAM file to dev/null, but still produce splitter and discordant BAM files.
+         -e       merge BAM files from different libraries
          -t INT   threads [1]
          -T DIR   temp directory [./output_prefix.XXXXXXXXXXXX]
 
@@ -1787,10 +1786,9 @@ global options:
     REALIGN_RG_LIST=""
     RENAME=""
     MERGE=0
-    WRITE_FULL_BAM=1
     SORT_MEM=20 # amount of memory for sorting, in gigabytes
 
-    while getopts ":hw:o:R:pic:m:M:t:T:g:I:nevNK:" OPTION
+    while getopts ":hw:o:R:pic:m:M:t:T:g:I:nevK:" OPTION
     do
 	case "${OPTION}" in
 	    h)
@@ -1839,9 +1837,6 @@ global options:
 		;;
 	    e)
 		MERGE=1
-		;;
-	    N)
-		WRITE_FULL_BAM=0
 		;;
 	    K)
 		CONFIG="$OPTARG"
@@ -1998,117 +1993,66 @@ global options:
 	$PYTHON27 $BAMTOFASTQ $REALIGN_RG_FMT $RENAME -i $IN_BAM | $MBUFFER -q -m 1G > $TEMP_DIR/fq_pipe &
 
 	# alignment command
-	if [[ "$WRITE_FULL_BAM" -eq 1 ]]
+	if [[ $VERBOSE -eq 1 ]]
+	then
+	    echo -e "
+	$BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ | \\
+	    $PYTHON27 $BAMHEADRG -b $IN_BAM $REALIGN_RG_FMT | \\
+	    $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
+	    $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
+	    $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.$(($i+1)).bam /dev/stdin
+
+	$SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \\
+	    $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.$(($i+1)).splitters.bam /dev/stdin
+	$SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \\
+	    $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.$(($i+1)).discordants.bam /dev/stdin"
+	fi
+
+	echo -e "
+	$BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ | \
+	    $PYTHON27 $BAMHEADRG -b <($SAMBAMBA view -f bam -l 0 $IN_BAM) $REALIGN_RG_FMT | \
+	    $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
+	    $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
+	    $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.$(($i+1)).bam /dev/stdin
+
+	$SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \
+	    $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.$(($i+1)).splitters.bam /dev/stdin
+	$SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
+	    $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.$(($i+1)).discordants.bam /dev/stdin
+	" | $PARALLEL -j 3
+
+	# index the files unless they will be merged
+	if [[ $MERGE -eq 0 ]] && [[ ${#REALIGN_RG_LIST[@]} -gt 1 ]]
 	then
 	    if [[ $VERBOSE -eq 1 ]]
 	    then
 		echo -e "
-	    $BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ | \\
-		$PYTHON27 $BAMHEADRG -b $IN_BAM $REALIGN_RG_FMT | \\
-		$SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
-		$SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
-		$SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.$(($i+1)).bam /dev/stdin
-
-	    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \\
-		$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.$(($i+1)).splitters.bam /dev/stdin
-	    $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \\
-		$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.$(($i+1)).discordants.bam /dev/stdin"
-	    fi
-
-	    echo -e "
-	    $BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ | \
-		$PYTHON27 $BAMHEADRG -b <($SAMBAMBA view -f bam -l 0 $IN_BAM) $REALIGN_RG_FMT | \
-		$SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
-		$SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
-		$SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.$(($i+1)).bam /dev/stdin
-
-	    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \
-		$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.$(($i+1)).splitters.bam /dev/stdin
-	    $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
-		$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.$(($i+1)).discordants.bam /dev/stdin
-	    " | $PARALLEL -j 3
-
-	    # index the files unless they will be merged
-	    if [[ $MERGE -eq 0 ]] && [[ ${#REALIGN_RG_LIST[@]} -gt 1 ]]
-	    then
-		if [[ $VERBOSE -eq 1 ]]
-		then
-		    echo -e "
-		    $SAMBAMBA index $OUTPUT.$(($i+1)).bam
-		    $SAMBAMBA index $OUTPUT.$(($i+1)).discordants.bam
-		    $SAMBAMBA index $OUTPUT.$(($i+1)).splitters.bam"
-		fi
-
-		echo "
 		$SAMBAMBA index $OUTPUT.$(($i+1)).bam
 		$SAMBAMBA index $OUTPUT.$(($i+1)).discordants.bam
-		$SAMBAMBA index $OUTPUT.$(($i+1)).splitters.bam
-		" | $PARALLEL -j 3
-	    fi
-	else
-	    # Don't write full bam
-	    if [[ $VERBOSE -eq 1 ]]
-	    then
-		echo -e "
-	    $BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ | \\
-		$PYTHON27 $BAMHEADRG -b $IN_BAM $REALIGN_RG_FMT | \\
-		$SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \\
-                > /dev/null
-
-	    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \\
-		$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.$(($i+1)).splitters.bam /dev/stdin
-	    $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \\
-		$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.$(($i+1)).discordants.bam /dev/stdin"
+		$SAMBAMBA index $OUTPUT.$(($i+1)).splitters.bam"
 	    fi
 
-	    echo -e "
-	    $BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ | \
-		$PYTHON27 $BAMHEADRG -b <($SAMBAMBA view -f bam -l 0 $IN_BAM) $REALIGN_RG_FMT | \
-		$SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
-                > /dev/null
-
-	    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \
-		$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.$(($i+1)).splitters.bam /dev/stdin
-	    $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
-		$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.$(($i+1)).discordants.bam /dev/stdin
+	    echo "
+	    $SAMBAMBA index $OUTPUT.$(($i+1)).bam
+	    $SAMBAMBA index $OUTPUT.$(($i+1)).discordants.bam
+	    $SAMBAMBA index $OUTPUT.$(($i+1)).splitters.bam
 	    " | $PARALLEL -j 3
-
-	    # index the files unless they will be merged
-	    if [[ $MERGE -eq 0 ]] && [[ ${#REALIGN_RG_LIST[@]} -gt 1 ]]
-	    then
-		if [[ $VERBOSE -eq 1 ]]
-		then
-		    echo -e "
-		    $SAMBAMBA index $OUTPUT.$(($i+1)).discordants.bam
-		    $SAMBAMBA index $OUTPUT.$(($i+1)).splitters.bam"
-		fi
-
-		echo "
-		$SAMBAMBA index $OUTPUT.$(($i+1)).discordants.bam
-		$SAMBAMBA index $OUTPUT.$(($i+1)).splitters.bam
-		" | $PARALLEL -j 2
-	    fi
 	fi
     done
 
     # if only 1 library, then rename files
     if [[ ${#REALIGN_RG_LIST[@]} -eq 1 ]]
     then
-	# rename
-	if [[ "$WRITE_FULL_BAM" -eq 1 ]]
-	then
-	    mv $OUTPUT.1.bam $OUTPUT.bam
-	fi
+	mv $OUTPUT.1.bam $OUTPUT.bam
 	mv $OUTPUT.1.discordants.bam $OUTPUT.discordants.bam
 	mv $OUTPUT.1.splitters.bam $OUTPUT.splitters.bam
 
-	# index
-	if [[ "$WRITE_FULL_BAM" -eq 1 ]]
-	then
-	    $SAMBAMBA index $OUTPUT.bam
-	fi
+	echo "
+	$SAMBAMBA index $OUTPUT.bam
 	$SAMBAMBA index $OUTPUT.discordants.bam
 	$SAMBAMBA index $OUTPUT.splitters.bam
+	" | $PARALLEL -j 3
+
     fi
 
     # merge and index the files, if requested
@@ -2119,10 +2063,7 @@ global options:
 	MERGE_SPLITTERS=""
 	for i in $( seq 0 $(( ${#REALIGN_RG_LIST[@]}-1 )) )
 	do
-	    if [[ "$WRITE_FULL_BAM" -eq 1 ]]
-	    then
-		MERGE_FULL="$MERGE_FULL $OUTPUT.$(($i+1)).bam"
-	    fi
+	    MERGE_FULL="$MERGE_FULL $OUTPUT.$(($i+1)).bam"
 	    MERGE_DISCORDANTS="$MERGE_DISCORDANTS $OUTPUT.$(($i+1)).discordants.bam"
 	    MERGE_SPLITTERS="$MERGE_SPLITTERS $OUTPUT.$(($i+1)).splitters.bam"
 	done
@@ -2130,19 +2071,12 @@ global options:
 	if [[ $VERBOSE -eq 1 ]]
 	then
 	    echo "
-            if [[ $WRITE_FULL_BAM -eq 1 ]]
-            then
-                $SAMBAMBA merge -t $THREADS $OUTPUT.bam $MERGE_FULL
-            fi
+            $SAMBAMBA merge -t $THREADS $OUTPUT.bam $MERGE_FULL
             $SAMBAMBA merge -t $THREADS $OUTPUT.discordants.bam $MERGE_DISCORDANTS
             $SAMBAMBA merge -t $THREADS $OUTPUT.splitters.bam $MERGE_SPLITTERS
             rm $MERGE_FULL $MERGE_DISCORDANTS $MERGE_SPLITTERS"
 	fi
-
-	if [[ "$WRITE_FULL_BAM" -eq 1 ]]
-	then
-	    $SAMBAMBA merge -t $THREADS $OUTPUT.bam $MERGE_FULL
-	fi
+	$SAMBAMBA merge -t $THREADS $OUTPUT.bam $MERGE_FULL
 	$SAMBAMBA merge -t $THREADS $OUTPUT.discordants.bam $MERGE_DISCORDANTS
 	$SAMBAMBA merge -t $THREADS $OUTPUT.splitters.bam $MERGE_SPLITTERS
 	rm $MERGE_FULL $MERGE_DISCORDANTS $MERGE_SPLITTERS
@@ -2151,19 +2085,16 @@ global options:
 	if [[ $VERBOSE -eq 1 ]]
 	then
 	    echo -e "
-            if [[ $WRITE_FULL_BAM -eq 1 ]]
-            then
-	        $SAMBAMBA index $OUTPUT.bam
-            fi
+	    $SAMBAMBA index $OUTPUT.bam
 	    $SAMBAMBA index $OUTPUT.discordants.bam
 	    $SAMBAMBA index $OUTPUT.splitters.bam"
 	fi
-	if [[ "$WRITE_FULL_BAM" -eq 1 ]]
-	then
-	    $SAMBAMBA index $OUTPUT.bam
-	fi
+	echo "
+	$SAMBAMBA index $OUTPUT.bam
 	$SAMBAMBA index $OUTPUT.discordants.bam
 	$SAMBAMBA index $OUTPUT.splitters.bam
+	" | $PARALLEL -j 3
+
     fi
 
     # clean up
