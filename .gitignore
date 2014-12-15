@@ -64,6 +64,7 @@ bin/mbuffer
 bin/bamheadrg.py
 bin/bamtofastq.py
 bin/lumpyToBedpe
+bin/bamgroupreads.py
 
 # Compiled source #
 ###################
