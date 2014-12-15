@@ -17,7 +17,7 @@ __date__ = "$Date: 2014-09-04 14:31 $"
 
 def bamtofastq(bamfile, is_sam, readgroup, rename):
     # get file and header
-    if bamfile == "stdin": 
+    if bamfile == None: 
         if is_sam:
             bam = pysam.Samfile("-", "r")
         else:
@@ -83,21 +83,13 @@ bamtofastq.py\n\
 author: " + __author__ + "\n\
 version: " + __version__ + "\n\
 description: Convert a coordinate sorted BAM file to FASTQ")
-    parser.add_argument('-i', '--input', metavar='BAM', type=str, required=False, help='Input BAM file')
+    parser.add_argument('-i', '--input', metavar='BAM', required=False, help='Input BAM file')
     parser.add_argument('-r', '--readgroup', metavar='STR', default=None, required=False, help='Read group(s) to extract (comma separated)')
     parser.add_argument('-n', '--rename', required=False, action='store_true', help='Rename reads')
     parser.add_argument('-S', '--is_sam', required=False, action='store_true', help='Input is SAM format')
 
     # parse the arguments
     args = parser.parse_args()
-
-    # if no input, check if part of pipe and if so, read stdin.
-    if args.input == None:
-        if sys.stdin.isatty():
-            parser.print_help()
-            exit(1)
-        else:
-            args.input = sys.stdin
 
     # send back the user input
     return args

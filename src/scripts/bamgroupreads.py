@@ -105,14 +105,6 @@ description: Group BAM file by read IDs without sorting")
     # parse the arguments
     args = parser.parse_args()
 
-    # # if no input, check if part of pipe and if so, read stdin.
-    # if args.input == None:
-    #     if sys.stdin.isatty():
-    #         parser.print_help()
-    #         exit(1)
-    #     else:
-    #         args.input = sys.stdin
-
     # send back the user input
     return args
 
