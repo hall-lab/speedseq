@@ -438,7 +438,7 @@ options:
          -q FLOAT minimum variant QUAL score to output [1]
          -t INT   threads [1]
          -T DIR   temp directory [./output_prefix.XXXXXXXXXXXX]
-         -A BOOL  annotate the vcf with VEP (true or false) (default: true)
+         -A       annotate the vcf with VEP
          -K FILE  path to speedseq.config file (default: same directory as speedseq)
          -v       verbose
          -k       keep temporary files
@@ -459,12 +459,12 @@ options:
     THREADS=1
     MINQUAL=1
     TEMP_DIR=""
-    ANNOTATE="true"
+    ANNOTATE=0
     MINQUAL=1
     VERBOSE=0
     KEEP=0
 
-    while getopts ":ho:w:t:T:A:q:vkK:" OPTION
+    while getopts ":ho:w:t:T:Aq:vkK:" OPTION
     do
         case "${OPTION}" in
             h)
@@ -487,7 +487,7 @@ options:
                 TEMP_DIR="$OPTARG"
                 ;;
 	    A)
-		ANNOTATE=`echo "$OPTARG" | tr [:upper:] [:lower:]`
+		ANNOTATE=1
 		;;
             v)
                 VERBOSE=1
@@ -536,12 +536,12 @@ options:
 	var_usage
         echo -e "Error: tabix executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ ! -f "$VEP" ]] && [[ "$ANNOTATE" == "true" ]]
+    elif [[ ! -f "$VEP" ]] && [[ "$ANNOTATE" -eq 1 ]]
     then
 	var_usage
         echo -e "Error: VEP not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ ! -d "$VEP_CACHE_DIR" ]] && [[ "$ANNOTATE" == "true" ]]
+    elif [[ ! -d "$VEP_CACHE_DIR" ]] && [[ "$ANNOTATE" -eq 1 ]]
     then
 	var_usage
         echo -e "Error: VEP cache directory not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -556,14 +556,6 @@ options:
 	var_usage
         echo -e "Error: vawk executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    fi
-
-    # Check that ANNOTATE is either true or false
-    if [[ "$ANNOTATE" != "true" ]] && [[ "$ANNOTATE" != "false" ]]
-    then
-	var_usage
-	echo -e "Error: -A must be either true or false\n"
-	exit 1
     fi
 
     # Check that the ref and bam files exist
@@ -655,7 +647,7 @@ options:
     grep "^#" $TEMP_DIR/$OUTBASE.$i.vcf > $TEMP_DIR/header.txt
 
     # merge the vcf region files
-    if [[ "$ANNOTATE" == "true" ]]
+    if [[ "$ANNOTATE" -eq 1 ]]
     then
 	FORK=""
 	if [[ "$THREADS" -gt 1 ]]
@@ -789,7 +781,7 @@ options:
          -q FLOAT minimum QUAL score to output non-passing somatic variants [1e-5]
          -T DIR   temp directory [./output_prefix.XXXXXXXXXXXX]
 
-         -A BOOL  annotate the vcf with VEP (true or false) (default: true)
+         -A       annotate the vcf with VEP
          -K FILE  path to speedseq.config file (default: same directory as speedseq)
          -v       verbose
          -k       keep tempory files
@@ -813,14 +805,14 @@ options:
     MIN_ALT_FRACTION=0.05
     MIN_ALT_COUNT=2
     TEMP_DIR=""
-    ANNOTATE="true"
+    ANNOTATE=0
     MINQUAL=1e-5
     ONLY_SOMATIC=0
     SSC_THRES=18
     VERBOSE=0
     KEEP=0
 
-    while getopts ":ho:w:t:F:C:T:A:q:S:svkK:" OPTION
+    while getopts ":ho:w:t:F:C:T:Aq:S:svkK:" OPTION
     do
         case "${OPTION}" in
             h)
@@ -846,7 +838,7 @@ options:
                 TEMP_DIR="$OPTARG"
                 ;;
             A)
-                ANNOTATE=`echo "$OPTARG" | tr [:upper:] [:lower:]`
+                ANNOTATE=1
                 ;;
 	    q)
 		MINQUAL="$OPTARG"
@@ -904,12 +896,12 @@ options:
         somatic_usage
         echo -e "Error: tabix executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ ! -f "$VEP" ]] && [[ "$ANNOTATE" == "true" ]]
+    elif [[ ! -f "$VEP" ]] && [[ "$ANNOTATE" -eq 1 ]]
     then
         somatic_usage
         echo -e "Error: VEP not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ ! -d "$VEP_CACHE_DIR" ]] && [[ "$ANNOTATE" == "true" ]]
+    elif [[ ! -d "$VEP_CACHE_DIR" ]] && [[ "$ANNOTATE" -eq 1 ]]
     then
         somatic_usage
         echo -e "Error: VEP cache directory not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -919,14 +911,6 @@ options:
         somatic_usage
         echo -e "Error: parallel executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    fi
-
-    # Check that ANNOTATE is either true or false
-    if [[ "$ANNOTATE" != "true" ]] && [[ "$ANNOTATE" != "false" ]]
-    then
-	somatic_usage
-	echo -e "Error: -A must be either true or false\n"
-	exit 1
     fi
 
     # Check that the ref and bam files exist
@@ -1027,7 +1011,7 @@ options:
     TUMOR_RG=`cat ${TEMP_DIR}/header.txt | tail -n 1 | cut -f 10`
     NORMAL_RG=`cat ${TEMP_DIR}/header.txt | tail -n 1 | cut -f 11`
 
-    if [[ "$ANNOTATE" == "true" ]]
+    if [[ "$ANNOTATE" -eq 1 ]]
     then
         # merge the vcf region files, with VEP annotation
 	FORK=""
@@ -1152,7 +1136,7 @@ sv options:
          -x FILE  BED file to exclude
          -g       genotype SV breakends with svtyper
          -d       calculate read-depth with CNVnator
-         -A BOOL  annotate the vcf with VEP (true or false) (default: true)
+         -A       annotate the vcf with VEP
          -m INT   minimum weight for a call [4]
          -r FLOAT trim threshold [0]
          -L INT   read length [auto]
@@ -1191,7 +1175,7 @@ global options:
     SPEEDSEQ_DIR=`dirname $0`
     CONFIG="$SPEEDSEQ_DIR/speedseq.config"
     THREADS=1
-    ANNOTATE="true"
+    ANNOTATE=0
     MIN_WEIGHT=4
     TRIM_THRES=0
     EXCLUDE_BED=
@@ -1204,7 +1188,7 @@ global options:
     MAX_SPLIT_COUNT=2
     MIN_NON_OVERLAP=20
 
-    while getopts ":hB:S:D:R:o:m:r:L:x:s:p:T:t:A:dgkvK:" OPTION
+    while getopts ":hB:S:D:R:o:m:r:L:x:s:p:T:t:AdgkvK:" OPTION
     do
 	case "${OPTION}" in
             h)
@@ -1252,7 +1236,7 @@ global options:
 		THREADS="$OPTARG"
 		;;
 	    A)
-		ANNOTATE=`echo "$OPTARG" | tr [:upper:] [:lower:]`
+		ANNOTATE=1
 		;;
 	    d)
 		READDEPTH=1
@@ -1302,17 +1286,17 @@ global options:
 	sv_usage
         echo -e "Error: bedpeToVcf executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ ! -f "$VEP" ]] && [[ "$ANNOTATE" == "true" ]]
+    elif [[ ! -f "$VEP" ]] && [[ "$ANNOTATE" -eq 1 ]]
     then
 	sv_usage
         echo -e "Error: VEP not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ ! -d "$VEP_CACHE_DIR" ]] && [[ "$ANNOTATE" == "true" ]]
+    elif [[ ! -d "$VEP_CACHE_DIR" ]] && [[ "$ANNOTATE" -eq 1 ]]
     then
 	sv_usage
         echo -e "Error: VEP cache directory not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$VAWK" ]] && [[ "$ANNOTATE" == "true" ]]
+    elif [[ -z "$VAWK" ]] && [[ "$ANNOTATE" -eq 1 ]]
     then
 	sv_usage
         echo -e "Error: vawk executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -1394,14 +1378,6 @@ global options:
             exit 1
         fi
     done
-
-    # Check that ANNOTATE is either true or false
-    if [[ "$ANNOTATE" != "true" ]] && [[ "$ANNOTATE" != "false" ]]
-    then
-	sv_usage
-	echo -e "Error: -A must be either true or false\n"
-	exit 1
-    fi
 
     # default OUTPUT if not provided
     if test -z "$OUTPUT"
@@ -1767,7 +1743,7 @@ cat $TEMP_DIR/$OUTBASE.sv.vcf | awk '$0!~\"^#\" {exit}; 1' > $TEMP_DIR/header.tx
     fi
 
     # Annotate structural variants with VEP
-    if [[ "$ANNOTATE" == "true" ]]
+    if [[ "$ANNOTATE" -eq 1 ]]
     then
 	FORK=""
 	if [[ "$THREADS" -gt 1 ]]
