@@ -29,7 +29,7 @@ genomic variation (single nucleotide variants (SNVs), indels, and structural var
 * [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
 * [Sambamba](https://github.com/lomereiter/sambamba)
 * [FreeBayes](https://github.com/ekg/freebayes)
-* [VEP](http://snpeff.sourceforge.net/)
+* [VEP](http://www.ensembl.org/info/docs/tools/vep/index.html)
 * [LUMPY](https://github.com/arq5x/lumpy-sv)
 * [SVtyper](https://github.com/cc2qe/svtyper)
 * [CNVnator](http://sv.gersteinlab.org/cnvnator/)
@@ -354,7 +354,7 @@ input.bam       BAM file(s) to call variants on. Must have readgroup information
 -q FLOAT        minimum variant QUAL score to output [1]
 -t INT          number of threads to use [default: 1]
 -T DIR          temp directory [default: ./temp]
--A BOOL         annotate the vcf with snpEff (true or false) [default: true]
+-A              annotate the vcf with VEP
 -K FILE         path to speedseq.config file [default: same directory as speedseq]
 -v              verbose
 -h              show help message
@@ -362,7 +362,7 @@ input.bam       BAM file(s) to call variants on. Must have readgroup information
 
 ####Output
 
-`speedseq var` produces a single indexed VCF file that optionally annotated with VEP.
+`speedseq var` produces a single indexed VCF file that is optionally annotated with VEP.
 
 * `outprefix.vcf.gz`
 
@@ -404,7 +404,7 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 -u FLOAT         minimum tumor log odds ratio for PASS [7]
 -q FLOAT         minimum QUAL score to output non-passing somatic variants [1e-5]
 -T DIR           temp directory [./temp]
--A BOOL          annotate the vcf with snpEff (true or false) (default: true)
+-A               annotate the vcf with VEP
 -K FILE          path to speedseq.config file (default: same directory as speedseq)
 -v               verbose
 -h               show help message
@@ -412,7 +412,7 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 
 ####Output
 
-`speedseq somatic` produces a single indexed VCF file and optionally annotated with VEP.
+`speedseq somatic` produces a single indexed VCF file that is optionally annotated with VEP.
 
 * `outprefix.vcf.gz`
 
@@ -434,7 +434,7 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 -x FILE          BED file to exclude
 -g               genotype SV breakends with svtyper
 -d               calculate read-depth with CNVnator
--A BOOL          annotate the vcf with VEP (true or false) (default: true)
+-A               annotate the vcf with VEP
 -m INT           minimum weight for a call [default: 4]
 -r FLOAT         trim threshold [0]
 -L INT           read length [auto]
