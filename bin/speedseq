@@ -1187,8 +1187,9 @@ global options:
     OUTPUT=""
     MAX_SPLIT_COUNT=2
     MIN_NON_OVERLAP=20
+    REALIGN=0
 
-    while getopts ":hB:S:D:R:o:m:r:L:x:s:p:T:t:AdgkvK:" OPTION
+    while getopts ":hB:S:D:R:o:m:r:L:x:s:p:T:t:aAdgkvK:" OPTION
     do
 	case "${OPTION}" in
             h)
@@ -1234,6 +1235,9 @@ global options:
                 ;;
 	    t)
 		THREADS="$OPTARG"
+		;;
+	    a)
+		REALIGN=1
 		;;
 	    A)
 		ANNOTATE=1
@@ -1306,6 +1310,22 @@ global options:
 	sv_usage
         echo -e "Error: samblaster executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
+    elif [[ -z "$BWA" ]] && [[ "$REALIGN" -eq 1 ]]
+    then
+	sv_usage
+	echo -e "Error: BWA executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+    elif [[ -z "$BAMTOFASTQ" ]] && [[ "$REALIGN" -eq 1 ]]
+    then
+	sv_usage
+	echo -e "Error: bamtofastq.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+    elif [[ -z "$BAMHEADRG" ]] && [[ "$REALIGN" -eq 1 ]]
+    then
+	sv_usage
+	echo -e "Error: bamheadrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+    elif [[ -z "$MBUFFER" ]] && [[ "$REALIGN" -eq 1 ]]
+    then
+	sv_usage
+	echo -e "Error: mbuffer executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
     fi
 
     # if genotyping requested, look for svtyper
@@ -1417,6 +1437,11 @@ global options:
 	then
 	    mkfifo $TEMP_DIR/disc_pipe
 	fi
+	if [[ ! -e $TEMP_DIR/fq_pipe ]]
+	then
+	    mkfifo $TEMP_DIR/fq_pipe
+	fi
+	FQ="$TEMP_DIR/fq_pipe"
 
         # generate histo files and construct the strings for LUMPY
 	for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
@@ -1456,37 +1481,86 @@ global options:
 	    for j in $( seq 0 $(( ${#LIB_RG_LIST[@]}-1 )) )
 	    do
 		RG_STRING=${LIB_RG_LIST[$j]}
-		if [[ "$VERBOSE" -eq 1 ]]
+		
+		if [[ "$REALIGN -eq 1" ]]
 		then
+
+		    # create the virtual file for fastq pipe
+		    if [[ $VERBOSE -eq 1 ]]
+		    then
+			echo "
+			$PYTHON27 $BAMTOFASTQ -r $RG_STRING -i $FULL_BAM | $MBUFFER -q -m 1G > $TEMP_DIR/fq_pipe &"
+		    fi
+		    $PYTHON27 $BAMTOFASTQ -r $RG_STRING -i $FULL_BAM | $MBUFFER -q -m 1G > $TEMP_DIR/fq_pipe &
+
+
+		    if [[ "$VERBOSE" -eq 1 ]]
+		    then
+
+		        echo -e "
+		    $BWA mem -t $THREADS -C -M -p $REF $FQ \\
+			| $PYTHON27 $BAMHEADRG -b <($SAMBAMBA view -f bam -l 0 $FULL_BAM) $REALIGN_RG_FMT \\
+			| $SAMBLASTER --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \\
+			    --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
+		        | $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \\
+		        | awk '{ if (NR<=1000000) print > \"/dev/stdout\" ; else print > \"/dev/null\" }' \\
+		        | $PYTHON27 $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).x4.histo \\
+		        > ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).insert.stats
+
+		    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe \\
+		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).splitters.bam /dev/stdin
+		    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/disc_pipe \\
+		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).discordants.bam /dev/stdin"
+		    fi
+
 		    echo -e "
-		$PYTHON27 $BAMGROUPREADS -i $FULL_BAM -r $RG_STRING \\
-		    | $SAMBLASTER --acceptDupMarks --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \\
-			--splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \\
-		    | $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \\
-		    | awk '{ if (NR<=1000000) print > \"/dev/stdout\" ; else print > \"/dev/null\" }' \\
-		    | $PYTHON27 $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).x4.histo \\
-		    > ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).insert.stats
+		    $BWA mem -t $THREADS -C -M -p $REF $FQ \
+			| $PYTHON27 $BAMHEADRG -b <($SAMBAMBA view -f bam -l 0 $FULL_BAM) $REALIGN_RG_FMT \
+			| $SAMBLASTER --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \
+			    --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
+			| $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \
+			| awk '{ if (NR<=10000000 && NR > 9000000) print > \"/dev/stdout\" ; else print > \"/dev/null\" }' \
+			| $PYTHON27 $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).x4.histo \
+			> ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).insert.stats
 
-		$SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe \\
-		    | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).splitters.bam /dev/stdin
-		$SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/disc_pipe \\
-		    | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).discordants.bam /dev/stdin"
+		    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe \
+			| $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).splitters.bam /dev/stdin
+		    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/disc_pipe \
+			| $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).discordants.bam /dev/stdin" \
+			| $PARALLEL -j 3
+		else # don't realign
+		    if [[ "$VERBOSE" -eq 1 ]]
+		    then
+		        echo -e "
+		    $PYTHON27 $BAMGROUPREADS -i $FULL_BAM -r $RG_STRING \\
+		        | $SAMBLASTER --acceptDupMarks --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \\
+		    	--splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \\
+		        | $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \\
+		        | awk '{ if (NR<=1000000) print > \"/dev/stdout\" ; else print > \"/dev/null\" }' \\
+		        | $PYTHON27 $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).x4.histo \\
+		        > ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).insert.stats
+
+		    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe \\
+		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).splitters.bam /dev/stdin
+		    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/disc_pipe \\
+		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).discordants.bam /dev/stdin"
+		    fi
+
+		    echo -e "
+		    $PYTHON27 $BAMGROUPREADS -i $FULL_BAM -r $RG_STRING \
+		        | $SAMBLASTER --acceptDupMarks --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \
+		            --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
+		        | $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \
+		        | awk '{ if (NR<=1000000) print > \"/dev/stdout\" ; else print > \"/dev/null\" }' \
+		        | $PYTHON27 $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).x4.histo \
+		        > ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).insert.stats
+
+		    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe \
+		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).splitters.bam /dev/stdin
+		    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/disc_pipe \
+		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).discordants.bam /dev/stdin" \
+		        | $PARALLEL -j 3
 		fi
-
-		echo -e "
-                $PYTHON27 $BAMGROUPREADS -i $FULL_BAM -r $RG_STRING \
-		    | $SAMBLASTER --acceptDupMarks --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \
-		        --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
-                    | $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \
-                    | awk '{ if (NR<=1000000) print > \"/dev/stdout\" ; else print > \"/dev/null\" }' \
-		    | $PYTHON27 $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).x4.histo \
-		    > ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).insert.stats
-
-		$SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe \
-		    | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).splitters.bam /dev/stdin
-		$SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/disc_pipe \
-		    | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).discordants.bam /dev/stdin" \
-		    | $PARALLEL -j 3
 
 		HISTO_LIST+=(${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).x4.histo)
 		SPL_BAM_LIST+=($TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).splitters.bam)
