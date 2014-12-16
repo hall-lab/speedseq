@@ -1134,6 +1134,7 @@ sv options:
          -o STR   output prefix [fullBam.bam]
          -t INT   threads [1] 
          -x FILE  BED file to exclude
+         -a       re-align with SpeedSeq BWA
          -g       genotype SV breakends with svtyper
          -d       calculate read-depth with CNVnator
          -A       annotate the vcf with VEP
