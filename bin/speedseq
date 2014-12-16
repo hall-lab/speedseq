@@ -1483,7 +1483,7 @@ global options:
 	    do
 		RG_STRING=${LIB_RG_LIST[$j]}
 		
-		if [[ "$REALIGN -eq 1" ]]
+		if [[ "$REALIGN" -eq 1 ]]
 		then
 
 		    # create the virtual file for fastq pipe
@@ -1680,11 +1680,11 @@ global options:
     then
 	echo "
 # call lumpy
-$LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FMT $LUMPY_DISC_STRING $LUMPY_SPL_STRING > $TEMP_DIR/$OUTBASE.sv.lumpy
+$LUMPY -P -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FMT $LUMPY_DISC_STRING $LUMPY_SPL_STRING > $TEMP_DIR/$OUTBASE.sv.lumpy
         "
     fi
     # call lumpy
-    $LUMPY -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES \
+    $LUMPY -P -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES \
     	$EXCLUDE_BED_FMT \
     	$LUMPY_DISC_STRING \
     	$LUMPY_SPL_STRING \
