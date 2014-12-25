@@ -1306,7 +1306,7 @@ global options:
 	sv_usage
         echo -e "Error: vawk executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z  "$SAMBLASTER" ]] && [[ -z "${DISC_BAM_STRING}${SPL_BAM_STRING}" ]]
+    elif [[ -z "$SAMBLASTER" ]] && [[ -z "${DISC_BAM_STRING}${SPL_BAM_STRING}" ]]
     then
 	sv_usage
         echo -e "Error: samblaster executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
