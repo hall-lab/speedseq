@@ -15,7 +15,7 @@ __author__ = "Colby Chiang (cc2qe@virginia.edu)"
 __version__ = "$Revision: 0.0.1 $"
 __date__ = "$Date: 2014-12-15 11:43 $"
 
-def bamgroupreads(bamfile, readgroup, is_sam, bam_out, uncompressed_out):
+def bamgroupreads(bamfile, readgroup, reset_dups, is_sam, bam_out, uncompressed_out):
     # set input file
     if bamfile == None: 
         if is_sam:
@@ -58,6 +58,9 @@ def bamgroupreads(bamfile, readgroup, is_sam, bam_out, uncompressed_out):
             d[key].add_alignment(al)
             if d[key].is_complete():
                 for al in d[key].alignments:
+                    if reset_dups:
+                        # unset the duplicate flag
+                        al.is_duplicate = 0
                     out_bam.write(al)
                 del d[key]
     if len(d) != 0:
@@ -98,6 +101,7 @@ version: " + __version__ + "\n\
 description: Group BAM file by read IDs without sorting")
     parser.add_argument('-i', '--input', metavar='BAM', required=False, help='Input BAM file')
     parser.add_argument('-r', '--readgroup', metavar='STR', default=None, required=False, help='Read group(s) to extract (comma separated)')
+    parser.add_argument('-d', '--reset_dups', required=False, action='store_true', help='Reset duplicate flags')
     parser.add_argument('-S', required=False, action='store_true', help='Input is SAM format')
     parser.add_argument('-b', required=False, action='store_true', help='Output BAM format')
     parser.add_argument('-u', required=False, action='store_true', help='Output uncompressed BAM format (implies -b)')
@@ -118,7 +122,7 @@ class Usage(Exception):
 
 def main():
     args = get_args()
-    bamgroupreads(args.input, args.readgroup, args.S, args.b, args.u)
+    bamgroupreads(args.input, args.readgroup, args.reset_dups, args.S, args.b, args.u)
 
 if __name__ == "__main__":
     try:
