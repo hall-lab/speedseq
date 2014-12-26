@@ -1533,7 +1533,7 @@ global options:
 		    if [[ "$VERBOSE" -eq 1 ]]
 		    then
 		        echo -e "
-		    $PYTHON27 $BAMGROUPREADS -d -i $FULL_BAM -r $RG_STRING \\
+		    $PYTHON27 $BAMGROUPREADS -d -f -i $FULL_BAM -r $RG_STRING \\
 		        | $SAMBLASTER --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \\
 		    	--splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \\
 		        | $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \\
@@ -1548,7 +1548,7 @@ global options:
 		    fi
 
 		    echo -e "
-		    $PYTHON27 $BAMGROUPREADS -d -i $FULL_BAM -r $RG_STRING \
+		    $PYTHON27 $BAMGROUPREADS -d -f -i $FULL_BAM -r $RG_STRING \
 		        | $SAMBLASTER --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \
 		            --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
 		        | $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \
