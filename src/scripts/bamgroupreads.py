@@ -64,11 +64,30 @@ def bamgroupreads(bamfile, readgroup, reset_dups, fix_flags, is_sam, bam_out, un
                     if fix_flags:
                         # fix the secondary mate flag
                         proper_pair = False
+                        duplicate = False
+                        read1_unmapped = False
+                        read2_unmapped = False
+
+                        # gather info on the read cluster flags
                         for flagcheck in d[key].alignments:
                             if flagcheck.is_proper_pair:
                                 proper_pair = True
-                                break
+                            if flagcheck.is_duplicate:
+                                duplicate = True
+                            if flagcheck.is_secondary:
+                                continue
+                            if flagcheck.is_read1:
+                                read1_unmapped = flagcheck.is_unmapped
+                            elif flagcheck.is_read2:
+                                read2_unmapped = flagcheck.is_unmapped
+
+                        # set new info on the read cluster
+                        if al.is_read1:
+                            al.mate_is_unmapped = read2_unmapped
+                        elif al.is_read2:
+                            al.mate_is_unmapped = read1_unmapped
                         al.is_proper_pair = proper_pair
+                        al.is_duplicate = duplicate
                     out_bam.write(al)
                 del d[key]
     if len(d) != 0:
