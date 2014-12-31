@@ -1533,8 +1533,8 @@ global options:
 		    if [[ "$VERBOSE" -eq 1 ]]
 		    then
 		        echo -e "
-		    $PYTHON27 $BAMGROUPREADS --reset_dups --fix_flags -i $FULL_BAM -r $RG_STRING \\
-		        | $SAMBLASTER --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \\
+		    $PYTHON27 $BAMGROUPREADS --fix_flags -i $FULL_BAM -r $RG_STRING \\
+		        | $SAMBLASTER --acceptDupMarks --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \\
 		    	--splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \\
 		        | $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \\
 		        | awk '{ if (NR<=1000000) print > \"/dev/stdout\" ; else print > \"/dev/null\" }' \\
@@ -1548,8 +1548,8 @@ global options:
 		    fi
 
 		    echo -e "
-		    $PYTHON27 $BAMGROUPREADS --reset_dups --fix_flags -i $FULL_BAM -r $RG_STRING \
-		        | $SAMBLASTER --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \
+		    $PYTHON27 $BAMGROUPREADS --fix_flags -i $FULL_BAM -r $RG_STRING \
+		        | $SAMBLASTER --acceptDupMarks --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \
 		            --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
 		        | $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \
 		        | awk '{ if (NR<=1000000) print > \"/dev/stdout\" ; else print > \"/dev/null\" }' \
