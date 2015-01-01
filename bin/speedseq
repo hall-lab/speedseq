@@ -246,7 +246,7 @@ global options:
             align_usage
             echo -e "Error: Reference file $REF not found.\n"
             exit 1
-	elif [[ -z "$FQ" ]] || [[ ! -e "$FQ" ]]
+	elif [[ -z "$FQ" ]]
 	then
             align_usage
             echo -e "Error: Fastq file $FQ not found.\n"
@@ -267,12 +267,12 @@ global options:
             align_usage
             echo -e "Error: Reference file $REF not found.\n"
             exit 1
-	elif [[ -z "$FQ1" ]] || [[ ! -e "$FQ1" ]]
+	elif [[ -z "$FQ1" ]]
 	then
             align_usage
             echo -e "Error: Fastq file $FQ1 not found.\n"
             exit 1
-	elif [[ -z "$FQ2" ]] || [[ ! -e "$FQ2" ]]
+	elif [[ -z "$FQ2" ]]
 	then
             align_usage
             echo -e "Error: Fastq file $FQ2 not found. (single-end reads not supported)\n"
