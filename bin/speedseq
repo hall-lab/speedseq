@@ -313,6 +313,10 @@ global options:
 	align_usage
         echo -e "Error: parallel executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
+    elif [[ -z "$MBUFFER" ]]
+    then
+	align_usage
+	echo -e "Error: mbuffer executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
     fi
 
     echo "Aligning..."
@@ -339,6 +343,14 @@ global options:
     then
 	mkfifo $TEMP_DIR/disc_pipe
     fi
+    if [[ ! -e $TEMP_DIR/fq1_pipe ]]
+    then
+	mkfifo $TEMP_DIR/fq1_pipe
+    fi
+    if [[ ! -e $TEMP_DIR/fq2_pipe ]]
+    then
+	mkfifo $TEMP_DIR/fq2_pipe
+    fi
 
     # alignment command
     if [[ "$INTERLEAVED" -eq 1 ]]
@@ -356,9 +368,10 @@ global options:
         $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \\
             $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin"
 	fi
-
+	
 	echo "
-        $BWA mem -t $THREADS -M -p $INS_DIST $RG_FMT $REF $FQ | \
+	if [[ $FQ == ftp://* ]]; then curl -s $FQ | gzip -cdfq | $MBUFFER -q -m 1G > $TEMP_DIR/fq1_pipe; else cat -s $FQ | gzip -cdfq | $MBUFFER -q -m 1G > $TEMP_DIR/fq1_pipe; fi
+        $BWA mem -t $THREADS -M -p $INS_DIST $RG_FMT $REF $TEMP_DIR/fq1_pipe | \
 	    $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
 	    $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
@@ -367,7 +380,7 @@ global options:
 	    $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
         $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
 	    $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
-        " | $PARALLEL -j 3
+        " | $PARALLEL -j 4
     else
 	if [[ $VERBOSE -eq 1 ]]
 	then
@@ -384,7 +397,9 @@ global options:
 	fi
 
         echo "
-        $BWA mem -t $THREADS -M $INS_DIST $RG_FMT $REF $FQ1 $FQ2 | \
+	if [[ $FQ1 == ftp://* ]]; then curl -s $FQ1 | gzip -cdfq | $MBUFFER -q -m 500M > $TEMP_DIR/fq1_pipe; else cat -s $FQ1 | gzip -cdfq | $MBUFFER -q -m 500M > $TEMP_DIR/fq1_pipe; fi
+	if [[ $FQ2 == ftp://* ]]; then curl -s $FQ2 | gzip -cdfq | $MBUFFER -q -m 500M > $TEMP_DIR/fq2_pipe; else cat -s $FQ2 | gzip -cdfq | $MBUFFER -q -m 500M > $TEMP_DIR/fq2_pipe; fi
+        $BWA mem -t $THREADS -M $INS_DIST $RG_FMT $REF $TEMP_DIR/fq1_pipe $TEMP_DIR/fq2_pipe | \
             $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
@@ -393,7 +408,7 @@ global options:
             $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
         $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
             $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
-        " | $PARALLEL -j 3
+        " | $PARALLEL -j 5
     fi
     
     # index the files
