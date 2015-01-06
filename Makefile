@@ -75,6 +75,7 @@ scripts:
 	cp $(SCRIPTS_DIR)/bamtofastq.py $(TARGET_BIN)
 	cp $(SCRIPTS_DIR)/bamheadrg.py $(TARGET_BIN)
 	cp $(SCRIPTS_DIR)/bamgroupreads.py $(TARGET_BIN)
+	cp $(SCRIPTS_DIR)/bamfilterrg.py $(TARGET_BIN)
 
 clean:
 	rm -f bin/bedpeToBed12 bin/bedpeToVcf bin/bgzip bin/cnvnator bin/cnvnator2VCF.pl bin/cnvnator_wrapper.py bin/freebayes bin/lumpy bin/pairend_distro.py bin/samblaster bin/splitReadSamToBedpe bin/splitterToBreakpoint bin/svtyper bin/tabix bin/vawk bin/vcfToBedpe

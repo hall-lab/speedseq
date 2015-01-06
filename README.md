@@ -437,7 +437,6 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 -A               annotate the vcf with VEP
 -m INT           minimum weight for a call [default: 4]
 -r FLOAT         trim threshold [0]
--L INT           read length [auto]
 -T DIR           temp directory [default: ./temp]
 -k               keep temporary files
 ```

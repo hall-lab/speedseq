@@ -45,6 +45,7 @@ function source_binaries() {
 	LUMPYTOBEDPE=`which lumpyToBedpe || true`
 	SVTYPER=`which svtyper || true`
 	BAMGROUPREADS=`which bamgroupreads.py || true`
+	BAMFILTERRG=`which bamfilterrg.py || true`
 
         # CNVnator
 	CNVNATOR_WRAPPER=`which cnvnator_wrapper.py || true`
@@ -1128,8 +1129,8 @@ usage:   speedseq sv [options]
 
 sv options:
          -B FILE  full BAM file(s) (comma separated) (required)
-         -S FILE  split reads BAM file(s) (comma separated, order as in -B) (required)
-         -D FILE  discordant reads BAM files(s) (comma separated, order as in -B) (required)
+         -S FILE  split reads BAM file(s) (comma separated) (required)
+         -D FILE  discordant reads BAM files(s) (comma separated) (required)
          -R FILE  indexed reference genome fasta file (required)
          -o STR   output prefix [fullBam.bam]
          -t INT   threads [1] 
@@ -1140,30 +1141,8 @@ sv options:
          -A       annotate the vcf with VEP
          -m INT   minimum weight for a call [4]
          -r FLOAT trim threshold [0]
-         -L INT   read length [auto]
          -T DIR   temp directory [./output_prefix.XXXXXXXXXXXX]
          -k       keep temporary files
-
-         -s STR   lumpy split read parameters [auto]
-                      bam_file:<splitreads.bam>,
-                      back_distance:<10>,
-                      min_mapping_threshold:<20>,
-                      weight:<1>,
-                      id:<11>,
-                      min_clip:<20>
-
-         -p STR   lumpy discordant read parameters [auto]
-                      bam_file:<discreads.bam>,
-                      histo_file:<auto>,
-                      mean:<auto>,
-                      stdev:<auto>,
-                      read_length:<auto>,
-                      min_non_overlap:<read_length>,
-                      discordant_z:<5>,
-                      back_distance:<10>,
-                      min_mapping_threshold:<20>,
-                      weight:<1>,
-                      id:<10>
 
 global options:
          -K FILE  path to speedseq.config file (default: same directory as speedseq)
@@ -1190,7 +1169,7 @@ global options:
     MIN_NON_OVERLAP=20
     REALIGN=0
 
-    while getopts ":hB:S:D:R:o:m:r:L:x:s:p:T:t:aAdgkvK:" OPTION
+    while getopts ":hB:S:D:R:o:m:r:x:T:t:aAdgkvK:" OPTION
     do
 	case "${OPTION}" in
             h)
@@ -1218,19 +1197,10 @@ global options:
             r)
                 TRIM_THRES="$OPTARG"
                 ;;
-	    L)
-		READ_LENGTH="$OPTARG"
-		;;
             x)
 	        EXCLUDE_BED="$OPTARG"
 		EXCLUDE_BED_FMT="-x $EXCLUDE_BED"
 		;;  
-	    s)
-		LUMPY_SPL_STRING="-sr $OPTARG"
-		;;
-	    p)
-		LUMPY_DISC_STRING="-pe $OPTARG"
-		;;
             T)
                 TEMP_DIR="$OPTARG"
                 ;;
@@ -1315,18 +1285,27 @@ global options:
     then
 	sv_usage
 	echo -e "Error: BWA executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
     elif [[ -z "$BAMTOFASTQ" ]] && [[ "$REALIGN" -eq 1 ]]
     then
 	sv_usage
 	echo -e "Error: bamtofastq.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
     elif [[ -z "$BAMHEADRG" ]] && [[ "$REALIGN" -eq 1 ]]
     then
 	sv_usage
 	echo -e "Error: bamheadrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
     elif [[ -z "$MBUFFER" ]] && [[ "$REALIGN" -eq 1 ]]
     then
 	sv_usage
 	echo -e "Error: mbuffer executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
+    elif [[ -z "$BAMFILTERRG" ]]
+    then
+	sv_usage
+	echo -e "Error: bamheadrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+	exit 1
     fi
 
     # if genotyping requested, look for svtyper
@@ -1381,15 +1360,6 @@ global options:
 	exit 1
     fi
 
-    if [[ ! -z "$SPL_BAM_STRING" ]] && [[ ! -z "$DISC_BAM_STRING" ]]
-    then
-	if [[ ! ${#FULL_BAM_LIST[@]} -eq ${#SPL_BAM_LIST[@]} ]] || [[ ! ${#FULL_BAM_LIST[@]} -eq ${#DISC_BAM_LIST[@]} ]]
-	then
-	    sv_usage
-	    echo -e "Error: -B, -S, and -D arguments have different lengths\n"
-	    exit 1
-	fi
-    fi
     for TEST_BAM in ${FULL_BAM_LIST[@]} ${SPL_BAM_LIST[@]} ${DISC_BAM_LIST[@]}
     do
         if [[ ! -f $TEST_BAM ]]
@@ -1481,206 +1451,243 @@ global options:
 
 	    for j in $( seq 0 $(( ${#LIB_RG_LIST[@]}-1 )) )
 	    do
-		RG_STRING=${LIB_RG_LIST[$j]}
-		
 		if [[ "$REALIGN" -eq 1 ]]
 		then
-
 		    # create the virtual file for fastq pipe
 		    if [[ $VERBOSE -eq 1 ]]
 		    then
 			echo "
-			$PYTHON27 $BAMTOFASTQ -r $RG_STRING -i $FULL_BAM | $MBUFFER -q -m 1G > $TEMP_DIR/fq_pipe &"
+			$PYTHON27 $BAMTOFASTQ -r ${LIB_RG_LIST[$j]} -i $FULL_BAM | $MBUFFER -q -m 1G > $TEMP_DIR/fq_pipe &"
 		    fi
-		    $PYTHON27 $BAMTOFASTQ -r $RG_STRING -i $FULL_BAM | $MBUFFER -q -m 1G > $TEMP_DIR/fq_pipe &
-
+		    $PYTHON27 $BAMTOFASTQ -r ${LIB_RG_LIST[$j]} -i $FULL_BAM | $MBUFFER -q -m 1G > $TEMP_DIR/fq_pipe &
 
 		    if [[ "$VERBOSE" -eq 1 ]]
 		    then
 
 		        echo -e "
 		    $BWA mem -t $THREADS -C -M -p $REF $FQ \\
-			| $PYTHON27 $BAMHEADRG -b <($SAMBAMBA view -f bam -l 0 $FULL_BAM) $REALIGN_RG_FMT \\
+			| $PYTHON27 $BAMHEADRG -b $FULL_BAM -r ${LIB_RG_LIST[$j]} \\
 			| $SAMBLASTER --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \\
 			    --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
 		        | $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \\
 		        | awk '{ if (NR<=1000000) print > \"/dev/stdout\" ; else print > \"/dev/null\" }' \\
-		        | $PYTHON27 $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).x4.histo \\
-		        > ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).insert.stats
+		        | $PYTHON27 $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).x4.histo \\
+		        > ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).insert.stats
 
 		    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe \\
-		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).splitters.bam /dev/stdin
+		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.bam$(($i+1)).lib$(($j+1)).splitters.bam /dev/stdin
 		    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/disc_pipe \\
-		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).discordants.bam /dev/stdin"
+		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.bam$(($i+1)).lib$(($j+1)).discordants.bam /dev/stdin"
 		    fi
 
 		    echo -e "
 		    $BWA mem -t $THREADS -C -M -p $REF $FQ \
-			| $PYTHON27 $BAMHEADRG -b <($SAMBAMBA view -f bam -l 0 $FULL_BAM) $REALIGN_RG_FMT \
+			| $PYTHON27 $BAMHEADRG -b $FULL_BAM -r ${LIB_RG_LIST[$j]} \
 			| $SAMBLASTER --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \
 			    --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
 			| $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \
 			| awk '{ if (NR<=10000000 && NR > 9000000) print > \"/dev/stdout\" ; else print > \"/dev/null\" }' \
-			| $PYTHON27 $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).x4.histo \
-			> ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).insert.stats
+			| $PYTHON27 $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).x4.histo \
+			> ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).insert.stats
 
 		    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe \
-			| $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).splitters.bam /dev/stdin
+			| $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.bam$(($i+1)).lib$(($j+1)).splitters.bam /dev/stdin
 		    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/disc_pipe \
-			| $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).discordants.bam /dev/stdin" \
+			| $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.bam$(($i+1)).lib$(($j+1)).discordants.bam /dev/stdin" \
 			| $PARALLEL -j 3
 		else # don't realign
 		    if [[ "$VERBOSE" -eq 1 ]]
 		    then
 		        echo -e "
-		    $PYTHON27 $BAMGROUPREADS --fix_flags -i $FULL_BAM -r $RG_STRING \\
+		    $PYTHON27 $BAMGROUPREADS --fix_flags -i $FULL_BAM -r ${LIB_RG_LIST[$j]} \\
 		        | $SAMBLASTER --acceptDupMarks --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \\
 		    	--splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \\
 		        | $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \\
 		        | awk '{ if (NR<=1000000) print > \"/dev/stdout\" ; else print > \"/dev/null\" }' \\
-		        | $PYTHON27 $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).x4.histo \\
-		        > ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).insert.stats
+		        | $PYTHON27 $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).x4.histo \\
+		        > ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).insert.stats
 
 		    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe \\
-		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).splitters.bam /dev/stdin
+		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.bam$(($i+1)).lib$(($j+1)).splitters.bam /dev/stdin
 		    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/disc_pipe \\
-		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).discordants.bam /dev/stdin"
+		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.bam$(($i+1)).lib$(($j+1)).discordants.bam /dev/stdin"
 		    fi
 
 		    echo -e "
-		    $PYTHON27 $BAMGROUPREADS --fix_flags -i $FULL_BAM -r $RG_STRING \
+		    $PYTHON27 $BAMGROUPREADS --fix_flags -i $FULL_BAM -r ${LIB_RG_LIST[$j]} \
 		        | $SAMBLASTER --acceptDupMarks --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \
 		            --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
 		        | $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \
 		        | awk '{ if (NR<=1000000) print > \"/dev/stdout\" ; else print > \"/dev/null\" }' \
-		        | $PYTHON27 $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).x4.histo \
-		        > ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).insert.stats
+		        | $PYTHON27 $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).x4.histo \
+		        > ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).insert.stats
 
 		    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe \
-		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).splitters.bam /dev/stdin
+		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.bam$(($i+1)).lib$(($j+1)).splitters.bam /dev/stdin
 		    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/disc_pipe \
-		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).discordants.bam /dev/stdin" \
+		        | $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.bam$(($i+1)).lib$(($j+1)).discordants.bam /dev/stdin" \
 		        | $PARALLEL -j 3
 		fi
 
-		HISTO_LIST+=(${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).x4.histo)
-		SPL_BAM_LIST+=($TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).splitters.bam)
-		DISC_BAM_LIST+=($TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).discordants.bam)
+		HISTO_LIST+=(${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).x4.histo)
+		SPL_BAM_LIST+=($TEMP_DIR/$OUTBASE.bam$(($i+1)).lib$(($j+1)).splitters.bam)
+		DISC_BAM_LIST+=($TEMP_DIR/$OUTBASE.bam$(($i+1)).lib$(($j+1)).discordants.bam)
 
 		# generate discordant pair string for LUMPY
-		MEAN=`cat ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).insert.stats | tr '\t' '\n' | grep "^mean" | sed 's/mean\://g'`
-		STDEV=`cat ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).insert.stats | tr '\t' '\n' | grep "^stdev" | sed 's/stdev\://g'`
-		LUMPY_DISC_STRING="$LUMPY_DISC_STRING -pe bam_file:$TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).discordants.bam,histo_file:${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).x4.histo,mean:${MEAN},stdev:${STDEV},read_length:${READ_LENGTH},min_non_overlap:${READ_LENGTH},discordant_z:5,back_distance:10,weight:1,id:$(($i+1))$(($j+1))0,min_mapping_threshold:20"
+		RG_STRING=`echo "${LIB_RG_LIST[$j]}" | sed 's/,/,read_group:/g' | sed 's/^/read_group:/g'`
+		MEAN=`cat ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).insert.stats | tr '\t' '\n' | grep "^mean" | sed 's/mean\://g'`
+		STDEV=`cat ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).insert.stats | tr '\t' '\n' | grep "^stdev" | sed 's/stdev\://g'`
+		LUMPY_DISC_STRING="$LUMPY_DISC_STRING -pe bam_file:$TEMP_DIR/$OUTBASE.bam$(($i+1)).discordants.bam,histo_file:${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).x4.histo,mean:${MEAN},stdev:${STDEV},read_length:${READ_LENGTH},min_non_overlap:${READ_LENGTH},discordant_z:5,back_distance:10,weight:1,id:$(($i+1))$(($j+1))0,min_mapping_threshold:20,${RG_STRING}"
 
 		# generate split-read string for LUMPY
-		LUMPY_SPL_STRING="$LUMPY_SPL_STRING -sr bam_file:${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).splitters.bam,back_distance:10,min_mapping_threshold:20,weight:1,id:$(($i+1))$(($j+1))1,min_clip:20"
+		LUMPY_SPL_STRING="$LUMPY_SPL_STRING -sr bam_file:${TEMP_DIR}/$OUTBASE.bam$(($i+1)).splitters.bam,back_distance:10,min_mapping_threshold:20,weight:1,id:$(($i+1))$(($j+1))1,min_clip:20,${RG_STRING}"
 
 		# generate LUMPY sample config file
-		DISC_BAM=$TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).discordants.bam
-		SPL_BAM=${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).splitters.bam
+		DISC_BAM=$TEMP_DIR/$OUTBASE.bam$(($i+1)).lib$(($j+1)).discordants.bam
+		SPL_BAM=${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).splitters.bam
 		DISC_SAMPLE=`$SAMBAMBA view -H $DISC_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
 		SPL_SAMPLE=`$SAMBAMBA view -H $SPL_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
 		echo -e "$DISC_SAMPLE\t$(($i+1))$(($j+1))0\tPE\t$DISC_BAM" >> $TEMP_DIR/$OUTBASE.sample.config
 		echo -e "$SPL_SAMPLE\t$(($i+1))$(($j+1))1\tSR\t$SPL_BAM" >> $TEMP_DIR/$OUTBASE.sample.config
 	    done
-	done
 
-	# check that splitters and discordants were generated properly
-	if [[ ! ${#HISTO_LIST[@]} -eq ${#DISC_BAM_LIST[@]} ]] || [[ ! ${#SPL_BAM_LIST[@]} -eq ${#DISC_BAM_LIST[@]} ]]
-	then
-	    sv_usage
-	    echo -e "Error: could not generate splitters and discordants\n"
-	    exit 1
-	fi
+	    # merge the splitters and discordants files
+            MERGE_DISCORDANTS=""
+            MERGE_SPLITTERS=""
+	    for j in $( seq 0 $(( ${#LIB_RG_LIST[@]}-1 )) )
+            do
+		MERGE_DISCORDANTS="$MERGE_DISCORDANTS $TEMP_DIR/$OUTBASE.bam$(($i+1)).lib$(($j+1)).discordants.bam"
+		MERGE_SPLITTERS="$MERGE_SPLITTERS ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).splitters.bam"
+            done
+
+            if [[ $VERBOSE -eq 1 ]]
+            then
+		echo "
+            $SAMBAMBA merge -t $THREADS ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).discordants.bam $MERGE_DISCORDANTS
+            $SAMBAMBA merge -t $THREADS ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).splitters.bam $MERGE_SPLITTERS
+            rm $MERGE_DISCORDANTS $MERGE_SPLITTERS"
+            fi
+            $SAMBAMBA merge -t $THREADS ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).discordants.bam $MERGE_DISCORDANTS
+            $SAMBAMBA merge -t $THREADS ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).splitters.bam $MERGE_SPLITTERS
+            rm $MERGE_DISCORDANTS $MERGE_SPLITTERS
+	done
 
     # else (user provided a splitter and discordants file)
     else
-	# create the LUMPY config file for generating the VCF
+	# initialize LUMPY sample config file for generating the VCF
+	> $TEMP_DIR/$OUTBASE.sample.config
+
+        # parse the libraries in the BAM header to extract readgroups from the same library
 	for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
 	do
 	    FULL_BAM=${FULL_BAM_LIST[$i]}
-	    SPL_BAM=${SPL_BAM_LIST[$i]}
 	    DISC_BAM=${DISC_BAM_LIST[$i]}
+	    SPL_BAM=${SPL_BAM_LIST[$i]}
 
-	    FULL_SAMPLE=`$SAMBAMBA view -H $FULL_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
-	    SPL_SAMPLE=`$SAMBAMBA view -H $SPL_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
-	    DISC_SAMPLE=`$SAMBAMBA view -H $DISC_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
+	    # LIB_LIST contains the libraries from the BAM file
+	    LIB_LIST=(`$SAMBAMBA view -H ${FULL_BAM_LIST[$i]} \
+		| grep "^@RG" \
+		| awk \
+		'{
+			for (j=1;j<=NF;++j) {
+			    if ($j~"^ID") {
+				    id=$j
+				    gsub("^ID:","",id)
+				}
+			    else if ($j~"^LB:") {
+					lib=$j
+					gsub("^LB:","",lib);
+				    }
+			}
+			lib_list[lib][length(lib_list[lib])+1] = id
+		    }
+		    END {
+			for (i in lib_list) {
+				print i
+			    }
+			    }'`)
 
-	    echo -e "$DISC_SAMPLE\t$(($i+1))0\tPE\t$DISC_BAM"
-	    echo -e "$SPL_SAMPLE\t$(($i+1))1\tSR\t$SPL_BAM"
-	    echo -e "$FULL_SAMPLE\t$(($i+1))2\tRD\t$FULL_BAM"
+	    # LIB_RG_LIST contains an element for each library in the BAM file.
+	    # These elements are comma delimited strings for the readgroups for each library.
+	    LIB_RG_LIST=(`$SAMBAMBA view -H ${FULL_BAM_LIST[$i]} \
+		| grep "^@RG" \
+		| awk \
+		'{
+			    for (j=1;j<=NF;++j) {
+				if ($j~"^ID") {
+					id=$j
+					gsub("^ID:","",id)
+				    }
+				else if ($j~"^LB:") {
+					    lib=$j
+					    gsub("^LB:","",lib);
+					}
+			    }
+			    lib_list[lib][length(lib_list[lib])+1] = id
+			}
+			END {
+			    for (i in lib_list) {
+				    RG_STRING=lib_list[i][1]
+				    for (j=2;j<=length(lib_list[i]);++j) {
+					RG_STRING=RG_STRING","lib_list[i][j]
+				    }
+				    print RG_STRING
+				}
+				}'`)
 
-	done > $TEMP_DIR/$OUTBASE.sample.config
-
-	# if LUMPY_SPL_STRING not provided, make one
-	if test -z "$LUMPY_SPL_STRING"
-	then
-	    for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
+	    # generate the histo, stats, and config files
+	    echo -n "Calculating insert distributions... "
+	    for j in $( seq 0 $(( ${#LIB_LIST[@]}-1 )) )
 	    do
-		FULL_BAM=${FULL_BAM_LIST[$i]}
-		SPL_BAM=${SPL_BAM_LIST[$i]}
-		DISC_BAM=${DISC_BAM_LIST[$i]}
-
-		FULL_BASE=`basename "$FULL_BAM"`
-		SPL_BASE=`basename "$SPL_BAM"`
-		DISC_BASE=`basename "$DISC_BAM"`
-
-		LUMPY_SPL_STRING="$LUMPY_SPL_STRING -sr bam_file:${SPL_BAM},back_distance:10,min_mapping_threshold:20,weight:1,id:$(($i+1))1,min_clip:20"
-	    done
-	fi
-
-	# if LUMPY_DISC_STRING not provided, make one
-	if test -z "$LUMPY_DISC_STRING"
-	then
-	    echo -n "Calculating alignment stats... "
-	    for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
-	    do
-		FULL_BAM=${FULL_BAM_LIST[$i]}
-		SPL_BAM=${SPL_BAM_LIST[$i]}
-		DISC_BAM=${DISC_BAM_LIST[$i]}
-
-		FULL_BASE=`basename "$FULL_BAM"`
-		SPL_BASE=`basename "$SPL_BAM"`
-		DISC_BASE=`basename "$DISC_BAM"`
-
-		# calc readlength if not provided
-		if test -z "$READ_LENGTH"
-		then
-		    READ_LENGTH=`$SAMBAMBA view $FULL_BAM | head -n 10000 | awk 'BEGIN { MAX_LEN=0 } { LEN=length($10); if (LEN>MAX_LEN) MAX_LEN=LEN } END { print MAX_LEN }'`
-		fi
-
-		if [[ "VERBOSE" -eq 1 ]]
-		then
-		    echo "
-    # calculate stats
-    $SAMBAMBA view -F \"paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)\" $FULL_BAM \\
-	| head -n 10000000 | tail -n 1000000 \\
-	| $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$FULL_BASE.x4.histo \\
-	> ${TEMP_DIR}/$FULL_BASE.insert.stats
-		"
-		fi
-
-		# calculate stats
-		$SAMBAMBA view -F "paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)" $FULL_BAM \
-		    | head -n 10000000 | tail -n 1000000 \
-		    | $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$FULL_BASE.x4.histo \
-		    > ${TEMP_DIR}/$FULL_BASE.insert.stats
-
-		MEAN=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^mean" | sed 's/mean\://g'`
-		STDEV=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^stdev" | sed 's/stdev\://g'`
-
-		LUMPY_DISC_STRING="$LUMPY_DISC_STRING -pe bam_file:${DISC_BAM},histo_file:${TEMP_DIR}/${FULL_BASE}.x4.histo,mean:${MEAN},stdev:${STDEV},read_length:${READ_LENGTH},min_non_overlap:${READ_LENGTH},discordant_z:5,back_distance:10,weight:1,id:$(($i+1))0,min_mapping_threshold:20"
+	        # calculate read length if not provided
+		LIB_READ_LENGTH_LIST+=(`$SAMBAMBA view ${FULL_BAM_LIST[$i]} | head -n 10000 | awk 'BEGIN { MAX_LEN=0 } { LEN=length($10); if (LEN>MAX_LEN) MAX_LEN=LEN } END { print MAX_LEN }'`)
+		echo ${LIB_RG_LIST[$j]}
+		echo ${LIB_READ_LENGTH_LIST[$j]}
+		$SAMBAMBA view -h -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' ${FULL_BAM_LIST[$i]} \
+		    | $PYTHON27 $BAMFILTERRG -S -n 4000000 --readgroup ${LIB_RG_LIST[$j]} \
+		    | grep -v '^@' \
+		    | sed -n '3000001,4000000p;4000000q' \
+		    | $PYTHON27 $PAIREND_DISTRO -r ${LIB_READ_LENGTH_LIST[$j]} -X 4 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).x4.histo \
+		    > ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).insert.stats
 	    done
 	    echo "done"
-	fi
+
+	    # construct LUMPY_SPL_STRING
+	    SPL_SAMPLE=`$SAMBAMBA view -H $SPL_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
+	    LUMPY_SPL_STRING="$LUMPY_SPL_STRING -sr bam_file:${SPL_BAM},back_distance:10,min_mapping_threshold:20,weight:1,id:$(($i+1))01,min_clip:20"
+            # append to the sample config file
+	    echo -e "$SPL_SAMPLE\t$(($i+1))01\tSR\t$SPL_BAM" >> $TEMP_DIR/$OUTBASE.sample.config
+
+	    # construct LUMPY_DISC_STRING
+	    for j in $( seq 0 $(( ${#LIB_LIST[@]}-1 )) )
+	    do
+		echo $(( ${#FULL_BAM_LIST[@]}-1 ))
+		DISC_BAM=${DISC_BAM_LIST[$i]}
+		DISC_SAMPLE=`$SAMBAMBA view -H $DISC_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
+		MEAN=`cat ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).insert.stats | tr '\t' '\n' | grep "^mean" | sed 's/mean\://g'`
+		STDEV=`cat ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).insert.stats | tr '\t' '\n' | grep "^stdev" | sed 's/stdev\://g'`
+		RG_STRING=`echo "${LIB_RG_LIST[$j]}" | sed 's/,/,read_group:/g' | sed 's/^/read_group:/g'`
+
+		LUMPY_DISC_STRING="$LUMPY_DISC_STRING -pe bam_file:${DISC_BAM},histo_file:${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).x4.histo,mean:${MEAN},stdev:${STDEV},read_length:${LIB_READ_LENGTH_LIST[$j]},min_non_overlap:${LIB_READ_LENGTH_LIST[$j]},discordant_z:5,back_distance:10,weight:1,id:$(($i+1))$(($j+1))0,min_mapping_threshold:20,${RG_STRING}"
+		
+		# append to the sample config file
+		echo -e "$DISC_SAMPLE\t$(($i+1))$(($j+1))0\tPE\t$DISC_BAM" >> $TEMP_DIR/$OUTBASE.sample.config
+	    done
+	done
     fi
 
     echo "Running LUMPY... "
     if [[ "$VERBOSE" -eq 1 ]]
     then
 	echo "
-# call lumpy
-$LUMPY -P -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES $EXCLUDE_BED_FMT $LUMPY_DISC_STRING $LUMPY_SPL_STRING > $TEMP_DIR/$OUTBASE.sv.lumpy
+$LUMPY -P \\
+    -t ${TEMP_DIR}/${OUTBASE} \\
+    -mw $MIN_WEIGHT \\
+    -tt $TRIM_THRES \\
+    $EXCLUDE_BED_FMT \\
+    $LUMPY_DISC_STRING \\
+    $LUMPY_SPL_STRING \\
+    > $TEMP_DIR/$OUTBASE.sv.lumpy
         "
     fi
     # call lumpy
@@ -1753,8 +1760,7 @@ cat $TEMP_DIR/$OUTBASE.sv.vcf | awk '$0!~\"^#\" {exit}; 1' > $TEMP_DIR/header.tx
     # make header
     cat $TEMP_DIR/$OUTBASE.sv.vcf | awk '$0!~"^#" {exit}; 1' > $TEMP_DIR/header.txt
 
-    # genotype
-    # WARNING: svtyper only works when there is one BAM per sample, not multi-library samples
+    # genotype with SVTyper
     if [[ GENOTYPE -eq 1 ]]
     then
 	for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
@@ -1763,23 +1769,19 @@ cat $TEMP_DIR/$OUTBASE.sv.vcf | awk '$0!~\"^#\" {exit}; 1' > $TEMP_DIR/header.tx
 	    SPL_BAM=${SPL_BAM_LIST[$i]}
 	    FULL_BASE=`basename "$FULL_BAM"`
 
-	    MEAN=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^mean" | sed 's/mean\://g'`
-	    STDEV=`cat ${TEMP_DIR}/$FULL_BASE.insert.stats | tr '\t' '\n' | grep "^stdev" | sed 's/stdev\://g'`
-	    READ_LENGTH=`$SAMBAMBA view $FULL_BAM | head -n 10000 | awk 'BEGIN { MAX_LEN=0 } { LEN=length($10); if (LEN>MAX_LEN) MAX_LEN=LEN } END { print MAX_LEN }'`
-
 	    if [[ "$VERBOSE" -eq 1 ]]
 	    then
 		echo "# genotype structural variants"
-		echo -e "$PYTHON27 $SVTYPER -v $TEMP_DIR/$OUTBASE.sv.vcf -B $FULL_BAM -S $SPL_BAM -m $MEAN -sd $STDEV -rl $READ_LENGTH > \$vcf.gt ; mv \$vcf.gt \$vcf"
+		echo -e "$PYTHON27 $SVTYPER -v $TEMP_DIR/$OUTBASE.sv.vcf -B $FULL_BAM -S $SPL_BAM > \$vcf.gt ; mv \$vcf.gt \$vcf"
 	    fi
 
 	    # genotype structural variants
-	    $PYTHON27 $SVTYPER -v $TEMP_DIR/$OUTBASE.sv.vcf -B $FULL_BAM -S $SPL_BAM -m $MEAN -sd $STDEV -rl $READ_LENGTH > $TEMP_DIR/$OUTBASE.sv.gt.vcf ; mv $TEMP_DIR/$OUTBASE.sv.gt.vcf $TEMP_DIR/$OUTBASE.sv.vcf
+	    $PYTHON27 $SVTYPER -v $TEMP_DIR/$OUTBASE.sv.vcf -B $FULL_BAM -S $SPL_BAM > $TEMP_DIR/$OUTBASE.sv.gt.vcf
+	    mv $TEMP_DIR/$OUTBASE.sv.gt.vcf $TEMP_DIR/$OUTBASE.sv.vcf
 	done
     fi
 
     # run cnvnator
-    # WARNING: CNVNATOR currently only works when there is one BAM per sample, not multi-library samples
     if [[ "$READDEPTH" -eq 1 ]]
     then
 	echo "Calculating read depth"
