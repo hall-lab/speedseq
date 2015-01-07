@@ -370,7 +370,7 @@ global options:
 	fi
 	
 	echo "
-	if [[ $FQ == ftp://* ]]; then curl -s $FQ | gzip -cdfq | $MBUFFER -q -m 1G > $TEMP_DIR/fq1_pipe; else cat -s $FQ | gzip -cdfq | $MBUFFER -q -m 1G > $TEMP_DIR/fq1_pipe; fi
+	if [[ $FQ == ftp://* ]]; then curl -s $FQ | gzip -cdfq | $MBUFFER -q -m 1G > $TEMP_DIR/fq1_pipe; else cat $FQ | gzip -cdfq | $MBUFFER -q -m 1G > $TEMP_DIR/fq1_pipe; fi
         $BWA mem -t $THREADS -M -p $INS_DIST $RG_FMT $REF $TEMP_DIR/fq1_pipe | \
 	    $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
@@ -397,8 +397,8 @@ global options:
 	fi
 
         echo "
-	if [[ $FQ1 == ftp://* ]]; then curl -s $FQ1 | gzip -cdfq | $MBUFFER -q -m 500M > $TEMP_DIR/fq1_pipe; else cat -s $FQ1 | gzip -cdfq | $MBUFFER -q -m 500M > $TEMP_DIR/fq1_pipe; fi
-	if [[ $FQ2 == ftp://* ]]; then curl -s $FQ2 | gzip -cdfq | $MBUFFER -q -m 500M > $TEMP_DIR/fq2_pipe; else cat -s $FQ2 | gzip -cdfq | $MBUFFER -q -m 500M > $TEMP_DIR/fq2_pipe; fi
+	if [[ $FQ1 == ftp://* ]]; then curl -s $FQ1 | gzip -cdfq | $MBUFFER -q -m 500M > $TEMP_DIR/fq1_pipe; else cat $FQ1 | gzip -cdfq | $MBUFFER -q -m 500M > $TEMP_DIR/fq1_pipe; fi
+	if [[ $FQ2 == ftp://* ]]; then curl -s $FQ2 | gzip -cdfq | $MBUFFER -q -m 500M > $TEMP_DIR/fq2_pipe; else cat $FQ2 | gzip -cdfq | $MBUFFER -q -m 500M > $TEMP_DIR/fq2_pipe; fi
         $BWA mem -t $THREADS -M $INS_DIST $RG_FMT $REF $TEMP_DIR/fq1_pipe $TEMP_DIR/fq2_pipe | \
             $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
