@@ -1468,9 +1468,9 @@ global options:
 		    $BWA mem -t $THREADS -C -M -p $REF $FQ \\
 			| $PYTHON27 $BAMHEADRG -b $FULL_BAM -r ${LIB_RG_LIST[$j]} \\
 			| $SAMBLASTER --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \\
-			    --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
+			    --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \\
 		        | $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \\
-		        | awk '{ if (NR<=1000000) print > \"/dev/stdout\" ; else print > \"/dev/null\" }' \\
+			| awk '{ if (NR<=4000000 && NR > 3000000) print > \"/dev/stdout\" ; else print > \"/dev/null\" }' \\
 		        | $PYTHON27 $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).x4.histo \\
 		        > ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).insert.stats
 
@@ -1486,7 +1486,7 @@ global options:
 			| $SAMBLASTER --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \
 			    --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
 			| $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \
-			| awk '{ if (NR<=10000000 && NR > 9000000) print > \"/dev/stdout\" ; else print > \"/dev/null\" }' \
+			| awk '{ if (NR<=4000000 && NR > 3000000) print > \"/dev/stdout\" ; else print > \"/dev/null\" }' \
 			| $PYTHON27 $PAIREND_DISTRO -r $READ_LENGTH -X 4 -N 1000000 -o ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).x4.histo \
 			> ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).insert.stats
 
@@ -1529,10 +1529,6 @@ global options:
 		        | $PARALLEL -j 3
 		fi
 
-		HISTO_LIST+=(${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).x4.histo)
-		SPL_BAM_LIST+=($TEMP_DIR/$OUTBASE.bam$(($i+1)).lib$(($j+1)).splitters.bam)
-		DISC_BAM_LIST+=($TEMP_DIR/$OUTBASE.bam$(($i+1)).lib$(($j+1)).discordants.bam)
-
 		# generate discordant pair string for LUMPY
 		RG_STRING=`echo "${LIB_RG_LIST[$j]}" | sed 's/,/,read_group:/g' | sed 's/^/read_group:/g'`
 		MEAN=`cat ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).lib$(($j+1)).insert.stats | tr '\t' '\n' | grep "^mean" | sed 's/mean\://g'`
@@ -1570,6 +1566,22 @@ global options:
             $SAMBAMBA merge -t $THREADS ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).discordants.bam $MERGE_DISCORDANTS
             $SAMBAMBA merge -t $THREADS ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).splitters.bam $MERGE_SPLITTERS
             rm $MERGE_DISCORDANTS $MERGE_SPLITTERS
+
+	    # index the files
+	    if [[ $VERBOSE -eq 1 ]]
+	    then
+		echo -e "
+		$SAMBAMBA index ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).discordants.bam
+		$SAMBAMBA index ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).splitters.bam"
+	    fi
+	    echo "
+	    $SAMBAMBA index ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).discordants.bam
+	    $SAMBAMBA index ${TEMP_DIR}/$OUTBASE.bam$(($i+1)).splitters.bam
+	    " | $PARALLEL -j 2
+
+	    # update the splitters and discordant BAM lists
+	    SPL_BAM_LIST+=(${TEMP_DIR}/$OUTBASE.bam$(($i+1)).splitters.bam)
+	    DISC_BAM_LIST+=(${TEMP_DIR}/$OUTBASE.bam$(($i+1)).discordants.bam)
 	done
 
     # else (user provided a splitter and discordants file)
@@ -2206,27 +2218,9 @@ global options:
 	$SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
 	    $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.$(($i+1)).discordants.bam /dev/stdin
 	" | $PARALLEL -j 3
-
-	# index the files unless they will be merged
-	if [[ $MERGE -eq 0 ]] && [[ ${#REALIGN_RG_LIST[@]} -gt 1 ]]
-	then
-	    if [[ $VERBOSE -eq 1 ]]
-	    then
-		echo -e "
-		$SAMBAMBA index $OUTPUT.$(($i+1)).bam
-		$SAMBAMBA index $OUTPUT.$(($i+1)).discordants.bam
-		$SAMBAMBA index $OUTPUT.$(($i+1)).splitters.bam"
-	    fi
-
-	    echo "
-	    $SAMBAMBA index $OUTPUT.$(($i+1)).bam
-	    $SAMBAMBA index $OUTPUT.$(($i+1)).discordants.bam
-	    $SAMBAMBA index $OUTPUT.$(($i+1)).splitters.bam
-	    " | $PARALLEL -j 3
-	fi
     done
 
-    # if only 1 library, then rename files
+    # if only 1 library, then rename files and index
     if [[ ${#REALIGN_RG_LIST[@]} -eq 1 ]]
     then
 	mv $OUTPUT.1.bam $OUTPUT.bam
@@ -2242,7 +2236,7 @@ global options:
     fi
 
     # merge and index the files, if requested
-    if [[ $MERGE -eq 1 ]] && [[ ${#REALIGN_RG_LIST[@]} -gt 1 ]]
+    if [[ ${#REALIGN_RG_LIST[@]} -gt 1 ]]
     then
 	MERGE_FULL=""
 	MERGE_DISCORDANTS=""
