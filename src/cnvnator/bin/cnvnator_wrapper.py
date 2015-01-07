@@ -307,9 +307,6 @@ def mk_graph_file(out_fn):
 		if chr.startswith('chr'): chr = chr[3:]
   		start = int(pieces[1][idx+1:idx2])
   		end = int(pieces[1][idx2+1:])
-  		if chr == prev_chr and start-prev_end>1:
-  			line = "%s\t%d\t%d\t%f" % (prev_chr, prev_end+1, start-1, 1.000)
-  			nf.append(line)
   		prev_chr, prev_end = chr, end
   		line = "%s\t%d\t%d\t%s" % (chr, start, end, pieces[3])
   		nf.append(line)
