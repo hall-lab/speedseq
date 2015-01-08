@@ -1596,29 +1596,6 @@ global options:
 	    DISC_BAM=${DISC_BAM_LIST[$i]}
 	    SPL_BAM=${SPL_BAM_LIST[$i]}
 
-	    # LIB_LIST contains the libraries from the BAM file
-	    LIB_LIST=(`$SAMBAMBA view -H ${FULL_BAM_LIST[$i]} \
-		| grep "^@RG" \
-		| awk \
-		'{
-			for (j=1;j<=NF;++j) {
-			    if ($j~"^ID") {
-				    id=$j
-				    gsub("^ID:","",id)
-				}
-			    else if ($j~"^LB:") {
-					lib=$j
-					gsub("^LB:","",lib);
-				    }
-			}
-			lib_list[lib][length(lib_list[lib])+1] = id
-		    }
-		    END {
-			for (i in lib_list) {
-				print i
-			    }
-			    }'`)
-
 	    # LIB_RG_LIST contains an element for each library in the BAM file.
 	    # These elements are comma delimited strings for the readgroups for each library.
 	    LIB_RG_LIST=(`$SAMBAMBA view -H ${FULL_BAM_LIST[$i]} \
@@ -1649,7 +1626,7 @@ global options:
 
 	    # generate the histo, stats, and config files
 	    echo -n "Calculating insert distributions... "
-	    for j in $( seq 0 $(( ${#LIB_LIST[@]}-1 )) )
+	    for j in $( seq 0 $(( ${#LIB_RG_LIST[@]}-1 )) )
 	    do
 	        # calculate read length if not provided
 		LIB_READ_LENGTH_LIST+=(`$SAMBAMBA view ${FULL_BAM_LIST[$i]} | head -n 10000 | awk 'BEGIN { MAX_LEN=0 } { LEN=length($10); if (LEN>MAX_LEN) MAX_LEN=LEN } END { print MAX_LEN }'`)
@@ -1671,7 +1648,7 @@ global options:
 	    echo -e "$SPL_SAMPLE\t$(($i+1))01\tSR\t$SPL_BAM" >> $TEMP_DIR/$OUTBASE.sample.config
 
 	    # construct LUMPY_DISC_STRING
-	    for j in $( seq 0 $(( ${#LIB_LIST[@]}-1 )) )
+	    for j in $( seq 0 $(( ${#LIB_RG_LIST[@]}-1 )) )
 	    do
 		echo $(( ${#FULL_BAM_LIST[@]}-1 ))
 		DISC_BAM=${DISC_BAM_LIST[$i]}
