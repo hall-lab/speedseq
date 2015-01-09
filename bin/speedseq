@@ -1625,7 +1625,7 @@ global options:
 				}'`)
 
 	    # generate the histo, stats, and config files
-	    echo -n "Calculating insert distributions... "
+	    echo "Calculating insert distributions... "
 	    for j in $( seq 0 $(( ${#LIB_RG_LIST[@]}-1 )) )
 	    do
 	        # calculate read length if not provided
