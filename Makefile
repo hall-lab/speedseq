@@ -78,12 +78,36 @@ scripts:
 	cp $(SCRIPTS_DIR)/bamfilterrg.py $(TARGET_BIN)
 
 clean:
-	rm -f bin/bedpeToBed12 bin/bedpeToVcf bin/bgzip bin/cnvnator bin/cnvnator2VCF.pl bin/cnvnator_wrapper.py bin/freebayes bin/lumpy bin/pairend_distro.py bin/samblaster bin/splitReadSamToBedpe bin/splitterToBreakpoint bin/svtyper bin/tabix bin/vawk bin/vcfToBedpe
+	rm -f \
+		bin/bedpeToBed12 \
+		bin/bedpeToVcf \
+		bin/bgzip \
+		bin/cnvnator \
+		bin/cnvnator2VCF.pl \
+		bin/cnvnator_wrapper.py \
+		bin/freebayes \
+		bin/lumpy \
+		bin/pairend_distro.py \
+		bin/samblaster \
+		bin/splitReadSamToBedpe \
+		bin/splitterToBreakpoint \
+		bin/svtyper \
+		bin/tabix \
+		bin/vawk \
+		bin/vcfToBedpe \
+		bin/bwa \
+		bin/lumpyToBedpe \
+		bin/mbuffer \
+		bin/bamtofastq.py \
+		bin/bamheadrg.py \
+		bin/bamgroupreads.py \
+		bin/bamfilterrg.py \
+		bin/cnvnator-multi \
+		bin/annotate_rd.py
 	$(MAKE) -C $(BWA_DIR) clean
 	$(MAKE) -C $(SAMBLASTER_DIR) clean
 	$(MAKE) -C $(FREEBAYES_DIR) clean
 	$(MAKE) -C $(LUMPY_DIR) clean
 	$(MAKE) -C $(CNVNATOR_DIR) clean
-	$(MAKE) -C $(LUMPY_DIR) clean
 	$(MAKE) -C $(TABIX_DIR) clean
 	$(MAKE) -C $(MBUFFER_DIR) clean
