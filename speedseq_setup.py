@@ -176,17 +176,6 @@ def main(args):
 	packageManager.install()
 	check_dependencies()
 
-	#sambamba install
-	sambamba = INSTALLER("sambamba", args.quiet)
-	sambamba.check_install("sambamba")
-	if (sambamba.isInstalled):
-		sambamba.get_update()
-	if (sambamba.notInstalled or sambamba.update):
-		url = "https://github.com/lomereiter/sambamba/releases/download/v0.4.7/sambamba_v0.4.7_centos5.tar.bz2"
-		sambamba.download("curl", url)
-		sambamba.unpack("tar")
-		sambamba.cp_bin("sambamba_v0.4.7", args.targetbin + "/sambamba")
-
 	#parallel install
 	parallel = INSTALLER("parallel", args.quiet)
 	parallel.check_install("parallel")
@@ -245,7 +234,6 @@ def main(args):
 	
 	print "Checking installations...\n"
 	parallel.check_install("parallel")
-	sambamba.check_install("sambamba")
 	vep.check_install("variant_effect_predictor.pl")
 	# gemini.check_install("gemini")
 

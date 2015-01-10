@@ -16,11 +16,14 @@ SVTOOLS_DIR=$(SRC)/svtools
 MBUFFER_DIR=$(SRC)/mbuffer
 SCRIPTS_DIR=$(SRC)/scripts
 
-all:	bwa samblaster freebayes lumpy svtyper tabix vawk svtools mbuffer scripts cnvnator-multi
+all:	bwa sambamba samblaster freebayes lumpy svtyper tabix vawk svtools mbuffer scripts cnvnator-multi
 
 bwa:
 	$(MAKE) -C $(BWA_DIR)
 	cp $(BWA_DIR)/bwa $(TARGET_BIN)
+
+sambamba:
+	cp $(SRC)/sambamba $(TARGET_BIN)
 
 samblaster:
 	$(MAKE) -C $(SAMBLASTER_DIR)
