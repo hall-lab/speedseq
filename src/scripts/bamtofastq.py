@@ -62,8 +62,8 @@ def bamtofastq(bamfile, is_sam, readgroup, rename):
 
             counter += 1
             if rename:
-                al.qname = RG2 + '.' + str(counter)
-                d[key].qname = RG1 + '.' + str(counter)
+                al.qname = str(counter)
+                d[key].qname = str(counter)
             
             if al.is_read1:
                 printfastq_rg(al,1,RG2)
