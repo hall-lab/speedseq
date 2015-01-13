@@ -291,6 +291,14 @@ global options:
 	exit 1
     fi
 
+    # Check that SORT_MEM > 2
+    if [[ "$SORT_MEM" -lt 3 ]]
+    then
+	align_usage
+	echo -e "Error: -M must be greater than 2"
+	exit 1
+    fi
+
     # Check the for the relevant binaries
     source_binaries $CONFIG
 
@@ -2021,6 +2029,14 @@ global options:
     then
 	realign_usage
 	echo -e "Error: BAM file $IN_BAM not found.\n"
+	exit 1
+    fi
+
+    # Check that SORT_MEM > 2
+    if [[ "$SORT_MEM" -lt 3 ]]
+    then
+	realign_usage
+        echo -e "Error: -M must be greater than 2"
 	exit 1
     fi
 
