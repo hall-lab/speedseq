@@ -44,7 +44,7 @@ def bamfilterrg(bamfile, readgroup, limit, is_sam, bam_out, uncompressed_out):
         rg_list = None
 
     counter = 0
-    for al in in_bam.fetch():
+    for al in in_bam:
         # must be in a user specified readgroup
         if rg_list and al.opt('RG') not in rg_list:
             continue

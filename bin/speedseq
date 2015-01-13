@@ -1453,18 +1453,12 @@ global options:
 	    do
 		if [[ "$REALIGN" -eq 1 ]]
 		then
-		    # create the virtual file for fastq pipe
-		    if [[ $VERBOSE -eq 1 ]]
-		    then
-			echo "
-			$PYTHON27 $BAMTOFASTQ -r ${LIB_RG_LIST[$j]} -i $FULL_BAM | $MBUFFER -q -m 1G > $TEMP_DIR/fq_pipe &"
-		    fi
-		    $PYTHON27 $BAMTOFASTQ -r ${LIB_RG_LIST[$j]} -i $FULL_BAM | $MBUFFER -q -m 1G > $TEMP_DIR/fq_pipe &
-
+		    # create the virtual file for fastq pipe and realign
 		    if [[ "$VERBOSE" -eq 1 ]]
 		    then
 
 		        echo -e "
+		    $PYTHON27 $BAMTOFASTQ -r ${LIB_RG_LIST[$j]} -i $FULL_BAM | $MBUFFER -q -m 1G > $TEMP_DIR/fq_pipe
 		    $BWA mem -t $THREADS -C -M -p $REF $FQ \\
 			| $PYTHON27 $BAMHEADRG -b $FULL_BAM -r ${LIB_RG_LIST[$j]} \\
 			| $SAMBLASTER --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \\
@@ -1481,6 +1475,7 @@ global options:
 		    fi
 
 		    echo -e "
+		    $PYTHON27 $BAMTOFASTQ -r ${LIB_RG_LIST[$j]} -i $FULL_BAM | $MBUFFER -q -m 1G > $TEMP_DIR/fq_pipe
 		    $BWA mem -t $THREADS -C -M -p $REF $FQ \
 			| $PYTHON27 $BAMHEADRG -b $FULL_BAM -r ${LIB_RG_LIST[$j]} \
 			| $SAMBLASTER --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \
@@ -1494,7 +1489,7 @@ global options:
 			| $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).splitters.bam /dev/stdin
 		    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/disc_pipe \
 			| $SAMBAMBA sort -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.sample$(($i+1)).lib$(($j+1)).discordants.bam /dev/stdin" \
-			| $PARALLEL -j 3
+			| $PARALLEL -j 4
 		else # don't realign
 		    if [[ "$VERBOSE" -eq 1 ]]
 		    then

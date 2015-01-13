@@ -44,7 +44,7 @@ def bamgroupreads(bamfile, readgroup, reset_dups, fix_flags, is_sam, bam_out, un
         rg_list = None
 
     d = {}
-    for al in in_bam.fetch():
+    for al in in_bam:
         # must be in a user specified readgroup
         if rg_list and al.opt('RG') not in rg_list:
             continue

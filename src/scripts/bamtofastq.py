@@ -35,7 +35,9 @@ def bamtofastq(bamfile, is_sam, readgroup, rename):
 
     d = {}
     counter = 0
-    for al in bam.fetch():
+    # for al in bam.fetch():
+    # al = bam.next()
+    for al in bam:
         # must be primary read alignment
         if (al.is_secondary):
             continue
