@@ -79,6 +79,7 @@ scripts:
 	cp $(SCRIPTS_DIR)/bamheadrg.py $(TARGET_BIN)
 	cp $(SCRIPTS_DIR)/bamgroupreads.py $(TARGET_BIN)
 	cp $(SCRIPTS_DIR)/bamfilterrg.py $(TARGET_BIN)
+	cp $(SCRIPTS_DIR)/bamcheck.py $(TARGET_BIN)
 
 clean:
 	rm -f \
@@ -105,6 +106,7 @@ clean:
 		bin/bamheadrg.py \
 		bin/bamgroupreads.py \
 		bin/bamfilterrg.py \
+		bin/bamcheck.py \
 		bin/cnvnator-multi \
 		bin/annotate_rd.py
 	$(MAKE) -C $(BWA_DIR) clean

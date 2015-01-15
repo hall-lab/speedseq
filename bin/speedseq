@@ -28,6 +28,7 @@ function source_binaries() {
 	VAWK=`which vawk || true`
 	PARALLEL=`which parallel || true`
 	PYTHON27=`which python2.7 || true`
+	BAMCHECK=`which bamcheck.py || true`
 
 	# align
 	BWA=`which bwa || true`
@@ -58,6 +59,19 @@ function source_binaries() {
 	MBUFFER=`which mbuffer || true`
 	BAMHEADRG=`which bamheadrg.py || true`
     fi
+}
+
+# check BAM for EOF marker
+has_eof() {
+    HAS_EOF=0
+    CHECK_BAM=`$1 $2 2>&1`
+    echo 1 is $1
+    if [[ -z "$CHECK_BAM" ]]
+    then
+	HAS_EOF=1
+    fi
+
+    echo $HAS_EOF
 }
 
 # ensure that the require python modules are installed before
@@ -2072,6 +2086,11 @@ global options:
 	realign_usage
 	echo -e "Error: bamheadrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
+    elif [[ -z "$BAMCHECK" ]]
+    then
+	realign_usage
+	echo -e "Error: bamcheck.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+	exit 1
     elif [[ -z "$PARALLEL" ]]
     then
         realign_usage
@@ -2079,9 +2098,18 @@ global options:
         echo -e "Error: parallel executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     fi
-
+    
     # check for required python modules (pysam, numpy, scipy, etc)
     check_python_modules $PYTHON27
+
+    # check whether the input BAM has and EOF marker
+    CHECK_BAM=`$BAMCHECK $IN_BAM 2>&1`
+    if [[ ! -z "$CHECK_BAM" ]]
+    then
+	realign_usage
+	echo -e "Error: Input BAM file lacks EOF marker"
+	exit 1
+    fi
 
     # set the output name
     OUTBASE=`basename "$OUTPUT"`

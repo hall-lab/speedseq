@@ -66,6 +66,7 @@ bin/bamtofastq.py
 bin/lumpyToBedpe
 bin/bamgroupreads.py
 bin/bamfilterrg.py
+bin/bamcheck.py
 
 # Compiled source #
 ###################
