@@ -15,7 +15,7 @@ __author__ = "Ira Hall (ihall@genome.wustl.edu) and Colby Chiang (cc2qe@virginia
 __version__ = "$Revision: 0.0.1 $"
 __date__ = "$Date: 2014-09-04 14:31 $"
 
-def bamtofastq(bamfile, is_sam, readgroup, rename):
+def bamtofastq(bamfile, is_sam, readgroup, rename, header):
     # get file and header
     if bamfile == None: 
         if is_sam:
@@ -35,9 +35,17 @@ def bamtofastq(bamfile, is_sam, readgroup, rename):
 
     d = {}
     counter = 0
+    header_written = False
     # for al in bam.fetch():
     # al = bam.next()
     for al in bam:
+        # print the header to file if requested
+        if (header is not None
+            and not header_written):
+            header.write(bam.text)
+            header.close()
+            header_written = True
+
         # must be primary read alignment
         if (al.is_secondary):
             continue
@@ -89,6 +97,8 @@ description: Convert a coordinate sorted BAM file to FASTQ")
     parser.add_argument('-r', '--readgroup', metavar='STR', default=None, required=False, help='Read group(s) to extract (comma separated)')
     parser.add_argument('-n', '--rename', required=False, action='store_true', help='Rename reads')
     parser.add_argument('-S', '--is_sam', required=False, action='store_true', help='Input is SAM format')
+    parser.add_argument('-H', '--header', metavar='FILE', type=argparse.FileType('w'), default=None, required=False,
+                        help='Write BAM header to file')
 
     # parse the arguments
     args = parser.parse_args()
@@ -123,7 +133,11 @@ class Usage(Exception):
 
 def main():
     args = get_args()
-    bamtofastq(args.input, args.is_sam, args.readgroup, args.rename)
+    bamtofastq(args.input,
+               args.is_sam,
+               args.readgroup,
+               args.rename,
+               args.header)
 
 if __name__ == "__main__":
     try:

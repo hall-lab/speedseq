@@ -18,26 +18,31 @@ author: " + __author__ + "\n\
 version: " + __version__ + "\n\
 description: Inject readgroup info")
     parser.add_argument('-r', '--readgroup', default=None, required=False, help='Read group(s) to extract (comma separated)')
-    parser.add_argument('-b', '--bamfile', required=True, help='Original BAM file to extract read group info')
-    parser.add_argument('-s', '--samfile', type=argparse.FileType('r'), default=None, help='Sam file to inject header lines into. If \'-\' or absent then defaults to stdin.')
+    parser.add_argument('-d', '--donor', type=str, required=True, help='Donor BAM/SAM file to extract read group info')
+    parser.add_argument('-S', '--donor_is_sam', required=False, action='store_true', help='Donor file is SAM')
+    parser.add_argument('recipient', nargs='?', type=argparse.FileType('r'), default=None,
+                        help='SAM file to inject header lines into. If \'-\' or absent then defaults to stdin.')
 
     # parse the arguments
     args = parser.parse_args()
 
     # if no input, check if part of pipe and if so, read stdin.
-    if args.samfile == None:
+    if args.recipient == None:
         if sys.stdin.isatty():
             parser.print_help()
             exit(1)
         else:
-            args.samfile = sys.stdin
+            args.recipient = sys.stdin
 
     # send back the user input
     return args
 
 # extract read group information from header of original bam
-def extract_rg_info(bamfile, rgs_to_extract):
-    bam = pysam.Samfile(bamfile, 'rb')
+def extract_rg_info(donor, donor_is_sam, rgs_to_extract):
+    if donor_is_sam:
+        bam = pysam.Samfile(donor, 'r')
+    else:
+        bam = pysam.Samfile(donor, 'rb')
     rg_out = list()
     for readgroup in bam.header['RG']:
         if not rgs_to_extract or readgroup['ID'] in rgs_to_extract:
@@ -46,9 +51,9 @@ def extract_rg_info(bamfile, rgs_to_extract):
     return rg_out
 
 # add read group info to header of new sam file
-def bamheadrg(samfile, rg_out):
+def bamheadrg(recipient, rg_out):
     in_header = True
-    for line in samfile:
+    for line in recipient:
         if in_header:
             if line[0] != '@':
                 for readgroup in rg_out:
@@ -70,13 +75,13 @@ def main():
         rgs_to_extract = None
 
     # extract specified readgroups from original bam file
-    rg_out = extract_rg_info(args.bamfile, rgs_to_extract)
+    rg_out = extract_rg_info(args.donor, args.donor_is_sam, rgs_to_extract)
 
     # add extracted readgroups to new sam file
-    bamheadrg(args.samfile, rg_out)
+    bamheadrg(args.recipient, rg_out)
 
     # close the input file
-    args.samfile.close()
+    args.recipient.close()
 
 # initialize the script
 if __name__ == '__main__':
