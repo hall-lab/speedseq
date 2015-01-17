@@ -1467,7 +1467,7 @@ global options:
 		        echo -e "
 		    $PYTHON27 $BAMTOFASTQ -r ${LIB_RG_LIST[$j]} -i $FULL_BAM | $MBUFFER -q -m 1G > $TEMP_DIR/fq_pipe
 		    $BWA mem -t $THREADS -C -M -p $REF $FQ \\
-                        | $PYTHON27 $BAMHEADRG -S -d <($SAMBAMBA view -H $FULL_BAM) -r ${LIB_RG_LIST[$j]} \\
+                        | $PYTHON27 $BAMHEADRG -d $FULL_BAM -r ${LIB_RG_LIST[$j]} \\
 			| $SAMBLASTER --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \\
 			    --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \\
 		        | $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \\
@@ -1484,7 +1484,7 @@ global options:
 		    echo -e "
 		    $PYTHON27 $BAMTOFASTQ -r ${LIB_RG_LIST[$j]} -i $FULL_BAM | $MBUFFER -q -m 1G > $TEMP_DIR/fq_pipe
 		    $BWA mem -t $THREADS -C -M -p $REF $FQ \
-                        | $PYTHON27 $BAMHEADRG -S -d <($SAMBAMBA view -H $FULL_BAM) -r ${LIB_RG_LIST[$j]} \
+                        | $PYTHON27 $BAMHEADRG -d $FULL_BAM -r ${LIB_RG_LIST[$j]} \
 			| $SAMBLASTER --excludeDups --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP \
 			    --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
 			| $SAMBAMBA view -S -F 'paired and mate_is_reverse_strand and not (unmapped or mate_is_unmapped or reverse_strand or secondary_alignment or duplicate)' /dev/stdin \
@@ -2129,7 +2129,7 @@ global options:
 	echo -e "
     $PYTHON27 $BAMTOFASTQ $RENAME -i $IN_BAM | $MBUFFER -q -m 1G > $FQ
     $BWA mem -t $THREADS -C -M -p $INS_DIST $REF $FQ | \\
-	$PYTHON27 $BAMHEADRG -S -d <($SAMBAMBA view -H $IN_BAM) | \\
+	$PYTHON27 $BAMHEADRG -d $IN_BAM | \\
 	$SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
 	$SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
 	$SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
@@ -2143,7 +2143,7 @@ global options:
     echo -e "
     $PYTHON27 $BAMTOFASTQ $RENAME -i $IN_BAM | $MBUFFER -q -m 1G > $FQ
     $BWA mem -t $THREADS -C -M -p $INS_DIST $REF $FQ | \
-	$PYTHON27 $BAMHEADRG -S -d <($SAMBAMBA view -H $IN_BAM) | \
+	$PYTHON27 $BAMHEADRG -d $IN_BAM | \
 	$SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
 	$SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
 	$SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin

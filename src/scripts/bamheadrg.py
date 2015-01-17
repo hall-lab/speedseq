@@ -40,13 +40,27 @@ description: Inject readgroup info")
 # extract read group information from header of original bam
 def extract_rg_info(donor, donor_is_sam, rgs_to_extract):
     if donor_is_sam:
-        bam = pysam.Samfile(donor, 'r')
+        bam = pysam.Samfile(donor, 'r', check_header=False)
     else:
-        bam = pysam.Samfile(donor, 'rb')
+        bam = pysam.Samfile(donor, 'rb', check_header=False)
     rg_out = list()
-    for readgroup in bam.header['RG']:
-        if not rgs_to_extract or readgroup['ID'] in rgs_to_extract:
-            rg_out.append(readgroup)
+    for line in bam.text.split('\n'):
+        if line[:3] == "@RG":
+            v = line.rstrip().split('\t')
+            readgroup = dict(x.split(':',1) for x in v[1:])
+
+            # strip out any illegal fields
+            readgroup_clean = dict()
+            legal_fields = ['ID', 'CN', 'DS', 'DT', 'FO', 'KS', 'LB',
+                            'PG', 'PI', 'PL', 'PU', 'SM']
+            for field in readgroup:
+                if (field in legal_fields
+                    and readgroup[field].strip() != ""):
+                    readgroup_clean[field] = readgroup[field]
+
+            # add to clean readgroups
+            if not rgs_to_extract or readgroup_clean['ID'] in rgs_to_extract:
+                rg_out.append(readgroup_clean)
     bam.close()
     return rg_out
 
