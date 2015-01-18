@@ -40,9 +40,9 @@ description: Inject readgroup info")
 # extract read group information from header of original bam
 def extract_rg_info(donor, donor_is_sam, rgs_to_extract):
     if donor_is_sam:
-        bam = pysam.Samfile(donor, 'r', check_header=False)
+        bam = pysam.Samfile(donor, 'r')
     else:
-        bam = pysam.Samfile(donor, 'rb', check_header=False)
+        bam = pysam.Samfile(donor, 'rb')
     rg_out = list()
     for line in bam.text.split('\n'):
         if line[:3] == "@RG":

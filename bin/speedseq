@@ -57,6 +57,7 @@ function source_binaries() {
 	BAMTOFASTQ=`which bamtofastq.py || true`
 	MBUFFER=`which mbuffer || true`
 	BAMHEADRG=`which bamheadrg.py || true`
+	BAMCLEANHEADER=`which bamcleanheader.py || true`
     fi
 }
 
@@ -1304,6 +1305,11 @@ global options:
 	sv_usage
 	echo -e "Error: bamheadrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
+    elif [[ -z "$BAMCLEANHEADER" ]] && [[ "$REALIGN" -eq 1 ]]
+    then
+	sv_usage
+	echo -e "Error: bamcleanheader.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+        exit 1
     elif [[ -z "$MBUFFER" ]] && [[ "$REALIGN" -eq 1 ]]
     then
 	sv_usage
@@ -1312,7 +1318,7 @@ global options:
     elif [[ -z "$BAMFILTERRG" ]]
     then
 	sv_usage
-	echo -e "Error: bamheadrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+	echo -e "Error: bamfilterrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
     fi
 
@@ -1431,7 +1437,7 @@ global options:
 	    READ_LENGTH=`$SAMBAMBA view $FULL_BAM | head -n 10000 | awk 'BEGIN { MAX_LEN=0 } { LEN=length($10); if (LEN>MAX_LEN) MAX_LEN=LEN } END { print MAX_LEN }'`
 
 	    # parse the libraries in the BAM header to extract readgroups from the same library
-	    LIB_RG_LIST=(`$SAMBAMBA view -H $FULL_BAM \
+	    LIB_RG_LIST=(`$BAMCLEANHEADER $FULL_BAM \
 		| grep "^@RG" \
 		| awk \
 		    '{
@@ -1600,7 +1606,7 @@ global options:
 
 	    # LIB_RG_LIST contains an element for each library in the BAM file.
 	    # These elements are comma delimited strings for the readgroups for each library.
-	    LIB_RG_LIST=(`$SAMBAMBA view -H ${FULL_BAM_LIST[$i]} \
+	    LIB_RG_LIST=(`$BAMCLEANHEADER ${FULL_BAM_LIST[$i]} \
 		| grep "^@RG" \
 		| awk \
 		'{
@@ -1625,6 +1631,13 @@ global options:
 				    print RG_STRING
 				}
 				}'`)
+
+	    if [[ ${#REALIGN_RG_LIST[@]} -eq 0 ]]
+	    then
+		realign_usage
+		echo -e "Error: $IN_BAM lacks read group fields (@RG) in BAM header\n"
+		exit 1
+	    fi
 
 	    # generate the histo, stats, and config files
 	    echo "Calculating insert distributions... "
@@ -2071,6 +2084,11 @@ global options:
 	realign_usage
 	echo -e "Error: bamheadrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
+    elif [[ -z "$BAMCLEANHEADER" ]]
+    then
+	realign_usage
+	echo -e "Error: bamcleanheader.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+	exit 1
     elif [[ -z "$PARALLEL" ]]
     then
         realign_usage
@@ -2081,6 +2099,44 @@ global options:
 
     # check for required python modules (pysam, numpy, scipy, etc)
     check_python_modules $PYTHON27
+
+    # parse the libraries in the BAM header to extract readgroups from the same library
+    if [[ -z $REALIGN_RG_LIST ]]
+    then
+	REALIGN_RG_LIST=(`$BAMCLEANHEADER $IN_BAM \
+	    | grep "^@RG" \
+	    | awk \
+		'{
+		    for (j=1;j<=NF;++j) {
+			if ($j~"^ID") {
+			    id=$j
+			    gsub("^ID:","",id)
+			}
+			else if ($j~"^LB:") {
+			    lib=$j
+			    gsub("^LB:","",lib);
+			}
+		    }
+		    lib_list[lib][length(lib_list[lib])+1] = id
+		}
+		END {
+		    for (i in lib_list) {
+			RG_STRING=lib_list[i][1]
+			for (j=2;j<=length(lib_list[i]);++j) {
+			    RG_STRING=RG_STRING","lib_list[i][j]
+			}
+			print RG_STRING
+		    }
+		}'`)
+    fi
+
+    echo $REALIGN_RG_LIST
+    if [[ ${#REALIGN_RG_LIST[@]} -eq 0 ]]
+    then
+	realign_usage
+        echo -e "Error: $IN_BAM lacks read group fields (@RG) in BAM header\n"
+        exit 1
+    fi
 
     # set the output name
     OUTBASE=`basename "$OUTPUT"`
@@ -2123,43 +2179,92 @@ global options:
     fi
     FQ="$TEMP_DIR/fq_pipe"
 
-    # alignment command
-    if [[ $VERBOSE -eq 1 ]]
-    then
+    for i in $( seq 0 $(( ${#REALIGN_RG_LIST[@]}-1 )) )
+    do
+	REALIGN_RG=${REALIGN_RG_LIST[i]}
+	echo "             Re-aligning readgroups: $REALIGN_RG"
+
+	# alignment command
+	if [[ $VERBOSE -eq 1 ]]
+	    then
+	        echo -e "
+            $PYTHON27 $BAMTOFASTQ -r $REALIGN_RG $RENAME -i $IN_BAM | $MBUFFER -q -m 1G > $FQ
+            $BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ \\
+                | $PYTHON27 $BAMHEADRG -d $IN_BAM -r $REALIGN_RG \\
+                | $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \\
+                | $SAMBAMBA view -S -f bam -l 0 /dev/stdin \\
+                | $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $TEMP_DIR/$OUTBASE.$(($i+1)).bam /dev/stdin
+            $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe \\
+                | $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.$(($i+1)).splitters.bam /dev/stdin
+            $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe \\
+                | $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.$(($i+1)).discordants.bam /dev/stdin"
+	fi
+
 	echo -e "
-    $PYTHON27 $BAMTOFASTQ $RENAME -i $IN_BAM | $MBUFFER -q -m 1G > $FQ
-    $BWA mem -t $THREADS -C -M -p $INS_DIST $REF $FQ | \\
-	$PYTHON27 $BAMHEADRG -d $IN_BAM | \\
-	$SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
-	$SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
-	$SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
+            $PYTHON27 $BAMTOFASTQ -r $REALIGN_RG $RENAME -i $IN_BAM | $MBUFFER -q -m 1G > $FQ
+            $BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ \
+                | $PYTHON27 $BAMHEADRG -d $IN_BAM -r $REALIGN_RG \
+                | $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
+                | $SAMBAMBA view -S -f bam -l 0 /dev/stdin \
+                | $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $TEMP_DIR/$OUTBASE.$(($i+1)).bam /dev/stdin
+            $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe \
+                | $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.$(($i+1)).splitters.bam /dev/stdin
+            $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe \
+                | $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.$(($i+1)).discordants.bam /dev/stdin
+            " | $PARALLEL -j 4
+    done
 
-    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \\
-	$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
-    $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \\
-	$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin"
+    # if only 1 library, then rename files and index
+    if [[ ${#REALIGN_RG_LIST[@]} -eq 1 ]]
+    then
+	mv $TEMP_DIR/$OUTBASE.1.bam $OUTPUT.bam
+	mv $TEMP_DIR/$OUTBASE.1.discordants.bam $OUTPUT.discordants.bam
+	mv $TEMP_DIR/$OUTBASE.1.splitters.bam $OUTPUT.splitters.bam
+
+	echo "
+	$SAMBAMBA index $OUTPUT.bam
+	$SAMBAMBA index $OUTPUT.discordants.bam
+	$SAMBAMBA index $OUTPUT.splitters.bam
+	" | $PARALLEL -j 3
+
+    else
+	MERGE_FULL=""
+	MERGE_DISCORDANTS=""
+	MERGE_SPLITTERS=""
+	for i in $( seq 0 $(( ${#REALIGN_RG_LIST[@]}-1 )) )
+	do
+	    MERGE_FULL="$MERGE_FULL $TEMP_DIR/$OUTBASE.$(($i+1)).bam"
+	    MERGE_DISCORDANTS="$MERGE_DISCORDANTS $TEMP_DIR/$OUTBASE.$(($i+1)).discordants.bam"
+	    MERGE_SPLITTERS="$MERGE_SPLITTERS $TEMP_DIR/$OUTBASE.$(($i+1)).splitters.bam"
+	done
+	
+	if [[ $VERBOSE -eq 1 ]]
+	then
+            echo "
+            $SAMBAMBA merge -t $THREADS $OUTPUT.bam $MERGE_FULL
+            $SAMBAMBA merge -t $THREADS $OUTPUT.discordants.bam $MERGE_DISCORDANTS
+            $SAMBAMBA merge -t $THREADS $OUTPUT.splitters.bam $MERGE_SPLITTERS
+            rm $MERGE_FULL $MERGE_DISCORDANTS $MERGE_SPLITTERS"
+	fi
+	$SAMBAMBA merge -t $THREADS $OUTPUT.bam $MERGE_FULL
+	$SAMBAMBA merge -t $THREADS $OUTPUT.discordants.bam $MERGE_DISCORDANTS
+	$SAMBAMBA merge -t $THREADS $OUTPUT.splitters.bam $MERGE_SPLITTERS
+	rm $MERGE_FULL $MERGE_DISCORDANTS $MERGE_SPLITTERS
+	
+        # index the files
+	if [[ $VERBOSE -eq 1 ]]
+	then
+            echo -e "
+            $SAMBAMBA index $OUTPUT.bam
+            $SAMBAMBA index $OUTPUT.discordants.bam
+            $SAMBAMBA index $OUTPUT.splitters.bam"
+	fi
+	echo "
+        $SAMBAMBA index $OUTPUT.bam
+        $SAMBAMBA index $OUTPUT.discordants.bam
+        $SAMBAMBA index $OUTPUT.splitters.bam
+        " | $PARALLEL -j 3
     fi
-
-    echo -e "
-    $PYTHON27 $BAMTOFASTQ $RENAME -i $IN_BAM | $MBUFFER -q -m 1G > $FQ
-    $BWA mem -t $THREADS -C -M -p $INS_DIST $REF $FQ | \
-	$PYTHON27 $BAMHEADRG -d $IN_BAM | \
-	$SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
-	$SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
-	$SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
-
-    $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \
-	$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
-    $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
-	$SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
-    " | $PARALLEL -j 4
-
-    echo "
-    $SAMBAMBA index $OUTPUT.bam
-    $SAMBAMBA index $OUTPUT.discordants.bam
-    $SAMBAMBA index $OUTPUT.splitters.bam
-    " | $PARALLEL -j 3
-
 
     # clean up
     rm -r $TEMP_DIR
