@@ -2130,7 +2130,6 @@ global options:
 		}'`)
     fi
 
-    echo $REALIGN_RG_LIST
     if [[ ${#REALIGN_RG_LIST[@]} -eq 0 ]]
     then
 	realign_usage
