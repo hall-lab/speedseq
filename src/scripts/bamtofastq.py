@@ -50,6 +50,10 @@ def bamtofastq(bamfile, is_sam, readgroup, rename, header):
         if (al.is_secondary):
             continue
 
+        # skip unpaired reads
+        if (not al.is_paired):
+            continue
+
         # must be in a user specified readgroup
         if rg_list and al.opt('RG') not in rg_list:
             continue
@@ -92,7 +96,8 @@ def get_args():
 bamtofastq.py\n\
 author: " + __author__ + "\n\
 version: " + __version__ + "\n\
-description: Convert a coordinate sorted BAM file to FASTQ")
+description: Convert a coordinate sorted BAM file to FASTQ\n\
+             (ignores unpaired reads)")
     parser.add_argument('-i', '--input', metavar='BAM', required=False, help='Input BAM file')
     parser.add_argument('-r', '--readgroup', metavar='STR', default=None, required=False, help='Read group(s) to extract (comma separated)')
     parser.add_argument('-n', '--rename', required=False, action='store_true', help='Rename reads')
