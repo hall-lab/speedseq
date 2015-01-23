@@ -1143,10 +1143,11 @@ sv options:
          -o STR   output prefix [fullBam.bam]
          -t INT   threads [1] 
          -x FILE  BED file to exclude
-         -a       re-align with SpeedSeq BWA
+         -P       output probability curves for each variant
          -g       genotype SV breakends with svtyper
-         -d       calculate read-depth with CNVnator
+         -d       calculate read-depth with CNVnato
          -A       annotate the vcf with VEP
+         -a       re-align with SpeedSeq BWA
          -m INT   minimum weight for a call [4]
          -r FLOAT trim threshold [0]
          -T DIR   temp directory [./output_prefix.XXXXXXXXXXXX]
@@ -1176,8 +1177,9 @@ global options:
     MAX_SPLIT_COUNT=2
     MIN_NON_OVERLAP=20
     REALIGN=0
+    PROB_CURVE=""
 
-    while getopts ":hB:S:D:R:o:m:r:x:T:t:aAdgkvK:" OPTION
+    while getopts ":hB:S:D:R:o:m:r:x:T:t:PaAdgkvK:" OPTION
     do
 	case "${OPTION}" in
             h)
@@ -1214,6 +1216,9 @@ global options:
                 ;;
 	    t)
 		THREADS="$OPTARG"
+		;;
+	    P)
+		PROB_CURVE="-P"
 		;;
 	    a)
 		REALIGN=1
@@ -1645,7 +1650,7 @@ global options:
 
 	    # construct LUMPY_SPL_STRING
 	    SPL_SAMPLE=`$SAMBAMBA view -H $SPL_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
-	    LUMPY_SPL_STRING="$LUMPY_SPL_STRING -sr bam_file:${SPL_BAM},back_distance:10,min_mapping_threshold:20,weight:1,id:$(($i+1))01,min_clip:20"
+	    LUMPY_SPL_STRING="$LUMPY_SPL_STRING -sr bam_file:${SPL_BAM},back_distance:10,min_mapping_threshold:20,weight:1,id:${SPL_SAMPLE},min_clip:20"
             # append to the sample config file
 	    echo -e "$SPL_SAMPLE\t$(($i+1))01\tSR\t$SPL_BAM" >> $TEMP_DIR/$OUTBASE.sample.config
 
@@ -1659,7 +1664,7 @@ global options:
 		STDEV=`cat ${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).insert.stats | tr '\t' '\n' | grep "^stdev" | sed 's/stdev\://g'`
 		RG_STRING=`echo "${LIB_RG_LIST[$j]}" | sed 's/,/,read_group:/g' | sed 's/^/read_group:/g'`
 
-		LUMPY_DISC_STRING="$LUMPY_DISC_STRING -pe bam_file:${DISC_BAM},histo_file:${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).x4.histo,mean:${MEAN},stdev:${STDEV},read_length:${LIB_READ_LENGTH_LIST[$j]},min_non_overlap:${LIB_READ_LENGTH_LIST[$j]},discordant_z:5,back_distance:10,weight:1,id:$(($i+1))$(($j+1))0,min_mapping_threshold:20,${RG_STRING}"
+		LUMPY_DISC_STRING="$LUMPY_DISC_STRING -pe bam_file:${DISC_BAM},histo_file:${TEMP_DIR}/$OUTBASE.sample$(($i+1)).lib$(($j+1)).x4.histo,mean:${MEAN},stdev:${STDEV},read_length:${LIB_READ_LENGTH_LIST[$j]},min_non_overlap:${LIB_READ_LENGTH_LIST[$j]},discordant_z:5,back_distance:10,weight:1,id:${DISC_SAMPLE},min_mapping_threshold:20,${RG_STRING}"
 		
 		# append to the sample config file
 		echo -e "$DISC_SAMPLE\t$(($i+1))$(($j+1))0\tPE\t$DISC_BAM" >> $TEMP_DIR/$OUTBASE.sample.config
@@ -1671,75 +1676,75 @@ global options:
     if [[ "$VERBOSE" -eq 1 ]]
     then
 	echo "
-$LUMPY -P \\
+$LUMPY ${PROB_CURVE} \\
     -t ${TEMP_DIR}/${OUTBASE} \\
     -mw $MIN_WEIGHT \\
     -tt $TRIM_THRES \\
     $EXCLUDE_BED_FMT \\
     $LUMPY_DISC_STRING \\
     $LUMPY_SPL_STRING \\
-    > $TEMP_DIR/$OUTBASE.sv.lumpy
-        "
-    fi
-    # call lumpy
-    $LUMPY -P -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES \
-    	$EXCLUDE_BED_FMT \
-    	$LUMPY_DISC_STRING \
-    	$LUMPY_SPL_STRING \
-    	> $TEMP_DIR/$OUTBASE.sv.lumpy
-
-    if [[ "$VERBOSE" -eq 1 ]]
-    then
-	echo -e "
-# convert to VCF, ensure that each variant has at least one sample with MIN_WEIGHT support
-cat $TEMP_DIR/$OUTBASE.sv.lumpy \\
-    | $PYTHON27 $BEDPETOVCF -t LUMPY -c $TEMP_DIR/$OUTBASE.sample.config -f $REF \\
-    | awk -v MIN_WEIGHT=$MIN_WEIGHT 'BEGIN {S_IDX=0} {
-        if (\$0~\"^#\") print
-        else {
-            if (S_IDX==0) {
-                split(\$9,fmt,\":\");
-                for (i=1;i<=length(fmt);++i) {
-                    if (fmt[i]==\"SUP\") S_IDX=i
-                }
-            }
-            if (S_IDX!=0) {
-                PASS=0
-                for (i=10;i<=NF;++i) {
-                    split(\$i,a,\":\");
-                    if (a[S_IDX]>=MIN_WEIGHT) PASS=1;
-                }
-            }
-        }
-        if (PASS) print
-    }' \\
     > $TEMP_DIR/$OUTBASE.sv.vcf
         "
     fi
+    # call lumpy
+    $LUMPY $PROB_CURVE -t ${TEMP_DIR}/${OUTBASE} -mw $MIN_WEIGHT -tt $TRIM_THRES \
+    	$EXCLUDE_BED_FMT \
+    	$LUMPY_DISC_STRING \
+    	$LUMPY_SPL_STRING \
+    	> $TEMP_DIR/$OUTBASE.sv.vcf
 
-    # convert to VCF, ensure that each variant has at least one sample with MIN_WEIGHT support
-    cat $TEMP_DIR/$OUTBASE.sv.lumpy \
-	| $PYTHON27 $BEDPETOVCF -t LUMPY -c $TEMP_DIR/$OUTBASE.sample.config -f $REF \
-	| awk -v MIN_WEIGHT=$MIN_WEIGHT 'BEGIN {S_IDX=0} {
-            if ($0~"^#") print
-            else {
-                if (S_IDX==0) {
-                    split($9,fmt,":");
-                    for (i=1;i<=length(fmt);++i) {
-                        if (fmt[i]=="SUP") S_IDX=i
-                    }
-                }
-                if (S_IDX!=0) {
-                    PASS=0
-                    for (i=10;i<=NF;++i) {
-                        split($i,a,":");
-                        if (a[S_IDX]>=MIN_WEIGHT) PASS=1;
-                    }
-                }
-            }
-            if (PASS) print
-        }' \
-	> $TEMP_DIR/$OUTBASE.sv.vcf
+#     if [[ "$VERBOSE" -eq 1 ]]
+#     then
+# 	echo -e "
+# # convert to VCF, ensure that each variant has at least one sample with MIN_WEIGHT support
+# cat $TEMP_DIR/$OUTBASE.sv.lumpy \\
+#     | $PYTHON27 $BEDPETOVCF -t LUMPY -c $TEMP_DIR/$OUTBASE.sample.config -f $REF \\
+#     | awk -v MIN_WEIGHT=$MIN_WEIGHT 'BEGIN {S_IDX=0} {
+#         if (\$0~\"^#\") print
+#         else {
+#             if (S_IDX==0) {
+#                 split(\$9,fmt,\":\");
+#                 for (i=1;i<=length(fmt);++i) {
+#                     if (fmt[i]==\"SUP\") S_IDX=i
+#                 }
+#             }
+#             if (S_IDX!=0) {
+#                 PASS=0
+#                 for (i=10;i<=NF;++i) {
+#                     split(\$i,a,\":\");
+#                     if (a[S_IDX]>=MIN_WEIGHT) PASS=1;
+#                 }
+#             }
+#         }
+#         if (PASS) print
+#     }' \\
+#     > $TEMP_DIR/$OUTBASE.sv.vcf
+#         "
+#     fi
+
+#     # convert to VCF, ensure that each variant has at least one sample with MIN_WEIGHT support
+#     cat $TEMP_DIR/$OUTBASE.sv.lumpy \
+# 	| $PYTHON27 $BEDPETOVCF -t LUMPY -c $TEMP_DIR/$OUTBASE.sample.config -f $REF \
+# 	| awk -v MIN_WEIGHT=$MIN_WEIGHT 'BEGIN {S_IDX=0} {
+#             if ($0~"^#") print
+#             else {
+#                 if (S_IDX==0) {
+#                     split($9,fmt,":");
+#                     for (i=1;i<=length(fmt);++i) {
+#                         if (fmt[i]=="SUP") S_IDX=i
+#                     }
+#                 }
+#                 if (S_IDX!=0) {
+#                     PASS=0
+#                     for (i=10;i<=NF;++i) {
+#                         split($i,a,":");
+#                         if (a[S_IDX]>=MIN_WEIGHT) PASS=1;
+#                     }
+#                 }
+#             }
+#             if (PASS) print
+#         }' \
+# 	> $TEMP_DIR/$OUTBASE.sv.vcf
 
     if [[ "$VERBOSE" -eq 1 ]]
     then
@@ -1881,7 +1886,7 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
 
 
     # copy raw files to output directory
-    cp $TEMP_DIR/$OUTBASE.sv.lumpy $OUTPUT.sv.lumpy
+    # cp $TEMP_DIR/$OUTBASE.sv.lumpy $OUTPUT.sv.lumpy
     cp $TEMP_DIR/$OUTBASE.sample.config $OUTPUT.sample.config
 
     # write output vcf file
@@ -1890,10 +1895,10 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
 	> $OUTPUT.sv.vcf.gz
     $TABIX -p vcf $OUTPUT.sv.vcf.gz
 
-    # write output bedpe file
-    $LUMPYTOBEDPE -b $TEMP_DIR/$OUTBASE.sv.lumpy -c $TEMP_DIR/$OUTBASE.sample.config \
-	| awk -v MIN_WEIGHT=${MIN_WEIGHT} '{ PASS=0 ; for (i=16;i<=NF;++i) { if ($i>=MIN_WEIGHT) { PASS=1 ; print ; break } } }' \
-	> $OUTPUT.sv.bedpe
+    # # write output bedpe file
+    # $LUMPYTOBEDPE -b $TEMP_DIR/$OUTBASE.sv.lumpy -c $TEMP_DIR/$OUTBASE.sample.config \
+    # 	| awk -v MIN_WEIGHT=${MIN_WEIGHT} '{ PASS=0 ; for (i=16;i<=NF;++i) { if ($i>=MIN_WEIGHT) { PASS=1 ; print ; break } } }' \
+    # 	> $OUTPUT.sv.bedpe
 
     # clean up
     if [[ "$KEEP" -eq 0 ]]
