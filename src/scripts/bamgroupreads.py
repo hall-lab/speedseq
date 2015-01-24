@@ -91,8 +91,7 @@ def bamgroupreads(bamfile, readgroup, reset_dups, fix_flags, is_sam, bam_out, un
                     out_bam.write(al)
                 del d[key]
     if len(d) != 0:
-        sys.stderr.write('Error: %s unmatched name groups\n' % len(d))
-        exit(1)
+        sys.stderr.write('Warning: %s unmatched name groups\n' % len(d))
 
 # ============================================
 # functions

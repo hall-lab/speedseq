@@ -86,6 +86,8 @@ def bamtofastq(bamfile, is_sam, readgroup, rename, header):
                 printfastq_rg(d[key],1,RG1)
                 printfastq_rg(al,2,RG2)
             del d[key]
+    if len(d) != 0:
+        sys.stderr.write('Warning: %s unmatched name groups\n' % len(d))
 
 #===================================================================================================================================================
 # functions
