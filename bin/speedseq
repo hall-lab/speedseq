@@ -1890,7 +1890,10 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
     cp $TEMP_DIR/$OUTBASE.sample.config $OUTPUT.sample.config
 
     # write output vcf file
-    $BEDTOOLS sort -header -i $TEMP_DIR/$OUTBASE.sv.vcf \
+    cat $TEMP_DIR/$OUTBASE.sv.vcf \
+	| grep -v "^#" \
+	| sort -k1,1 -k2,2n \
+	| cat $TEMP_DIR/header.txt - \
 	| $BGZIP -c \
 	> $OUTPUT.sv.vcf.gz
     $TABIX -p vcf $OUTPUT.sv.vcf.gz
