@@ -14,9 +14,9 @@ TABIX_DIR=$(SRC)/tabix
 VAWK_DIR=$(SRC)/vawk
 SVTOOLS_DIR=$(SRC)/svtools
 MBUFFER_DIR=$(SRC)/mbuffer
-SCRIPTS_DIR=$(SRC)/scripts
+BAMKIT_DIR=$(SRC)/bamkit
 
-all:	bwa sambamba samblaster freebayes lumpy svtyper tabix vawk svtools mbuffer scripts cnvnator-multi
+all:	bwa sambamba samblaster freebayes lumpy svtyper tabix vawk svtools mbuffer bamkit cnvnator-multi
 
 bwa:
 	$(MAKE) -C $(BWA_DIR)
@@ -74,18 +74,20 @@ mbuffer:
 	$(MAKE) -C $(MBUFFER_DIR)
 	cp $(MBUFFER_DIR)/mbuffer $(TARGET_BIN)
 
-scripts:
-	cp $(SCRIPTS_DIR)/bamtofastq.py $(TARGET_BIN)
-	cp $(SCRIPTS_DIR)/bamheadrg.py $(TARGET_BIN)
-	cp $(SCRIPTS_DIR)/bamgroupreads.py $(TARGET_BIN)
-	cp $(SCRIPTS_DIR)/bamfilterrg.py $(TARGET_BIN)
-	cp $(SCRIPTS_DIR)/bamcleanheader.py $(TARGET_BIN)
+bamkit:
+	cp $(BAMKIT_DIR)/bamtofastq.py $(TARGET_BIN)
+	cp $(BAMKIT_DIR)/bamheadrg.py $(TARGET_BIN)
+	cp $(BAMKIT_DIR)/bamgroupreads.py $(TARGET_BIN)
+	cp $(BAMKIT_DIR)/bamfilterrg.py $(TARGET_BIN)
+	cp $(BAMKIT_DIR)/bamcleanheader.py $(TARGET_BIN)
+	cp $(BAMKIT_DIR)/bamlibs.py $(TARGET_BIN)
 
 clean:
 	rm -f \
 		bin/bedpeToBed12 \
 		bin/bedpeToVcf \
 		bin/bgzip \
+		bin/sambamba \
 		bin/cnvnator \
 		bin/cnvnator2VCF.pl \
 		bin/cnvnator_wrapper.py \
@@ -107,6 +109,7 @@ clean:
 		bin/bamgroupreads.py \
 		bin/bamfilterrg.py \
 		bin/bamcleanheader.py \
+		bin/bamlibs.py \
 		bin/cnvnator-multi \
 		bin/annotate_rd.py
 	$(MAKE) -C $(BWA_DIR) clean

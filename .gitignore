@@ -67,6 +67,7 @@ bin/lumpyToBedpe
 bin/bamgroupreads.py
 bin/bamfilterrg.py
 bin/bamcleanheader.py
+bin/bamlibs.py
 
 # Compiled source #
 ###################

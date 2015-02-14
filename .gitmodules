@@ -22,3 +22,6 @@
 [submodule "src/bwa"]
 	path = src/bwa
 	url = https://github.com/lh3/bwa.git
+[submodule "src/bamkit"]
+	path = src/bamkit
+	url = https://github.com/cc2qe/bamkit.git
