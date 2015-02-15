@@ -46,6 +46,7 @@ function source_binaries() {
 	SVTYPER=`which svtyper || true`
 	BAMGROUPREADS=`which bamgroupreads.py || true`
 	BAMFILTERRG=`which bamfilterrg.py || true`
+	BAMLIBS=`which bamlibs.py || true`
 
         # CNVnator
 	CNVNATOR_WRAPPER=`which cnvnator_wrapper.py || true`
@@ -1320,6 +1321,11 @@ global options:
 	sv_usage
 	echo -e "Error: bamfilterrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
+    elif [[ -z "$BAMLIBS" ]]
+    then
+	sv_usage
+	echo -e "Error: bamlibs.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+	exit 1
     fi
 
     # if genotyping requested, look for svtyper
@@ -1437,31 +1443,7 @@ global options:
 	    READ_LENGTH=`$SAMBAMBA view $FULL_BAM | head -n 10000 | awk 'BEGIN { MAX_LEN=0 } { LEN=length($10); if (LEN>MAX_LEN) MAX_LEN=LEN } END { print MAX_LEN }'`
 
 	    # parse the libraries in the BAM header to extract readgroups from the same library
-	    LIB_RG_LIST=(`$BAMCLEANHEADER $FULL_BAM \
-		| grep "^@RG" \
-		| awk \
-		    '{
-			for (j=1;j<=NF;++j) {
-			    if ($j~"^ID") {
-				id=$j
-				gsub("^ID:","",id)
-			    }
-			    else if ($j~"^LB:") {
-				lib=$j
-				gsub("^LB:","",lib);
-			    }
-			}
-			lib_list[lib][length(lib_list[lib])+1] = id
-		    }
-		    END {
-			for (i in lib_list) {
-			    RG_STRING=lib_list[i][1]
-			    for (j=2;j<=length(lib_list[i]);++j) {
-				RG_STRING=RG_STRING","lib_list[i][j]
-			    }
-			    print RG_STRING
-			}
-		    }'`)
+	    LIB_RG_LIST=(`$BAMLIBS $FULL_BAM`)
 
 	    for j in $( seq 0 $(( ${#LIB_RG_LIST[@]}-1 )) )
 	    do
@@ -1606,31 +1588,7 @@ global options:
 
 	    # LIB_RG_LIST contains an element for each library in the BAM file.
 	    # These elements are comma delimited strings for the readgroups for each library.
-	    LIB_RG_LIST=(`$BAMCLEANHEADER ${FULL_BAM_LIST[$i]} \
-		| grep "^@RG" \
-		| awk \
-		'{
-			    for (j=1;j<=NF;++j) {
-				if ($j~"^ID") {
-					id=$j
-					gsub("^ID:","",id)
-				    }
-				else if ($j~"^LB:") {
-					    lib=$j
-					    gsub("^LB:","",lib);
-					}
-			    }
-			    lib_list[lib][length(lib_list[lib])+1] = id
-			}
-			END {
-			    for (i in lib_list) {
-				    RG_STRING=lib_list[i][1]
-				    for (j=2;j<=length(lib_list[i]);++j) {
-					RG_STRING=RG_STRING","lib_list[i][j]
-				    }
-				    print RG_STRING
-				}
-				}'`)
+	    LIB_RG_LIST=(`$BAMLIBS $FULL_BAM`)
 
 	    if [[ ${#REALIGN_RG_LIST[@]} -eq 0 ]]
 	    then
@@ -2089,6 +2047,11 @@ global options:
 	realign_usage
 	echo -e "Error: bamcleanheader.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
+    elif [[ -z "$BAMLIBS" ]]
+    then
+	realign_usage
+	echo -e "Error: bamlibs.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
+	exit 1
     elif [[ -z "$PARALLEL" ]]
     then
         realign_usage
@@ -2103,31 +2066,7 @@ global options:
     # parse the libraries in the BAM header to extract readgroups from the same library
     if [[ -z $REALIGN_RG_LIST ]]
     then
-	REALIGN_RG_LIST=(`$BAMCLEANHEADER $IN_BAM \
-	    | grep "^@RG" \
-	    | awk \
-		'{
-		    for (j=1;j<=NF;++j) {
-			if ($j~"^ID") {
-			    id=$j
-			    gsub("^ID:","",id)
-			}
-			else if ($j~"^LB:") {
-			    lib=$j
-			    gsub("^LB:","",lib);
-			}
-		    }
-		    lib_list[lib][length(lib_list[lib])+1] = id
-		}
-		END {
-		    for (i in lib_list) {
-			RG_STRING=lib_list[i][1]
-			for (j=2;j<=length(lib_list[i]);++j) {
-			    RG_STRING=RG_STRING","lib_list[i][j]
-			}
-			print RG_STRING
-		    }
-		}'`)
+	REALIGN_RG_LIST=(`$BAMCLEANHEADER $IN_BAM | $BAMLIBS -S`)
     fi
 
     if [[ ${#REALIGN_RG_LIST[@]} -eq 0 ]]
