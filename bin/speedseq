@@ -1167,7 +1167,7 @@ global options:
     CONFIG="$SPEEDSEQ_DIR/speedseq.config"
     THREADS=1
     ANNOTATE=0
-    MIN_WEIGHT=4
+    MIN_SAMPLE_WEIGHT=4
     TRIM_THRES=0
     EXCLUDE_BED=
     TEMP_DIR=""
@@ -1205,7 +1205,7 @@ global options:
                 OUTPUT="$OPTARG"
                 ;;
             m)
-                MIN_WEIGHT="$OPTARG"
+                MIN_SAMPLE_WEIGHT="$OPTARG"
                 ;;
             r)
                 TRIM_THRES="$OPTARG"
@@ -1429,6 +1429,8 @@ global options:
 	-o $TEMP_DIR/$OUTBASE \
 	$EXCLUDE_BED_FMT \
 	$PROBCURVE_FMT \
+	-r $TRIM_THRES \
+	-m $MIN_SAMPLE_WEIGHT \
 	-T ${TEMP_DIR}/temp_lumpyexpress \
 	-K $CONFIG \
 	-v \
