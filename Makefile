@@ -37,6 +37,7 @@ lumpy:
 	$(MAKE) -C $(LUMPY_DIR)
 	cp $(LUMPY_DIR)/scripts/pairend_distro.py $(TARGET_BIN)
 	cp $(LUMPY_DIR)/bin/lumpy $(TARGET_BIN)
+	cp $(LUMPY_DIR)/bin/lumpyexpress $(TARGET_BIN)
 
 svtyper:
 	cp $(SVTYPER_DIR)/svtyper $(TARGET_BIN)
@@ -93,6 +94,7 @@ clean:
 		bin/cnvnator_wrapper.py \
 		bin/freebayes \
 		bin/lumpy \
+		bin/lumpyexpress \
 		bin/pairend_distro.py \
 		bin/samblaster \
 		bin/splitReadSamToBedpe \

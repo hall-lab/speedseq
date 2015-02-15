@@ -10,6 +10,7 @@ bin/cnvnator_wrapper.py
 bin/annotate_rd.py
 bin/freebayes
 bin/lumpy
+bin/lumpyexpress
 bin/pairend_distro.py
 bin/samblaster
 bin/splitReadSamToBedpe
