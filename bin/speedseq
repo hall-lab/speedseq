@@ -1447,7 +1447,7 @@ global options:
 	    if [[ "$VERBOSE" -eq 1 ]]
 	    then
 		echo "# genotype structural variants"
-		echo -e "$PYTHON $SVTYPER -i $TEMP_DIR/$OUTBASE.sv.vcf -B $FULL_BAM -S $SPL_BAM > \$vcf.gt ; mv \$vcf.gt \$vcf"
+		echo -e "$PYTHON $SVTYPER -i $TEMP_DIR/$OUTBASE.sv.vcf -B $FULL_BAM -S $SPL_BAM > $TEMP_DIR/$OUTBASE.sv.gt.vcf ; mv $TEMP_DIR/$OUTBASE.sv.gt.vcf $TEMP_DIR/$OUTBASE.sv.vcf"
 	    fi
 
 	    # genotype structural variants
