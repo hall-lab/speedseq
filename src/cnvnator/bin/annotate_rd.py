@@ -294,7 +294,7 @@ def sv_readdepth(vcf_file, sample, root, window, vcf_out, debug, cnvnator_path):
     p1 = Popen(['cat', coord_list.name], stdout=PIPE)
     cmd = map(str, [cnvnator_path, '-root', root, '-genotype', window])
     p2 = Popen(cmd, stdin=p1.stdout, stdout=PIPE)
-    p3 = Popen(['awk', '{ print $4 }'], stdin=p2.stdout, stdout=PIPE)
+    p3 = Popen(['awk', '{ if($1!="Assuming"){print $4} }'], stdin=p2.stdout, stdout=PIPE)
     cn_list = map(float, p3.communicate()[0].split('\n')[:-1])
 
     # go through the VCF a second time and add the read depth annotations
