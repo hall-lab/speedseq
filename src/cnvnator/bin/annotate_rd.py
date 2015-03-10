@@ -44,7 +44,7 @@ class Vcf(object):
     def __init__(self):
         self.file_format = 'VCFv4.2'
         #self.fasta = fasta
-        self.reference = ''
+        # self.reference = ''
         self.sample_list = []
         self.info_list = []
         self.format_list = []
@@ -75,23 +75,22 @@ class Vcf(object):
     # return the VCF header
     def get_header(self):
         header = '\n'.join(['##fileformat=' + self.file_format,
-                            '##fileDate=' + time.strftime('%Y%m%d'),
-                            '##reference=' + self.reference] + \
-                           [i.hstring for i in self.info_list] + \
-                           [a.hstring for a in self.alt_list] + \
-                           [f.hstring for f in self.format_list] + \
-                           ['\t'.join([
-                               '#CHROM',
-                               'POS',
-                               'ID',
-                               'REF',
-                               'ALT',
-                               'QUAL',
-                               'FILTER',
-                               'INFO',
-                               'FORMAT'] + \
-                                      self.sample_list
-                                  )])
+                            '##fileDate=' + time.strftime('%Y%m%d')] + \
+                               [i.hstring for i in self.info_list] + \
+                               [a.hstring for a in self.alt_list] + \
+                               [f.hstring for f in self.format_list] + \
+                               ['\t'.join([
+                                            '#CHROM',
+                                            'POS',
+                                            'ID',
+                                            'REF',
+                                            'ALT',
+                                            'QUAL',
+                                            'FILTER',
+                                            'INFO',
+                                            'FORMAT'] + \
+                                              self.sample_list
+                                          )])
         return header
 
     def add_info(self, id, number, type, desc):
