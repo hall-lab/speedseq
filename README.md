@@ -17,40 +17,40 @@ Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth
 
 ## Quick start
 
-Install
+1. Install
 	```
 	git clone --recursive https://github.com/cc2qe/speedseq
 	cd speedseq
 	make
 	```
 
-Align from FASTQ
-```
-bin/speedseq align \
-	-o sample \
-	-R "@RG\tID:id\tSM:samplename\tLB:lib" \
-	human_g1k_v37.fasta \
-    in1.fq.gz \
-    in2.fq.gz
-```
+2. Align from FASTQ
+	```
+	bin/speedseq align \
+		-o sample \
+		-R "@RG\tID:id\tSM:samplename\tLB:lib" \
+		human_g1k_v37.fasta \
+		in1.fq.gz \
+		in2.fq.gz
+	```
 
-Detect SNVs and indels
-```
-bin/speedseq var \
-	-o sample \
-	human_g1k_v37.fasta \
-    sample.bam
-```
+3. Detect SNVs and indels
+	```
+	bin/speedseq var \
+		-o sample \
+		human_g1k_v37.fasta \
+		sample.bam
+	```
 
-Detect structural variants
-```
-bin/speedseq sv \
-	-o sample \
-	-B sample.bam \
-	-S sample.splitters.bam \
-	-D sample.discordants.bam \
-	-R human_g1k_v37.fasta \
-```
+4. Detect structural variants
+	```
+	bin/speedseq sv \
+		-o sample \
+		-B sample.bam \
+		-S sample.splitters.bam \
+		-D sample.discordants.bam \
+		-R human_g1k_v37.fasta \
+	```
 
 ## Components
 
