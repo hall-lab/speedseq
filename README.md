@@ -71,151 +71,21 @@ make
 System paths to SpeedSeq's component software are specified in the [speedseq.config](bin/speedseq.config) file, which resides in the same directory as the SpeedSeq executable (for alternate locations use the [-K flag](#usage)). Upon installation, SpeedSeq attempts to automatically generate this file, but manual editing may be necessary.
 
 #### Install SpeedSeq advanced components
-Advanced components enable optional SpeedSeq features such as variant annotation and read-depth analysis.
+Advanced components enable optional features such as variant annotation and read-depth analysis.
+
+##### Variant Effect Predictor
+
+##### CNVnator
 ```
 cd speedseq
 make cnvnator-multi
 ```
 
-##Installation
-
-Preparing genome files
-
-bwa mem index
-
-Current support for Linux only
-
-
-
-#####Configuration
-
-Configure the paths to the SpeedSeq dependencies by modifying the [speedseq.config](bin/speedseq.config) file. The [speedseq.config](bin/speedseq.config) file should reside in the same directory as the SpeedSeq executable. By default, SpeedSeq attempts to source the dependencies from the $PATH.
-
-#####Genome
-
-We recommend using the GRCh37 human genome for SpeedSeq, available here:
-
-* ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/reference/human_g1k_v37.fasta.gz
-* ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/reference/human_g1k_v37.fasta.fai
-
-####Obtain each of the external pipeline tools and install:
-	
-
-
-#### CNVnator
-http://sv.gersteinlab.org/cnvnator/
-
-CNVnator can be installed and used by SpeedSeq with the following commands:
-
-1. Install the ROOT package (http://root.cern.ch/drupal/)
-   ```
-   # install dependencies
-   sudo yum -y install libX11-devel libXpm-devel libXft-devel libXext-devel
-
-   # get ROOT
-   curl -OL ftp://root.cern.ch/root/root_v5.34.20.source.tar.gz
-   tar -xvf root_v5.34.20.source.tar.gz
-   cd root
-   ./configure
-   make
-   cd ..
-   sudo mv root /usr/local
-   ```
-
-2. Add the following line to `~/.bashrc`
-   ```
-   source /usr/local/root/bin/thisroot.sh
-   ```
-
-   Then run the following for reload `.bashrc`
-   ```
-   . ~/.bashrc
-   ```
-
-3. Navigate to SpeedSeq git directory and compile the multi-threaded implementation of CNVnator v0.3
-   ```
-   cd speedseq
-   make cnvnator-multi
-   sudo cp bin/* /usr/local/bin
-   ```
-
-4. Create chromosomes directory from genome fasta file
-
-   CNVnator requires a directory containing each chromosome as a separate fasta file. Run the following commands to generate this directory.
-   ```
-   mkdir chroms
-   cd chroms
-   cat human_g1k_v37.fasta | awk 'BEGIN { CHROM="" } { if ($1~"^>") CHROM=substr($1,2); print $0 > CHROM".fa" }'
-   ```
-
-   Then set the path to the `chroms` directory as `CNVNATOR_CHROMS_DIR` in [speedseq.config](bin/speedseq.config)
-
-#### VEP
-http://www.ensembl.org/info/docs/tools/vep/index.html
-
-VEP can be installed and used by SpeedSeq with the following commands:
-
-1. Install required PERL modules
-   ```
-   sudo yum -y install "perl(Archive::Extract)" "perl(CGI)" "perl(DBI)" "perl(Time::HiRes)" "perl(Archive::Tar)" "perl(Archive::Zip)"
-   ```
-
-2. Download the software and install
-   ```
-   curl -OL https://github.com/Ensembl/ensembl-tools/archive/release/76.zip
-   unzip 76.zip
-   perl ensembl-tools-release-76/scripts/variant_effect_predictor/INSTALL.pl -a ac -s homo_sapiens -y GRCh37 --CACHEDIR ~/.vep
-   ```
-
-3. Copy files to a directory in $PATH
-   ```
-   sudo cp ensembl-tools-release-76/scripts/variant_effect_predictor/variant_effect_predictor.pl /usr/local/bin
-   sudo cp -r ensembl-tools-release-76/scripts/variant_effect_predictor/Bio /usr/local/bin
-   ```
-
-4. Edit [speedseq.config](bin/speedseq.config) to set correct paths for the `VEP` and `VEP_CACHE_DIR` variables.
-
-#### GEMINI
-https://github.com/arq5x/gemini
-
-GEMINI can be installed and used by SpeedSeq with the following commands: 
-```
-wget https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py	
-# or curl -OL https://raw.github.com/arq5x/gemini/master/gemini/scripts/gemini_install.py > gemini_install.py
-sudo python2.7 gemini_install.py /usr/local /usr/local/share/gemini
-export PATH=$PATH:/usr/local/gemini/bin
-# it would be wise to add the above line to your ``.bashrc`` or ``.bash_profile``
-gemini update
-```
-
-#### BEDTools
-https://github.com/arq5x/bedtools2
-
-BEDTools can be installed and used by SpeedSeq with the following commands:
-```
-curl -OL https://github.com/arq5x/bedtools2/releases/download/v2.20.1/bedtools-2.20.1.tar.gz
-tar -xvf bedtools-2.20.1.tar.gz
-make -C bedtools2-2.20.1
-sudo cp bedtools2-2.20.1/bin/* /usr/local/bin
-```
-
-#### GNU Parallel
-http://www.gnu.org/software/parallel/
-
-Parallel can be installed and used by SpeedSeq with the following commands:
-```
-curl -OL http://ftp.gnu.org/gnu/parallel/parallel-20100424.tar.bz2
-tar -xvf parallel-20100424.tar.bz2
-cd parallel-20100424
-./configure && sudo make && sudo make install
-sudo cp src/parallel /usr/local/bin/
-```
-
 **For alternative installations and release issues for any of the above tools please consult the website/creator.**
 
-##Usage
+## Usage
 
-SpeedSeq is a modular pipeline with four components: [`align`](#speedseq-align), [`var`](#speedseq-var), [`somatic`](#speedseq-somatic), and [`sv`](#speedseq-sv).
+SpeedSeq is a modular framework with four components:
 
 * [`speedseq align`](#speedseq-align)
   * Take paired-end fastq sequences as input, and produce a duplicate-marked, sorted, indexed BAM file that can be processed with other speedseq modules. Currently, speedseq align does not support single-end reads.
