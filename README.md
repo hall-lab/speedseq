@@ -1,8 +1,6 @@
 # SpeedSeq         
 
-Current version: 0.0.2
-
-SpeedSeq suite is a flexible and open source pipeline that identifies
+SpeedSeq is a flexible and open source pipeline that identifies
 genomic variation (single nucleotide variants (SNVs), indels, and structural variants (SVs)).
 
 Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth, A R Quinlan, and I M Hall. 2014. SpeedSeq: Ultra-Fast Personal Genome Analysis and Interpretation. bioRxiv. [doi:10.1101/012179](http://dx.doi.org/10.1101/012179).
@@ -20,23 +18,39 @@ Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth
 ## Quick start
 
 Install
-```
-git clone --recursive https://github.com/cc2qe/speedseq
-cd speedseq
-make
-```
+	```
+	git clone --recursive https://github.com/cc2qe/speedseq
+	cd speedseq
+	make
+	```
 
 Align from FASTQ
 ```
 bin/speedseq align \
-    -o sample \
-    -R "@RG\tID:sampleid\tSM:samplename\tLB:samplelib" \
-    reference.fa \
+	-o sample \
+	-R "@RG\tID:id\tSM:samplename\tLB:lib" \
+	human_g1k_v37.fasta \
     in1.fq.gz \
     in2.fq.gz
 ```
 
+Detect SNVs and indels
+```
+bin/speedseq var \
+	-o sample \
+	human_g1k_v37.fasta \
+    sample.bam
+```
 
+Detect structural variants
+```
+bin/speedseq sv \
+	-o sample \
+	-B sample.bam \
+	-S sample.splitters.bam \
+	-D sample.discordants.bam \
+	-R human_g1k_v37.fasta \
+```
 
 ## Components
 
