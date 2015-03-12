@@ -60,21 +60,22 @@ Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth
 * Variant Effect Predictor (required if annotating VCF files)
 
 #### Install SpeedSeq core components
-Core components enable the basic alignment and variant calling functionality outlined in [Quick start](#quick-start).
-
-The following command installs the necessary components for aligning and detection variation with SpeedSeq
+The core components enable the basic alignment and variant calling functionality outlined in [Quick start](#quick-start).
 ```
 git clone --recursive https://github.com/cc2qe/speedseq
 cd speedseq
 make
 ```
 
+#### Configuration
+System paths to SpeedSeq's component software are specified in the [speedseq.config](bin/speedseq.config) file, which resides in the same directory as the SpeedSeq executable (for alternate locations use the [-K flag](#usage)). Upon installation, SpeedSeq attempts to automatically generate this file, but manual editing may be necessary.
+
 #### Install SpeedSeq advanced components
 Advanced components enable optional SpeedSeq features such as variant annotation and read-depth analysis.
-
-   cd speedseq
-   make cnvnator-multi
-
+```
+cd speedseq
+make cnvnator-multi
+```
 
 ##Installation
 
