@@ -1,16 +1,14 @@
 # SpeedSeq         
 
-SpeedSeq is a flexible and open source pipeline that identifies
-genomic variation (single nucleotide variants (SNVs), indels, and structural variants (SVs)).
+SpeedSeq is a flexible and open-source framework to rapidly identify genomic variation.
 
 Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth, A R Quinlan, and I M Hall. 2014. SpeedSeq: Ultra-Fast Personal Genome Analysis and Interpretation. bioRxiv. [doi:10.1101/012179](http://dx.doi.org/10.1101/012179).
 
 ##Table of Contents
 
 1. [Quick start](#quick-start)
-3. [Installation](#installation)
-  * [Automatic Installation](#automatic-installation)
-  * [Manual Installation](#manual-installation)
+2. [Installation](#installation)
+
 4. [Usage](#usage)
 5. [Annotations](#annotations)
 6. [Example Workflows](#example-workflows)
@@ -51,6 +49,23 @@ Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth
 		-D sample.discordants.bam \
 		-R human_g1k_v37.fasta \
 	```
+
+## Installation
+
+#### Prerequisites
+* Python 2.7
+	* numpy
+	* pysam
+	* scipy
+* ROOT (required if running CNVnator)
+* Variant Effect Predictor (required if annotating VCF files)
+
+```
+git clone --recursive https://github.com/cc2qe/speedseq
+cd speedseq
+make
+```
+
 
 ## Components
 
