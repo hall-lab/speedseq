@@ -1,15 +1,15 @@
-#SpeedSeq         
+# SpeedSeq         
 
-**Current version:** 0.0.2
+Current version: 0.0.2
+
+SpeedSeq suite is a flexible and open source pipeline that identifies
+genomic variation (single nucleotide variants (SNVs), indels, and structural variants (SVs)).
 
 Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth, A R Quinlan, and I M Hall. 2014. SpeedSeq: Ultra-Fast Personal Genome Analysis and Interpretation. bioRxiv. [doi:10.1101/012179](http://dx.doi.org/10.1101/012179).
 
-Current support for Linux only
-
 ##Table of Contents
 
-1. [Summary](#summary)
-2. [Constitutive Pipeline Tools](#constitutive-pipeline-tools)
+1. [Quick start](#quick-start)
 3. [Installation](#installation)
   * [Automatic Installation](#automatic-installation)
   * [Manual Installation](#manual-installation)
@@ -17,13 +17,28 @@ Current support for Linux only
 5. [Annotations](#annotations)
 6. [Example Workflows](#example-workflows)
 
+## Quick start
 
-##Summary
+Install
+```
+git clone --recursive https://github.com/cc2qe/speedseq
+cd speedseq
+make
+```
 
-The SpeedSeq suite is a lightweight, flexible, and open source pipeline that identifies
-genomic variation (single nucleotide variants (SNVs), indels, and structural variants (SVs)).
+Align from FASTQ
+```
+bin/speedseq align \
+    -o sample \
+    -R "@RG\tID:sampleid\tSM:samplename\tLB:samplelib" \
+    reference.fa \
+    in1.fq.gz \
+    in2.fq.gz
+```
 
-##Constitutive Pipeline Tools
+
+
+## Components
 
 * [BWA](http://bio-bwa.sourceforge.net/)
 * [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
@@ -37,6 +52,12 @@ genomic variation (single nucleotide variants (SNVs), indels, and structural var
 * [GNU Parallel](http://www.gnu.org/software/parallel/)
 
 ##Installation
+
+Preparing genome files
+
+bwa mem index
+
+Current support for Linux only
 
 There is an automatic and manual installation process for SpeedSeq.
 
