@@ -8,7 +8,6 @@ Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth
 
 1. [Quick start](#quick-start)
 2. [Installation](#installation)
-
 4. [Usage](#usage)
 5. [Annotations](#annotations)
 6. [Example Workflows](#example-workflows)
@@ -60,25 +59,22 @@ Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth
 * ROOT (required if running CNVnator)
 * Variant Effect Predictor (required if annotating VCF files)
 
+#### Install SpeedSeq core components
+Core components enable the basic alignment and variant calling functionality outlined in [Quick start](#quick-start).
+
+The following command installs the necessary components for aligning and detection variation with SpeedSeq
 ```
 git clone --recursive https://github.com/cc2qe/speedseq
 cd speedseq
 make
 ```
 
+#### Install SpeedSeq advanced components
+Advanced components enable optional SpeedSeq features such as variant annotation and read-depth analysis.
 
-## Components
+   cd speedseq
+   make cnvnator-multi
 
-* [BWA](http://bio-bwa.sourceforge.net/)
-* [SAMBLASTER](https://github.com/GregoryFaust/samblaster)
-* [Sambamba](https://github.com/lomereiter/sambamba)
-* [FreeBayes](https://github.com/ekg/freebayes)
-* [VEP](http://www.ensembl.org/info/docs/tools/vep/index.html)
-* [LUMPY](https://github.com/arq5x/lumpy-sv)
-* [SVtyper](https://github.com/cc2qe/svtyper)
-* [CNVnator](http://sv.gersteinlab.org/cnvnator/)
-* [GEMINI](https://github.com/arq5x/gemini)
-* [GNU Parallel](http://www.gnu.org/software/parallel/)
 
 ##Installation
 
@@ -88,74 +84,7 @@ bwa mem index
 
 Current support for Linux only
 
-There is an automatic and manual installation process for SpeedSeq.
 
-The following are required for both installations:
-
-* cmake
-* g++ 4.3 or later
-* gcc
-* git
-* make
-* python2.7
-* python-devel
-* python-yaml
-* ncurses-devel
-* zlib-devel
-* numpy
-* pip
-
-A Linux package manager can be used to obtain these by with the command:
-
-```
-# general purpose tools
-sudo yum update
-sudo yum -y install cmake gcc-c++ gcc git make python27 python-devel python-yaml ncurses-devel zlib-devel numpy python-pip
-
-# PERL modules for VEP
-sudo yum -y install "perl(Archive::Extract)" "perl(CGI)" "perl(DBI)" "perl(Time::HiRes)" "perl(Archive::Tar)" "perl(Archive::Zip)"
-```
- 
-or 
-
-```
-sudo apt-get update
-sudo apt-get -y install build-essential cmake gpp gcc git make python2.7 python-dev python-yaml ncurses-dev zlib1g-dev python-numpy python-pip
-```
-
-###Automatic installation
-
-SpeedSeq can be installed with the following commands:
-```
-git clone --recursive https://github.com/cc2qe/speedseq
-cd speedseq
-python speedseq_setup.py
-sudo cp -r bin/* /usr/local/bin/
-```
-
-Configure the paths to the SpeedSeq dependencies by modifying the [speedseq.config](bin/speedseq.config) file. The [speedseq.config](bin/speedseq.config) file should reside in the same directory as the SpeedSeq executable. By default, SpeedSeq attempts to source the dependencies from the $PATH.
-
-Note that the optional component CNVnator cannot be automatically installed (see the [CNVnator installation instructions](#cnvnator)). SpeedSeq uses a multi-threaded implementation of CNVnator v0.3, which can be for in [src/cnvnator](src/cnvnator)
-
-####Genome
-We recommend using the GRCh37 human genome for SpeedSeq, available here:
-
-* ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/reference/human_g1k_v37.fasta.gz
-* ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/reference/human_g1k_v37.fasta.fai
-
-###Manual installation
-
-The following instructions for installation assumes that the required tools are not installed. If you already have the SpeedSeq components on your system, then you can simply link them to the proper paths in the [speedseq.config](bin/speedseq.config] file.
-It is recommended that the specified versions of each tool are used for this release of SpeedSeq.  
-The use of unspecified versions of any pipeline component is not guaranteed to work. 
-
-SpeedSeq can be installed with the following commands: 
-```
-git clone --recursive https://github.com/cc2qe/speedseq
-cd speedseq
-make
-sudo cp -r bin/* /usr/local/bin/
-```
 
 #####Configuration
 
@@ -170,15 +99,7 @@ We recommend using the GRCh37 human genome for SpeedSeq, available here:
 
 ####Obtain each of the external pipeline tools and install:
 	
-#### Sambamba
-https://github.com/lomereiter/sambamba
 
-Sambamba can be installed and used by SpeedSeq by: 
-```
-curl -OL https://github.com/lomereiter/sambamba/releases/download/v0.4.6-beta/sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2
-tar -xvf sambamba_v0.4.6-beta_centos5-x86_64.tar.bz2
-sudo cp sambamba_v0.4.6 /usr/local/bin/
-```
 
 #### CNVnator
 http://sv.gersteinlab.org/cnvnator/
