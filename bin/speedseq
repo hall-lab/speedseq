@@ -22,7 +22,6 @@ function source_binaries() {
 	# general
 	SPEEDSEQ_HOME=$( dirname `which speedseq` )
 	SAMBAMBA=`which sambamba || true`
-	BEDTOOLS=`which bedtools || true`
 	BGZIP=`which bgzip || true`
 	TABIX=`which tabix || true`
 	VAWK=`which vawk || true`
@@ -533,11 +532,6 @@ options:
 	var_usage
         echo -e "Error: freebayes executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ ! -f "$BEDTOOLS" ]]
-    then
-	var_usage
-        echo -e "Error: bedtools executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
     elif [[ ! -f "$BGZIP" ]]
     then
 	var_usage
@@ -671,7 +665,7 @@ options:
 	then
 	    echo -e "
             cat $TEMP_DIR/$OUTBASE.\"$chrom:\$start..\$end\".vcf | grep -v \"^#\" \\
-                | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \\
+                | sort -k1,1 -k2,2n | cat $TEMP_DIR/header.txt - \\
                 | $VEP \\
                 $FORK \\
                 -o /dev/stdout \\
@@ -697,7 +691,7 @@ options:
             # add "|| true" so it doesn't bail upon failure.
 	    cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
 	done \
-	    | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \
+	    | sort -k1,1 -k2,2n | cat $TEMP_DIR/header.txt - \
 	    | $VEP \
             $FORK \
             -o /dev/stdout \
@@ -722,7 +716,7 @@ options:
         then
             echo -e "
             cat $TEMP_DIR/$OUTBASE.\"$chrom:\$start..\$end\".vcf | grep -v \"^#\" \\
-                | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \\
+                | sort -k1,1 -k2,2n | cat $TEMP_DIR/header.txt - \\
                 | $BGZIP -c > $OUTPUT.vcf.gz"
         fi
 
@@ -731,7 +725,7 @@ options:
             # if this fails then it bails out the script
 	    cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
 	done \
-	    | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \
+	    | sort -k1,1 -k2,2n | cat $TEMP_DIR/header.txt - \
 	    | $BGZIP -c > $OUTPUT.vcf.gz
     fi
 
@@ -893,11 +887,6 @@ options:
         somatic_usage
         echo -e "Error: freebayes executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ ! -f "$BEDTOOLS" ]]
-    then
-        somatic_usage
-        echo -e "Error: bedtools executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
     elif [[ ! -f "$BGZIP" ]]
     then
         somatic_usage
@@ -1036,7 +1025,7 @@ options:
 	then
 	    echo -e "
             cat $TEMP_DIR/$OUTBASE.\"\$chrom:\$start..\$end\".vcf | grep -v \"^#\" \\
-                | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \\
+                | sort -k1,1 -k2,2n | cat $TEMP_DIR/header.txt - \\
                 | $VEP \\
                 $FORK \\
                 -o /dev/stdout \\
@@ -1061,7 +1050,7 @@ options:
             # if this fails then it bails out the script, unless || true present
             cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
 	done \
-            | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \
+            | sort -k1,1 -k2,2n | cat $TEMP_DIR/header.txt - \
             | $VEP \
             $FORK \
             -o /dev/stdout \
@@ -1086,7 +1075,7 @@ options:
 	then
 	    echo -e "
         cat $TEMP_DIR/$OUTBASE.\"\$chrom:\$start..\$end\".vcf | grep -v \"^#\" \\
-            | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \\
+            | sort -k1,1 -k2,2n | cat $TEMP_DIR/header.txt - \\
             | $BGZIP -c > $OUTPUT.vcf.gz"
 	fi    
 	for i in `cat $WINDOWS | awk '{print $1":"$2".."$3}'`
@@ -1094,7 +1083,7 @@ options:
             # if this fails then it bails out the script
             cat $TEMP_DIR/$OUTBASE."$i".vcf | grep -v "^#" || true
 	done \
-            | $BEDTOOLS sort -i stdin | cat $TEMP_DIR/header.txt - \
+            | sort -k1,1 -k2,2n | cat $TEMP_DIR/header.txt - \
             | $BGZIP -c > $OUTPUT.vcf.gz
     fi
 
