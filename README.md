@@ -9,6 +9,10 @@ Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth
 1. [Quick start](#quick-start)
 2. [Installation](#installation)
 4. [Usage](#usage)
+	* [align](#speedseq-align)
+	* [var](#speedseq-var)
+	* [somatic](#speedseq-somatic)
+	* [sv](#speedseq-sv)
 5. [Annotations](#annotations)
 6. [Example Workflows](#example-workflows)
 
@@ -116,14 +120,10 @@ For alternative installations and release issues for any of the above tools plea
 
 SpeedSeq is a modular framework with four components:
 
-* [`speedseq align`](#speedseq-align)
-  * Take paired-end fastq sequences as input, and produce a duplicate-marked, sorted, indexed BAM file that can be processed with other speedseq modules. Currently, speedseq align does not support single-end reads.
-* [`speedseq var`](#speedseq-var)
-  * Run FreeBayes one or more BAM files
-* [`speedseq somatic`](#speedseq-somatic)
-  * Run FreeBayes on a tumor/normal pair of BAM files
-* [`speedseq sv`](#speedseq-sv)
-  * Run LUMPY on one or more BAM files, with breakend genotyping and read-depth calculation.
+* [speedseq align](#speedseq-align) - Process paired-end FASTQ sequences to produce a duplicate-marked, sorted, indexed BAM file that can be processed with other SpeedSeq modules.
+* [speedseq var](#speedseq-var) - Run FreeBayes one or more BAM files
+* [speedseq somatic](#speedseq-somatic) - Run FreeBayes on a tumor/normal pair of BAM files
+* [speedseq sv](#speedseq-sv) - Run LUMPY on one or more BAM files, with optional breakend genotyping and read-depth calculation.
 
 ###speedseq align
 
