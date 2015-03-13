@@ -17,8 +17,40 @@ MBUFFER_DIR=$(SRC)/mbuffer
 PARALLEL_DIR=$(SRC)/parallel
 BAMKIT_DIR=$(SRC)/bamkit
 
-all:	bwa sambamba samblaster freebayes lumpy svtyper tabix vawk svtools mbuffer parallel bamkit cnvnator-multi
+# all
+all:
+	@echo "" > $(MKFILE_DIR)/install.log
+	@echo "Installing align module..." >> $(MKFILE_DIR)/install.log
+	$(MAKE) align
+	@echo "Done.\n" >> $(MKFILE_DIR)/install.log
 
+	@echo "Installing var and somatic modules..." >> $(MKFILE_DIR)/install.log
+	$(MAKE) var
+	@echo "Done.\n" >> $(MKFILE_DIR)/install.log
+
+	@echo "Installing sv module..." >> $(MKFILE_DIR)/install.log
+	$(MAKE) sv
+	@echo "Done.\n" >> $(MKFILE_DIR)/install.log
+
+	@echo "Installing realign module..." >> $(MKFILE_DIR)/install.log
+	$(MAKE) realign
+	@echo "Done.\n" >> $(MKFILE_DIR)/install.log
+
+	@echo "Installation successful" >> $(MKFILE_DIR)/install.log
+
+# modules
+align: bwa sambamba samblaster parallel config
+
+var: freebayes tabix vawk parallel config
+
+somatic: var
+
+sv: lumpy sambamba samblaster vawk bamkit cnvnator-multi config
+
+realign: bwa sambamba samblaster parallel mbuffer bamkit config
+
+# autogenerate speedseq.config
+config:
 	@echo "" > $(TARGET_BIN)/speedseq.config
 	@echo "SPEEDSEQ_HOME=$(MKFILE_DIR)" >> $(TARGET_BIN)/speedseq.config
 	@echo "" >> $(TARGET_BIN)/speedseq.config
@@ -34,7 +66,6 @@ all:	bwa sambamba samblaster freebayes lumpy svtyper tabix vawk svtools mbuffer 
 	@echo "# align" >> $(TARGET_BIN)/speedseq.config
 	@echo "BWA=$(MKFILE_DIR)/$(TARGET_BIN)/bwa" >> $(TARGET_BIN)/speedseq.config
 	@echo "SAMBLASTER=$(MKFILE_DIR)/$(TARGET_BIN)/samblaster" >> $(TARGET_BIN)/speedseq.config
-	@echo "SAMBAMBA=$(MKFILE_DIR)/$(TARGET_BIN)/sambamba" >> $(TARGET_BIN)/speedseq.config
 
 	@echo "" >> $(TARGET_BIN)/speedseq.config
 	@echo "# var/somatic" >> $(TARGET_BIN)/speedseq.config
@@ -66,6 +97,7 @@ all:	bwa sambamba samblaster freebayes lumpy svtyper tabix vawk svtools mbuffer 
 	@echo "BAMHEADRG=$(MKFILE_DIR)/$(TARGET_BIN)/bamheadrg.py" >> $(TARGET_BIN)/speedseq.config
 	@echo "BAMCLEANHEADER=$(MKFILE_DIR)/$(TARGET_BIN)/bamcleanheader.py" >> $(TARGET_BIN)/speedseq.config
 
+# applications
 bwa:
 	$(MAKE) -C $(BWA_DIR)
 	cp $(BWA_DIR)/bwa $(TARGET_BIN)
