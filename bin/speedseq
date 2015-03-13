@@ -239,13 +239,7 @@ global options:
 	    OUTPUT=`basename "$FQ"`
 	fi
 
-        # Check that the ref and fastq files exist
-	if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
-	then
-            align_usage
-            echo -e "Error: Reference file $REF not found.\n"
-            exit 1
-	elif [[ -z "$FQ" ]]
+	if [[ -z "$FQ" ]]
 	then
             align_usage
             echo -e "Error: Fastq file $FQ not found.\n"
@@ -260,13 +254,7 @@ global options:
 	    OUTPUT=`basename "$FQ1"`
 	fi
 
-        # Check that the ref and fastq files exist
-	if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
-	then
-            align_usage
-            echo -e "Error: Reference file $REF not found.\n"
-            exit 1
-	elif [[ -z "$FQ1" ]]
+	if [[ -z "$FQ1" ]]
 	then
             align_usage
             echo -e "Error: Fastq file $FQ1 not found.\n"
@@ -278,6 +266,15 @@ global options:
             exit 1
 	fi
     fi
+
+    # Check that the ref and fastq files exist
+    if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
+    then
+	align_usage
+	echo -e "Error: Reference file $REF not found.\n"
+	exit 1
+    fi
+
 
     OUTBASE=`basename "$OUTPUT"`
 
@@ -320,6 +317,14 @@ global options:
 	align_usage
         echo -e "Error: parallel executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
+    fi
+
+    # Check for BWA index of the reference
+    if [[ ! -f "$REF.sa" ]]
+    then
+	echo "Warning: Reference file not indexed with BWA. Indexing now..."
+	$BWA index $REF
+	echo "Done"
     fi
 
     echo "Aligning..."
