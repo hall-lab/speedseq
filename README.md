@@ -13,7 +13,7 @@ Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth
 	* [var](#speedseq-var)
 	* [somatic](#speedseq-somatic)
 	* [sv](#speedseq-sv)
-5. [Annotations](#annotations)
+5. [Reference genome and annotations](#reference-genome-and-annotations)
 6. [Example Workflows](#example-workflows)
 
 ## Quick start
@@ -115,6 +115,16 @@ CNVnator requires the ROOT package as a prerequiste (https://root.cern.ch/drupal
 	```
 
 For alternative installations and release issues for any of the above tools please consult the tool's developer.
+
+## Reference genome and annotations
+
+For human genome alignment using the GRCh37 build, we recommend using the [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) BED file to parallelize the variant calling ([`speedseq var`](#speedseq-var) and [`speedseq somatic`](#speedseq-somatic)). This BED file excludes regions of the genome where the coverage in the CEPH1463 pedigree was greater than twice the mode coverage plus 3 standard deviations. We believe these extremely high depth regions that we excluded are areas of misassembly in the GRCh37 human reference genome in which variant calling is time-consuming and error-prone.
+
+Additionally, the regions in [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) are variable-width windows which each contain approximately the same coverage depth in the CEPH1463 pedigree, and sorted from highest to lowest depth. This ensures that the parallelization of Freebayes uses approximately the same amount of time per region.
+
+The regions in [annotations/ceph18.b37.exclude.2014-01-15.bed](annotations/ceph18.b37.exclude.2014-01-15.bed) represent the complement of the regions in [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed).
+
+In the [`speedseq sv`](#speedseq-sv) module, we recommend excluding the genomic regions in the [annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed](annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed) BED file. These regions represent the complement of those in [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) as well as the mitochondrial chromosome.
 
 ## Usage
 
@@ -373,16 +383,6 @@ Example:
 ```
 chr1    34971904    34971945    chr1    34976002    34976043    0x7f9eb0917210  0.0110386   +   -   TYPE:DELETION   IDS:11,1    STRANDS:+-,1
 ```
-
-##Annotations
-
-For human genome alignment using the GRCh37 build, we recommend using the [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) BED file to parallelize the variant calling ([`speedseq var`](#speedseq-var) and [`speedseq somatic`](#speedseq-somatic)). This BED file excludes regions of the genome where the coverage in the CEPH1463 pedigree was greater than twice the mode coverage plus 3 standard deviations. We believe these extremely high depth regions that we excluded are areas of misassembly in the GRCh37 human reference genome in which variant calling is time-consuming and error-prone.
-
-Additionally, the regions in [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) are variable-width windows which each contain approximately the same coverage depth in the CEPH1463 pedigree, and sorted from highest to lowest depth. This ensures that the parallelization of Freebayes uses approximately the same amount of time per region.
-
-The regions in [annotations/ceph18.b37.exclude.2014-01-15.bed](annotations/ceph18.b37.exclude.2014-01-15.bed) represent the complement of the regions in [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed).
-
-In the [`speedseq sv`](#speedseq-sv) module, we recommend excluding the genomic regions in the [annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed](annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed) BED file. These regions represent the complement of those in [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) as well as the mitochondrial chromosome.
 
 ##Example Workflows
 
