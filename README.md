@@ -4,6 +4,8 @@ SpeedSeq is a flexible and open-source framework to rapidly identify genomic var
 
 C Chiang, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth, A R Quinlan, and I M Hall. 2014. SpeedSeq: Ultra-Fast Personal Genome Analysis and Interpretation. bioRxiv. [doi:10.1101/012179](http://dx.doi.org/10.1101/012179).
 
+![SpeedSeq workflow](etc/speedseq_workflow.png?raw=true "SpeedSeq workflow")
+
 ## Table of Contents
 1. [Quick start](#quick-start)
 2. [Installation](#installation)
