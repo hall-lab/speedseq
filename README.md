@@ -114,24 +114,18 @@ CNVnator requires the ROOT package as a prerequiste (https://root.cern.ch/drupal
 	make
 	```
 
-2. Get the path to thisroot.sh
-	```
-	ls $PWD/bin/thisroot.sh
-	# /pathto/root/bin/thisroot.sh
-	```
-
-3. Source thisroot.sh
+2. Source thisroot.sh
 	```
 	source /pathto/root/bin/thisroot.sh
 	```
 
-4. Compile CNVnator from the SpeedSeq directory
+3. Compile CNVnator from the SpeedSeq directory
 	```
 	cd $SPEEDSEQ_DIR
 	make cnvnator-multi
 	```
 
-5. Before running SpeedSeq, you'll need to add the following line to [speedseq.config](bin/speedseq.config) or your .bashrc file. (Substitute the actual path to thisroot.sh on your system)
+4. Before running SpeedSeq, you'll need to add the following line to [speedseq.config](bin/speedseq.config) or your .bashrc file. (Substitute the actual path to thisroot.sh on your system)
 	```
 	source /pathto/root/bin/thisroot.sh
 	```
