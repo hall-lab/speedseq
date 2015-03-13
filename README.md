@@ -488,15 +488,15 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
   ```
 
 ## Troubleshooting
-Installation failure with error: "No targets specified and no makefile found."
-> Ensure that SpeedSeq was cloned with the `--recursive` flag
+> Installation failure with error: "No targets specified and no makefile found."
+Ensure that SpeedSeq was cloned with the `--recursive` flag
 
-Installation failure while compiling FreeBayes or LUMPY (in the var and sv modules respectively)
-> These two components use BamTools, which requires [CMake](http://www.cmake.org/) for compilation. Ensure that CMake is installed on your system
+> Installation failure while compiling FreeBayes or LUMPY (in the var and sv modules respectively)
+These two components use BamTools, which requires [CMake](http://www.cmake.org/) for compilation. Ensure that CMake is installed on your system
 
-Installation reports, "WARNING: CNVnator not compiled because the ROOT package is not installed. Please see the README for instructions on manually installing ROOT."
-> This indicates that the ROOT package has not been installed, or the $ROOTSYS variable has not been set.
+> Installation reports, "WARNING: CNVnator not compiled because the ROOT package is not installed. Please see the README for instructions on manually installing ROOT."
+This indicates that the ROOT package has not been installed, or the $ROOTSYS variable has not been set.
 
-Runtime error: "ImportError: No module named argparse"
-> Ensure you are running Python 2.7 or later.
+> Runtime error: "ImportError: No module named argparse"
+Ensure you are running Python 2.7 or later.
 
