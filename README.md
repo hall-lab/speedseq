@@ -59,6 +59,9 @@ Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth
 * ROOT (required if running CNVnator)
 * Variant Effect Predictor (required if annotating VCF files)
 
+#### Configuration
+System paths to SpeedSeq's component software are specified in the [speedseq.config](bin/speedseq.config) file, which should reside in the same directory as the SpeedSeq executable (for alternate locations use the [-K flag](#usage)). Upon installation, SpeedSeq attempts to automatically generate this file, but manual editing may be necessary.
+
 #### Install core components
 The core components enable standard functionality outlined in [Quick start](#quick-start).
 ```
@@ -66,9 +69,7 @@ git clone --recursive https://github.com/cc2qe/speedseq
 cd speedseq
 make
 ```
-
-#### Configuration
-System paths to SpeedSeq's component software are specified in the [speedseq.config](bin/speedseq.config) file, which should reside in the same directory as the SpeedSeq executable (for alternate locations use the [-K flag](#usage)). Upon installation, SpeedSeq attempts to automatically generate this file, but manual editing may be necessary.
+If any components already exist on the system or fail to install, their paths can be manually specified by editing [speedseq.config](bin/speedseq.config).
 
 #### Install optional components
 Optional components enable advanced features such as variant annotation and read-depth analysis.
@@ -91,12 +92,25 @@ cp -r Bio $SPEEDSEQ_DIR/bin
 
 ##### CNVnator
 CNVnator requires the ROOT package as a prerequiste (https://root.cern.ch/drupal/)
-```
-cd speedseq
-make cnvnator-multi
-```
 
-For alternative installations and release issues for any of the above tools please consult the developer.
+1. Install the ROOT package
+	```
+	curl -OL ftp://root.cern.ch/root/root_v5.34.20.source.tar.gz
+	tar -zxvf root_v5.34.20.source.tar.gz
+	cd root
+	./configure --prefix=$PWD
+	make
+	cd ..
+	sudo mv root /usr/local
+	```
+
+2. Compile CNVnator from the SpeedSeq directory
+	```
+	cd $SPEEDSEQ_DIR
+	make cnvnator-multi
+	```
+
+For alternative installations and release issues for any of the above tools please consult the tool's developer.
 
 ## Usage
 
