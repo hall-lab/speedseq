@@ -68,12 +68,13 @@ make
 ```
 
 #### Configuration
-System paths to SpeedSeq's component software are specified in the [speedseq.config](bin/speedseq.config) file, which resides in the same directory as the SpeedSeq executable (for alternate locations use the [-K flag](#usage)). Upon installation, SpeedSeq attempts to automatically generate this file, but manual editing may be necessary.
+System paths to SpeedSeq's component software are specified in the [speedseq.config](bin/speedseq.config) file, which should reside in the same directory as the SpeedSeq executable (for alternate locations use the [-K flag](#usage)). Upon installation, SpeedSeq attempts to automatically generate this file, but manual editing may be necessary.
 
 #### Install optional components
 Optional components enable advanced features such as variant annotation and read-depth analysis.
 
 ##### Variant Effect Predictor
+http://www.ensembl.org/info/docs/tools/vep/index.html
 ```
 curl -OL https://github.com/Ensembl/ensembl-tools/archive/release/76.zip
 unzip 76.zip
@@ -83,16 +84,19 @@ perl ensembl-tools-release-76/scripts/variant_effect_predictor/INSTALL.pl \
 
 cp ensembl-tools-release-76/scripts/variant_effect_predictor/variant_effect_predictor.pl $SPEEDSEQ_DIR/bin
 cp -r Bio $SPEEDSEQ_DIR/bin
+
+# Update the VEP and VEP_CACHE_DIR variables in speedseq.config to point to
+# $SPEEDSEQ_DIR/bin/variant_effect_predictor.pl and $SPEEDSEQ_DIR/annotations/vep_cache
 ```
-Update the VEP and VEP_CACHE_DIR variables in [speedseq.config](bin/speedseq.config) to point to $SPEEDSEQ_DIR/bin/variant_effect_predictor.pl and $SPEEDSEQ_DIR/annotations/vep_cache
 
 ##### CNVnator
+CNVnator requires the ROOT package as a prerequiste (https://root.cern.ch/drupal/)
 ```
 cd speedseq
 make cnvnator-multi
 ```
 
-For alternative installations and release issues for any of the above tools please consult the website/creator.
+For alternative installations and release issues for any of the above tools please consult the developer.
 
 ## Usage
 
