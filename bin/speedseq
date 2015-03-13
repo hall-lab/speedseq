@@ -608,7 +608,7 @@ options:
     fi
     
     # construct the parallel command over windows
-    if [[ $VERBOSE ]]
+    if [[ $VERBOSE -eq 1 ]]
     then
         echo -e "
         $FREEBAYES \\
@@ -634,7 +634,7 @@ options:
     done > $TEMP_DIR/var_command.txt
 
     # run the parallel freebayes command
-    if [[ $VERBOSE ]]
+    if [[ $VERBOSE -eq 1 ]]
     then
 	echo "
         cat $TEMP_DIR/var_command.txt | $PARALLEL -j $THREADS"
