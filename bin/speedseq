@@ -41,8 +41,6 @@ function source_binaries() {
 	LUMPYEXPRESS=`which lumpyexpress || true`
 	LUMPY=`which lumpy || true`
 	PAIREND_DISTRO=`which pairend_distro.py || true`
-	BEDPETOVCF=`which bedpeToVcf || true`
-	LUMPYTOBEDPE=`which lumpyToBedpe || true`
 	SVTYPER=`which svtyper || true`
 	BAMGROUPREADS=`which bamgroupreads.py || true`
 	BAMFILTERRG=`which bamfilterrg.py || true`
@@ -1263,11 +1261,6 @@ global options:
     then
 	sv_usage
         echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ -z  "$BEDPETOVCF" ]]
-    then
-	sv_usage
-        echo -e "Error: bedpeToVcf executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ ! -f "$VEP" ]] && [[ "$ANNOTATE" -eq 1 ]]
     then

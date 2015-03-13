@@ -1,6 +1,6 @@
-VERSION=0.0.1
-
+export MKFILE_DIR = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 TARGET_BIN=bin
+ANNOTATIONS_DIR=annotations
 SRC=src
 
 SPEEDSEQ_DIR=$(shell pwd)
@@ -17,6 +17,53 @@ MBUFFER_DIR=$(SRC)/mbuffer
 BAMKIT_DIR=$(SRC)/bamkit
 
 all:	bwa sambamba samblaster freebayes lumpy svtyper tabix vawk svtools mbuffer bamkit cnvnator-multi
+
+	@echo "" > $(TARGET_BIN)/speedseq.config
+	@echo "SPEEDSEQ_HOME=$(MKFILE_DIR)" >> $(TARGET_BIN)/speedseq.config
+	@echo "" >> $(TARGET_BIN)/speedseq.config
+	@echo "# general" >> $(TARGET_BIN)/speedseq.config
+	@echo "SAMBAMBA=$(MKFILE_DIR)/$(TARGET_BIN)/sambamba" >> $(TARGET_BIN)/speedseq.config
+	@echo "BGZIP=$(MKFILE_DIR)/$(TARGET_BIN)/bgzip" >> $(TARGET_BIN)/speedseq.config
+	@echo "TABIX=$(MKFILE_DIR)/$(TARGET_BIN)/tabix" >> $(TARGET_BIN)/speedseq.config
+	@echo "VAWK=$(MKFILE_DIR)/$(TARGET_BIN)/vawk" >> $(TARGET_BIN)/speedseq.config
+	@echo "PARALLEL=`which parallel`" >> $(TARGET_BIN)/speedseq.config
+	@echo "PYTHON=`which python2.7`" >> $(TARGET_BIN)/speedseq.config
+
+	@echo "" >> $(TARGET_BIN)/speedseq.config
+	@echo "# align" >> $(TARGET_BIN)/speedseq.config
+	@echo "BWA=$(MKFILE_DIR)/$(TARGET_BIN)/bwa" >> $(TARGET_BIN)/speedseq.config
+	@echo "SAMBLASTER=$(MKFILE_DIR)/$(TARGET_BIN)/samblaster" >> $(TARGET_BIN)/speedseq.config
+	@echo "SAMBAMBA=$(MKFILE_DIR)/$(TARGET_BIN)/sambamba" >> $(TARGET_BIN)/speedseq.config
+
+	@echo "" >> $(TARGET_BIN)/speedseq.config
+	@echo "# var/somatic" >> $(TARGET_BIN)/speedseq.config
+	@echo "FREEBAYES=$(MKFILE_DIR)/$(TARGET_BIN)/freebayes" >> $(TARGET_BIN)/speedseq.config
+	@echo "VEP=$(MKFILE_DIR)/$(TARGET_BIN)/variant_effect_predictor.pl" >> $(TARGET_BIN)/speedseq.config
+	@echo "VEP_CACHE_DIR=$(MKFILE_DIR)/$(ANNOTATIONS_DIR)/vep_cache" >> $(TARGET_BIN)/speedseq.config
+
+	@echo "" >> $(TARGET_BIN)/speedseq.config
+	@echo "# sv" >> $(TARGET_BIN)/speedseq.config
+	@echo "LUMPY=$(MKFILE_DIR)/$(TARGET_BIN)/lumpy" >> $(TARGET_BIN)/speedseq.config
+	@echo "LUMPYEXPRESS=$(MKFILE_DIR)/$(TARGET_BIN)/lumpyexpress" >> $(TARGET_BIN)/speedseq.config
+	@echo "PAIREND_DISTRO=$(MKFILE_DIR)/$(TARGET_BIN)/pairend_distro.py" >> $(TARGET_BIN)/speedseq.config
+	@echo "SVTYPER=$(MKFILE_DIR)/$(TARGET_BIN)/svtyper" >> $(TARGET_BIN)/speedseq.config
+	@echo "BAMGROUPREADS=$(MKFILE_DIR)/$(TARGET_BIN)/bamgroupreads.py" >> $(TARGET_BIN)/speedseq.config
+	@echo "BAMFILTERRG=$(MKFILE_DIR)/$(TARGET_BIN)/bamfilterrg.py" >> $(TARGET_BIN)/speedseq.config
+	@echo "BAMLIBS=$(MKFILE_DIR)/$(TARGET_BIN)/bamlibs.py" >> $(TARGET_BIN)/speedseq.config
+
+	@echo "" >> $(TARGET_BIN)/speedseq.config
+	@echo "# CNVnator" >> $(TARGET_BIN)/speedseq.config
+	@echo "CNVNATOR_WRAPPER=$(MKFILE_DIR)/$(TARGET_BIN)/cnvnator_wrapper.py" >> $(TARGET_BIN)/speedseq.config
+	@echo "CNVNATOR_MULTI=$(MKFILE_DIR)/$(TARGET_BIN)/cnvnator-multi" >> $(TARGET_BIN)/speedseq.config
+	@echo "ANNOTATE_RD=$(MKFILE_DIR)/$(TARGET_BIN)/annotate_rd" >> $(TARGET_BIN)/speedseq.config
+	@echo "CNVNATOR_CHROMS_DIR=" >> $(TARGET_BIN)/speedseq.config
+
+	@echo "" >> $(TARGET_BIN)/speedseq.config
+	@echo "# realign" >> $(TARGET_BIN)/speedseq.config
+	@echo "BAMTOFASTQ=$(MKFILE_DIR)/$(TARGET_BIN)/bamtofastq.py" >> $(TARGET_BIN)/speedseq.config
+	@echo "MBUFFER=$(MKFILE_DIR)/$(TARGET_BIN)/mbuffer" >> $(TARGET_BIN)/speedseq.config
+	@echo "BAMHEADRG=$(MKFILE_DIR)/$(TARGET_BIN)/bamheadrg.py" >> $(TARGET_BIN)/speedseq.config
+	@echo "BAMCLEANHEADER=$(MKFILE_DIR)/$(TARGET_BIN)/bamcleanheader.py" >> $(TARGET_BIN)/speedseq.config
 
 bwa:
 	$(MAKE) -C $(BWA_DIR)
