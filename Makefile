@@ -22,19 +22,19 @@ all:
 	@echo "" > $(MKFILE_DIR)/install.log
 	@echo "Installing align module..." >> $(MKFILE_DIR)/install.log
 	$(MAKE) align
-	@echo "Done.\n" >> $(MKFILE_DIR)/install.log
+	@echo "Done." >> $(MKFILE_DIR)/install.log
 
 	@echo "Installing var and somatic modules..." >> $(MKFILE_DIR)/install.log
 	$(MAKE) var
-	@echo "Done.\n" >> $(MKFILE_DIR)/install.log
+	@echo "Done." >> $(MKFILE_DIR)/install.log
 
 	@echo "Installing sv module..." >> $(MKFILE_DIR)/install.log
 	$(MAKE) sv
-	@echo "Done.\n" >> $(MKFILE_DIR)/install.log
+	@echo "Done." >> $(MKFILE_DIR)/install.log
 
 	@echo "Installing realign module..." >> $(MKFILE_DIR)/install.log
 	$(MAKE) realign
-	@echo "Done.\n" >> $(MKFILE_DIR)/install.log
+	@echo "Done." >> $(MKFILE_DIR)/install.log
 
 	@echo "Installation successful" >> $(MKFILE_DIR)/install.log
 
