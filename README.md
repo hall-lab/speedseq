@@ -14,7 +14,6 @@ Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth
 	* [var](#speedseq-var)
 	* [somatic](#speedseq-somatic)
 	* [sv](#speedseq-sv)
-
 5. [Example Workflows](#example-workflows)
 
 ## Quick start
