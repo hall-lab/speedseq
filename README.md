@@ -77,6 +77,10 @@ git clone --recursive https://github.com/cc2qe/speedseq
 cd speedseq
 make
 ```
+Essential SpeedSeq components can be installed with `make`, which produces a log file (install.log) that details the compilation status.
+
+The installation is modular, and its units can be built separately with `make align`, `make var`, `make somatic`, `make sv`, and `make realign`. This allows installation of only the desired components, eliminating extraneous dependencies. It further allows rebuilding of previously failed components.
+
 If any components already exist on the system or fail to install, their paths can be manually specified by editing [speedseq.config](bin/speedseq.config).
 
 #### Install optional components
@@ -117,17 +121,6 @@ CNVnator requires the ROOT package as a prerequiste (https://root.cern.ch/drupal
 	cd $SPEEDSEQ_DIR
 	make cnvnator-multi
 	```
-
-#### Troubleshooting
-SpeedSeq `make` produces a log file, "install.log", that details the compilation status.
-
-The installation is modular, and its units can be built separately with `make align`, `make var`, `make somatic`, `make sv`, and `make realign`. This allows installation of only the desired components, eliminating extraneous dependencies. It further allows rebuilding of previously failed components. Please file an [issue](https://github.com/cc2qe/speedseq/issues) if you encounter problems with installation.
-
-##### Common installation issues
-- Failure with error: "No targets specified and no makefile found."
-	- Ensure that SpeedSeq was cloned with the `--recursive` flag
-- Failure while installing FreeBayes or LUMPY
-	- These two components use BamTools, which uses [CMake](http://www.cmake.org/) for compilation. Ensure that CMake is installed on your system
 
 ## Reference genome and annotations
 
@@ -494,4 +487,16 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
       -S TCGA-B6-A0I6.normal.splitters.bam,TCGA-B6-A0I6.tumor.splitters.bam
   ```
 
+## Troubleshooting
+Installation failure with error: "No targets specified and no makefile found."
+> Ensure that SpeedSeq was cloned with the `--recursive` flag
+
+Installation failure while compiling FreeBayes or LUMPY (in the var and sv modules respectively)
+> These two components use BamTools, which requires [CMake](http://www.cmake.org/) for compilation. Ensure that CMake is installed on your system
+
+Installation reports, "WARNING: CNVnator not compiled because the ROOT package is not installed. Please see the README for instructions on manually installing ROOT."
+> This indicates that the ROOT package has not been installed, or the $ROOTSYS variable has not been set.
+
+Runtime error: "ImportError: No module named argparse"
+> Ensure you are running Python 2.7 or later.
 
