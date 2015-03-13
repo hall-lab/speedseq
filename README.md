@@ -302,16 +302,17 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 * `outprefix.vcf.gz`
 
 ### speedseq sv
-
-`speedseq sv` runs LUMPY on one or more BAM files, with optional breakend genotyping by SVtyper, and optional read-depth analysis by CNVnator.
+`speedseq sv` runs LUMPY on one or more BAM files, with optional breakend genotyping by SVTyper, and optional read-depth analysis by CNVnator.
 
 ##### Options
 ```
 -B FILE          full BAM file(s) (comma separated) (required)
                    example: -B in1.bam,in2.bam,in3.bam
--S FILE          split reads BAM file(s) (comma separated, order same as in -B) (required)
+-S FILE          split reads BAM file(s) (comma separated, order same as in -B)
+                   (auto-generated if absent)
                    example: -S in1.splitters.bam,in2.splitters.bam,in3.splitters.bam
--D FILE          discordant reads BAM file(s) (comma separated, order same as in -B) (required)
+-D FILE          discordant reads BAM file(s) (comma separated, order same as in -B)
+		           (auto-generated if absent)
                    example: -D in1.discordants.bam,in2.discordants.bam,in3.discordants.bam
 -R FILE          indexed reference genome fasta file (required)
 -o STR           output prefix [in1.bam]
@@ -320,14 +321,13 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 -g               genotype SV breakends with svtyper
 -d               calculate read-depth with CNVnator
 -A               annotate the vcf with VEP
--m INT           minimum weight for a call [default: 4]
+-m INT           minimum sample weight for a call [default: 4]
 -r FLOAT         trim threshold [0]
 -T DIR           temp directory [./outprefix.XXXXXXXXXXXX]
 -k               keep temporary files
 ```
 
 ##### Global options
-
 ```
 -K FILE          path to speedseq.config file (default: same directory as speedseq)
 -v               verbose
@@ -335,7 +335,6 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 ```
 
 #### Output
-
 `speedseq sv` produces a bgzipped, indexed VCF file.
 
 * `outprefix.sv.vcf.gz`
