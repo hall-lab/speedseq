@@ -25,3 +25,6 @@
 [submodule "src/bamkit"]
 	path = src/bamkit
 	url = https://github.com/cc2qe/bamkit.git
+[submodule "src/parallel"]
+	path = src/parallel
+	url = http://git.savannah.gnu.org/r/parallel.git
