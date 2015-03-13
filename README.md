@@ -60,6 +60,8 @@ C Chiang, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth,
 #### Example installation commands
 As a template for installation on other systems, we have provided the exact commands for a full installation of SpeedSeq and GEMINI on a blank [Amazon Linux](Amazon Linux AMI 2014.09.2 (HVM)) box. These commands encompass all of the installation steps outlined below.
 
+:: in progress 2015-03-13 ::
+
 #### Prerequisites
 * g++ and the standard C and C++ development libraries (https://gcc.gnu.org/)
 * CMake (http://www.cmake.org/)
