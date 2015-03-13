@@ -98,14 +98,6 @@ cp -r Bio $SPEEDSEQ_DIR/bin
 # $SPEEDSEQ_DIR/bin/variant_effect_predictor.pl and $SPEEDSEQ_DIR/annotations/vep_cache
 ```
 
-#### Troubleshooting
-* produce a log file
-* modules can be built separately
-	* make align
-	* make var
-	* make somatic
-	* make sv
-
 ##### CNVnator
 CNVnator requires the ROOT package as a prerequiste (https://root.cern.ch/drupal/)
 
@@ -126,11 +118,20 @@ CNVnator requires the ROOT package as a prerequiste (https://root.cern.ch/drupal
 	make cnvnator-multi
 	```
 
-For alternative installations and release issues for any of the above tools please consult the tool's developer.
+#### Troubleshooting
+SpeedSeq `make` produces a log file, "install.log", that details the compilation status.
+
+The installation is modular, and its units can be built separately with `make align`, `make var`, `make somatic`, `make sv`, and `make realign`. This allows installation of only the desired components, eliminating extraneous dependencies. It further allows rebuilding of previously failed components. Please file an [issue](https://github.com/cc2qe/speedseq/issues) if you encounter problems with installation.
+
+##### Common installation issues
+- Failure with error: "No targets specified and no makefile found."
+	- Ensure that SpeedSeq was cloned with the `--recursive` flag
+- Failure while installing FreeBayes or LUMPY
+	- These two components use BamTools, which uses [CMake](http://www.cmake.org/) for compilation. Ensure that CMake is installed on your system
 
 ## Reference genome and annotations
 
-#### Refernce genome
+#### Reference genome
 
 We recommend using the GRCh37 human genome for SpeedSeq, available here:  
 ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/reference/human_g1k_v37.fasta.gz  
