@@ -72,7 +72,7 @@ System paths to SpeedSeq's component software are specified in the [speedseq.con
 #### Install core components
 The core components enable standard functionality outlined in [Quick start](#quick-start).
 
-Compilation requires g++ and the standard C and C++ development libraries. Additionally, cmake is required for building the BamTools API within FreeBayes.
+Compilation requires g++ and the standard C and C++ development libraries. Additionally, cmake is required for building the BamTools API within FreeBayes and LUMPY.
 ```
 git clone --recursive https://github.com/cc2qe/speedseq
 cd speedseq
@@ -98,6 +98,14 @@ cp -r Bio $SPEEDSEQ_DIR/bin
 # Update the VEP and VEP_CACHE_DIR variables in speedseq.config to point to
 # $SPEEDSEQ_DIR/bin/variant_effect_predictor.pl and $SPEEDSEQ_DIR/annotations/vep_cache
 ```
+
+#### Troubleshooting
+* produce a log file
+* modules can be built separately
+	* make align
+	* make var
+	* make somatic
+	* make sv
 
 ##### CNVnator
 CNVnator requires the ROOT package as a prerequiste (https://root.cern.ch/drupal/)
