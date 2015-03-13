@@ -57,18 +57,22 @@ Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth
 ## Installation
 
 #### Prerequisites
-* Python 2.7
+* g++ and the standard C and C++ development libraries (https://gcc.gnu.org/)
+* CMake (http://www.cmake.org/)
+* Python 2.7 (https://www.python.org/)
 	* numpy
 	* pysam
 	* scipy
-* ROOT (required if running CNVnator)
-* Variant Effect Predictor (required if annotating VCF files)
+* ROOT (https://root.cern.ch/) (required if running CNVnator)
+* Variant Effect Predictor (http://www.ensembl.org/info/docs/tools/vep/index.html) (required if annotating VCF files)
 
 #### Configuration
 System paths to SpeedSeq's component software are specified in the [speedseq.config](bin/speedseq.config) file, which should reside in the same directory as the SpeedSeq executable (for alternate locations use the [-K flag](#usage)). Upon installation, SpeedSeq attempts to automatically generate this file, but manual editing may be necessary.
 
 #### Install core components
 The core components enable standard functionality outlined in [Quick start](#quick-start).
+
+Compilation requires g++ and the standard C and C++ development libraries. Additionally, cmake is required for building the BamTools API within FreeBayes.
 ```
 git clone --recursive https://github.com/cc2qe/speedseq
 cd speedseq
