@@ -14,9 +14,10 @@ TABIX_DIR=$(SRC)/tabix
 VAWK_DIR=$(SRC)/vawk
 SVTOOLS_DIR=$(SRC)/svtools
 MBUFFER_DIR=$(SRC)/mbuffer
+PARALLEL_DIR=$(SRC)/parallel
 BAMKIT_DIR=$(SRC)/bamkit
 
-all:	bwa sambamba samblaster freebayes lumpy svtyper tabix vawk svtools mbuffer bamkit cnvnator-multi
+all:	bwa sambamba samblaster freebayes lumpy svtyper tabix vawk svtools mbuffer parallel bamkit cnvnator-multi
 
 	@echo "" > $(TARGET_BIN)/speedseq.config
 	@echo "SPEEDSEQ_HOME=$(MKFILE_DIR)" >> $(TARGET_BIN)/speedseq.config
@@ -26,7 +27,7 @@ all:	bwa sambamba samblaster freebayes lumpy svtyper tabix vawk svtools mbuffer 
 	@echo "BGZIP=$(MKFILE_DIR)/$(TARGET_BIN)/bgzip" >> $(TARGET_BIN)/speedseq.config
 	@echo "TABIX=$(MKFILE_DIR)/$(TARGET_BIN)/tabix" >> $(TARGET_BIN)/speedseq.config
 	@echo "VAWK=$(MKFILE_DIR)/$(TARGET_BIN)/vawk" >> $(TARGET_BIN)/speedseq.config
-	@echo "PARALLEL=`which parallel`" >> $(TARGET_BIN)/speedseq.config
+	@echo "PARALLEL=$(MKFILE_DIR)/$(TARGET_BIN)/parallel" >> $(TARGET_BIN)/speedseq.config
 	@echo "PYTHON=`which python2.7`" >> $(TARGET_BIN)/speedseq.config
 
 	@echo "" >> $(TARGET_BIN)/speedseq.config
@@ -122,6 +123,11 @@ mbuffer:
 	$(MAKE) -C $(MBUFFER_DIR)
 	cp $(MBUFFER_DIR)/mbuffer $(TARGET_BIN)
 
+parallel:
+	cd $(PARALLEL_DIR); ./configure --prefix=$(shell pwd)
+	$(MAKE) -C $(PARALLEL_DIR)
+	cp $(PARALLEL_DIR)/src/parallel $(TARGET_BIN)
+
 bamkit:
 	cp $(BAMKIT_DIR)/bamtofastq.py $(TARGET_BIN)
 	cp $(BAMKIT_DIR)/bamheadrg.py $(TARGET_BIN)
@@ -153,6 +159,7 @@ clean:
 		bin/bwa \
 		bin/lumpyToBedpe \
 		bin/mbuffer \
+		bin/parallel \
 		bin/bamtofastq.py \
 		bin/bamheadrg.py \
 		bin/bamgroupreads.py \
@@ -168,3 +175,4 @@ clean:
 	$(MAKE) -C $(CNVNATOR_DIR) clean
 	$(MAKE) -C $(TABIX_DIR) clean
 	$(MAKE) -C $(MBUFFER_DIR) clean
+	$(MAKE) -C $(PARALLEL_DIR) clean

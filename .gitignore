@@ -62,6 +62,7 @@ bin/unionBedGraphs
 bin/windowBed
 bin/windowMaker
 bin/mbuffer
+bin/parallel
 bin/bamheadrg.py
 bin/bamtofastq.py
 bin/lumpyToBedpe
