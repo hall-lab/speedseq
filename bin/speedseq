@@ -43,8 +43,6 @@ function source_binaries() {
 	PAIREND_DISTRO=`which pairend_distro.py || true`
 	SVTYPER=`which svtyper || true`
 	BAMGROUPREADS=`which bamgroupreads.py || true`
-	BAMFILTERRG=`which bamfilterrg.py || true`
-	BAMLIBS=`which bamlibs.py || true`
 
         # CNVnator
 	CNVNATOR_WRAPPER=`which cnvnator_wrapper.py || true`
@@ -608,7 +606,7 @@ options:
     fi
     
     # construct the parallel command over windows
-    if [[ $VERBOSE ]]
+    if [[ $VERBOSE -eq 1 ]]
     then
         echo -e "
         $FREEBAYES \\
@@ -634,7 +632,7 @@ options:
     done > $TEMP_DIR/var_command.txt
 
     # run the parallel freebayes command
-    if [[ $VERBOSE ]]
+    if [[ $VERBOSE -eq 1 ]]
     then
 	echo "
         cat $TEMP_DIR/var_command.txt | $PARALLEL -j $THREADS"
@@ -1281,31 +1279,6 @@ global options:
     then
 	sv_usage
         echo -e "Error: samblaster executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ -z "$BWA" ]] && [[ "$REALIGN" -eq 1 ]]
-    then
-	sv_usage
-	echo -e "Error: BWA executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ -z "$BAMTOFASTQ" ]] && [[ "$REALIGN" -eq 1 ]]
-    then
-	sv_usage
-	echo -e "Error: bamtofastq.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ -z "$BAMHEADRG" ]] && [[ "$REALIGN" -eq 1 ]]
-    then
-	sv_usage
-	echo -e "Error: bamheadrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ -z "$BAMCLEANHEADER" ]] && [[ "$REALIGN" -eq 1 ]]
-    then
-	sv_usage
-	echo -e "Error: bamcleanheader.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ -z "$MBUFFER" ]] && [[ "$REALIGN" -eq 1 ]]
-    then
-	sv_usage
-	echo -e "Error: mbuffer executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     elif [[ -z "$BAMFILTERRG" ]]
     then
