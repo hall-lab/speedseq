@@ -14,7 +14,8 @@ C Chiang, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth,
 	* [somatic](#speedseq-somatic)
 	* [sv](#speedseq-sv)
 5. [Example Workflows](#example-workflows)
-6. [Troubleshooting](#troubleshooting)
+6. [SpeedSeq AMI (Amazon Machine Image)](#speedseq-ami)
+7. [Troubleshooting](#troubleshooting)
 
 ## Quick start
 1. Install
@@ -351,7 +352,10 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 
 * `outprefix.sv.vcf.gz`
 
-## Example Workflows
+## SpeedSeq AMI
+SpeedSeq is available as an Amazon Machine Image.
+
+## Example workflows
 ### Call variants on a single sample
 1. Use `speedseq align` to produce a sorted, duplicate-marked, BAM alignment from paired-end fastq data.
   ```
