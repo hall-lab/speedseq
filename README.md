@@ -111,14 +111,28 @@ CNVnator requires the ROOT package as a prerequiste (https://root.cern.ch/drupal
 	cd root
 	./configure --prefix=$PWD
 	make
-	cd ..
-	sudo mv root /usr/local
 	```
 
-2. Compile CNVnator from the SpeedSeq directory
+2. Get the path to thisroot.sh
+	```
+	ls $PWD/bin/thisroot.sh
+	# /pathto/root/bin/thisroot.sh
+	```
+
+3. Source thisroot.sh
+	```
+	source /pathto/root/bin/thisroot.sh
+	```
+
+4. Compile CNVnator from the SpeedSeq directory
 	```
 	cd $SPEEDSEQ_DIR
 	make cnvnator-multi
+	```
+
+5. Before running SpeedSeq, you'll need to add the following line to [speedseq.config](bin/speedseq.config) or your .bashrc file. (Substitute the actual path to thisroot.sh on your system)
+	```
+	source /pathto/root/bin/thisroot.sh
 	```
 
 ## Reference genome and annotations
@@ -219,7 +233,6 @@ in2.fq	        paired-end fastq file. (may be gzipped) (required)
   * This BAM file contains discordant read-pairs called by the BWA-MEM alignment of the library. These reads may be discordant by strand orientation, intrachromosomal distance, or interchromosomal mapping. This BAM file may be used as the `-D` flag input to [`speedseq sv`](#speedseq-sv). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a [`speedseq align`](#speedseq-align) command line parameter.
 
 ### speedseq var
-
 `speedseq var` runs FreeBayes on one or more BAM files.
 
 ```
@@ -227,7 +240,6 @@ usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 ```
 
 ##### Positional arguments
-
 ```
 reference.fa    genome reference fasta file
 input.bam       BAM file(s) to call variants on. Must have readgroup information,
@@ -476,7 +488,7 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 > These two components use BamTools, which requires [CMake](http://www.cmake.org/) for compilation. Ensure that CMake is installed on your system
 
 * Installation reports, "WARNING: CNVnator not compiled because the ROOT package is not installed. Please see the README for instructions on manually installing ROOT."
-> This indicates that the ROOT package has not been installed, or the $ROOTSYS variable has not been set.
+> This indicates that the ROOT package has not been installed, or the $ROOTSYS variable has not been set. See the [CNVnator install section](#cnvnator) for details.
 
 * Runtime error: "ImportError: No module named argparse"
 > Ensure you are running Python 2.7 or later.
