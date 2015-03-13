@@ -2,7 +2,7 @@
 
 SpeedSeq is a flexible and open-source framework to rapidly identify genomic variation.
 
-Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth, A R Quinlan, and I M Hall. 2014. SpeedSeq: Ultra-Fast Personal Genome Analysis and Interpretation. bioRxiv. [doi:10.1101/012179](http://dx.doi.org/10.1101/012179).
+C Chiang, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth, A R Quinlan, and I M Hall. 2014. SpeedSeq: Ultra-Fast Personal Genome Analysis and Interpretation. bioRxiv. [doi:10.1101/012179](http://dx.doi.org/10.1101/012179).
 
 ##Table of Contents
 
@@ -15,6 +15,7 @@ Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth
 	* [somatic](#speedseq-somatic)
 	* [sv](#speedseq-sv)
 5. [Example Workflows](#example-workflows)
+6. [Troubleshooting](#troubleshooting)
 
 ## Quick start
 
@@ -500,3 +501,5 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 * Runtime error: "ImportError: No module named argparse"
 > Ensure you are running Python 2.7 or later.
 
+* `speedseq sv` runtime error: "TypeError: %d format: a number is required, not numpy.float64"
+> This is a [known issue](https://github.com/cc2qe/speedseq/issues/20) that occurs when attempting to call SVs on BAM files with less than 10,000,000 reads. We're working on it.
