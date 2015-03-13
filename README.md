@@ -8,13 +8,14 @@ Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth
 
 1. [Quick start](#quick-start)
 2. [Installation](#installation)
+3. [Reference genome and annotations](#reference-genome-and-annotations)
 4. [Usage](#usage)
 	* [align](#speedseq-align)
 	* [var](#speedseq-var)
 	* [somatic](#speedseq-somatic)
 	* [sv](#speedseq-sv)
-5. [Reference genome and annotations](#reference-genome-and-annotations)
-6. [Example Workflows](#example-workflows)
+
+5. [Example Workflows](#example-workflows)
 
 ## Quick start
 
@@ -118,7 +119,17 @@ For alternative installations and release issues for any of the above tools plea
 
 ## Reference genome and annotations
 
-For human genome alignment using the GRCh37 build, we recommend using the [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) BED file to parallelize the variant calling ([`speedseq var`](#speedseq-var) and [`speedseq somatic`](#speedseq-somatic)). This BED file excludes regions of the genome where the coverage in the CEPH1463 pedigree was greater than twice the mode coverage plus 3 standard deviations. We believe these extremely high depth regions that we excluded are areas of misassembly in the GRCh37 human reference genome in which variant calling is time-consuming and error-prone.
+#### Refernce genome
+
+We recommend using the GRCh37 human genome for SpeedSeq, available here:  
+ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/reference/human_g1k_v37.fasta.gz  
+ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/reference/human_g1k_v37.fasta.fai
+
+The genome FASTA file should be unzipped and indexed with BWA before running SpeedSeq.
+
+#### Annotations
+
+For human genome alignment using the GRCh37 build, we recommend using the [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) BED file to parallelize the variant calling ([`speedseq var`](#speedseq-var) and [`speedseq somatic`](#speedseq-somatic)). This BED file excludes 15.6 Mb of the non-gapped genome where the coverage in the CEPH1463 pedigree was greater than twice the mode coverage plus 3 standard deviations. We believe these extremely high depth regions that we excluded are areas of misassembly in the GRCh37 human reference genome in which variant calling is time-consuming and error-prone.
 
 Additionally, the regions in [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) are variable-width windows which each contain approximately the same coverage depth in the CEPH1463 pedigree, and sorted from highest to lowest depth. This ensures that the parallelization of Freebayes uses approximately the same amount of time per region.
 
@@ -137,12 +148,11 @@ SpeedSeq is a modular framework with four components:
 
 ###speedseq align
 
-`speedseq align` takes paired-end fastq sequences as input, and produces a duplicate-marked, sorted, indexed BAM file that can be processed with other SpeedSeq modules. Currently, `speedseq align` does not support single-end reads.
+`speedseq align` converts paired-end FASTQ sequences to a duplicate-marked, sorted, indexed BAM file that can be processed with other SpeedSeq modules.
 
 Internally, `speedseq align` runs the following steps to produce [three output BAM files](#output):
 
 1. Alignment with BWA-MEM
-   * Prior to alignment, run `bwa index genome.fasta` on the reference genome
 2. Duplicate marking with SAMBLASTER
 3. Discordant-read and split-read extraction with SAMBLASTER
 4. Position sorting with Sambamba
@@ -152,28 +162,28 @@ Internally, `speedseq align` runs the following steps to produce [three output B
 usage:   speedseq align [options] <reference.fa> <in1.fq> [in2.fq]
 ```
 
-#####Positional arguments
+##### Positional arguments
 
 ```
-reference.fa	genome reference fasta file (indexed with bwa) (required)
+reference.fa	genome reference fasta file (required)
 in1.fq          paired-end fastq file. if -p flag is used then expected to be
                   an interleaved paired-end fastq file, and in2.fq may be omitted.
                   (may be gzipped) (required)
 in2.fq	        paired-end fastq file. (may be gzipped) (required)
 ```
 
-#####Alignment options
+##### Alignment options
 
 These options determine the behavior of BWA-MEM
 ```
 -o STR          output prefix [default: in1.fq]
--R              read group header line such as "@RG\tID:libraryname\tSM:samplename" (required)
+-R              read group header line such as "@RG\tID:id\tSM:samplename\tLB:lib" (required)
 -p              first fastq file consists of interleaved paired-end sequences
 -t INT          number of threads to use [default: 1]
 -T DIR          temp directory [default: ./temp]
 ```
 
-#####Samblaster options
+##### Samblaster options
 
 These options determine the behavior of SAMBLASTER
 ```
@@ -185,12 +195,12 @@ These options determine the behavior of SAMBLASTER
                 for a read to be included in splitter file [default: 20]
 ```
 
-#####Sambamba options
+##### Sambamba options
 ```
 -M              amount of memory in GB to be used for sorting [default: 20]
 ```
 
-#####Global options
+##### Global options
 
 ```
 -K FILE         path to speedseq.config file (default: same directory as speedseq)
@@ -198,7 +208,7 @@ These options determine the behavior of SAMBLASTER
 -h              show help message
 ```
 
-####Output
+#### Output
 
 `speedseq align` produces three sorted, indexed BAM files (plus their corresponding .bai index files):
 
@@ -209,23 +219,23 @@ These options determine the behavior of SAMBLASTER
 * `outprefix.discordants.bam`
   * This BAM file contains discordant read-pairs called by the BWA-MEM alignment of the library. These reads may be discordant by strand orientation, intrachromosomal distance, or interchromosomal mapping. This BAM file may be used as the `-D` flag input to [`speedseq sv`](#speedseq-sv). This file excludes duplicate reads by default, but they will be included if the `-i` flag is specified as a [`speedseq align`](#speedseq-align) command line parameter.
 
-###speedseq var
+### speedseq var
 
-`speedseq var` runs FreeBayes one or more BAM files.
+`speedseq var` runs FreeBayes on one or more BAM files.
 
 ```
 usage:   speedseq var [options] <reference.fa> <input1.bam> [input2.bam [...]]
 ```
 
-#####Positional arguments
+##### Positional arguments
 
 ```
 reference.fa    genome reference fasta file
 input.bam       BAM file(s) to call variants on. Must have readgroup information,
-                  and the SM readgroup tags will be the VCF column header
+                  and the SM readgroup tags will be the VCF column headers
 ```
 
-#####Options
+##### Options
 
 ```
 -o STR          output prefix [default: input1.bam]
@@ -241,13 +251,13 @@ input.bam       BAM file(s) to call variants on. Must have readgroup information
 -h              show help message
 ```
 
-####Output
+#### Output
 
 `speedseq var` produces a single indexed VCF file that is optionally annotated with VEP.
 
 * `outprefix.vcf.gz`
 
-###speedseq somatic
+### speedseq somatic
 
 `speedseq somatic` runs FreeBayes on a tumor/normal pair of BAM files
 
@@ -255,7 +265,7 @@ input.bam       BAM file(s) to call variants on. Must have readgroup information
 usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
 ```
 
-#####Positional arguments
+##### Positional arguments
 
 ```
 reference.fa      genome reference fasta file
@@ -267,7 +277,7 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
                     be the VCF column header
 ```
 
-#####Options
+##### Options
 
 ```
 -o STR           output prefix [default: tumor.bam]
@@ -291,17 +301,17 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 -h               show help message
 ```
 
-####Output
+#### Output
 
 `speedseq somatic` produces a single indexed VCF file that is optionally annotated with VEP.
 
 * `outprefix.vcf.gz`
 
-###speedseq sv
+### speedseq sv
 
 `speedseq sv` runs LUMPY on one or more BAM files, with optional breakend genotyping by SVtyper, and optional read-depth analysis by CNVnator.
 
-#####Options
+##### Options
 ```
 -B FILE          full BAM file(s) (comma separated) (required)
                    example: -B in1.bam,in2.bam,in3.bam
@@ -322,32 +332,7 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 -k               keep temporary files
 ```
 
-The flags `-s` and `-p` are automatically generated using the defaults below, but may be overridden by the user by explicitly defining them using the following format.
-
-```
--s STR           lumpy split read parameters [auto]
-                    bam_file:<splitreads.bam>,
-                    back_distance:<20>,
-                    min_mapping_threshold:<20>,
-                    weight:<1>,
-                    id:<11>,
-                    min_clip:<20>
-
--p STR           lumpy discordant read parameters [auto]
-                    bam_file:<discreads.bam>,
-                    histo_file:<auto>,
-                    mean:<auto>,
-                    stdev:<auto>,
-                    read_length:<auto>,
-                    min_non_overlap:<read_length>,
-                    discordant_z:<5>,
-                    back_distance:<20>,
-                    min_mapping_threshold:<20>,
-                    weight:<1>,
-                    id:<10>
-```
-
-#####Global options
+##### Global options
 
 ```
 -K FILE          path to speedseq.config file (default: same directory as speedseq)
@@ -355,34 +340,12 @@ The flags `-s` and `-p` are automatically generated using the defaults below, bu
 -h               show help message
 ```
 
-####Output
+#### Output
 
-`speedseq sv` produces a VCF file and a BEDPE file containing the same information.
+`speedseq sv` produces a bgzipped, indexed VCF file.
 
 * `outprefix.sv.vcf.gz`
-* `outprefix.sv.bedpe`
-
-The tab-delimited BEDPE file has the following structure:
-```
-1. chromosome 1
-2. interval 1 start
-3. interval 1 end
-4. chromosome 2
-5. interval 2 start
-6. interval 2 end
-7. id
-8. evidence set score
-9. strand 1
-10. strand 2
-11. type
-12. id of samples containing evidence for this breakpoint
-13. strand configurations observed in the evidence set
-```
-
-Example:
-```
-chr1    34971904    34971945    chr1    34976002    34976043    0x7f9eb0917210  0.0110386   +   -   TYPE:DELETION   IDS:11,1    STRANDS:+-,1
-```
+* `outprefix.sv.vcf.gz.tbi`
 
 ##Example Workflows
 
