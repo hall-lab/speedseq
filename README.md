@@ -4,8 +4,7 @@ SpeedSeq is a flexible and open-source framework to rapidly identify genomic var
 
 C Chiang, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth, A R Quinlan, and I M Hall. 2014. SpeedSeq: Ultra-Fast Personal Genome Analysis and Interpretation. bioRxiv. [doi:10.1101/012179](http://dx.doi.org/10.1101/012179).
 
-##Table of Contents
-
+## Table of Contents
 1. [Quick start](#quick-start)
 2. [Installation](#installation)
 3. [Reference genome and annotations](#reference-genome-and-annotations)
@@ -18,7 +17,6 @@ C Chiang, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth,
 6. [Troubleshooting](#troubleshooting)
 
 ## Quick start
-
 1. Install
 	```
 	git clone --recursive https://github.com/cc2qe/speedseq
@@ -135,7 +133,7 @@ The genome FASTA file should be unzipped and indexed with BWA before running Spe
 
 #### Annotations
 
-For human genome alignment using the GRCh37 build, we recommend using the [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) BED file to parallelize the variant calling ([`speedseq var`](#speedseq-var) and [`speedseq somatic`](#speedseq-somatic)). This BED file excludes 15.6 Mb of the non-gapped genome where the coverage in the CEPH1463 pedigree was greater than twice the mode coverage plus 3 standard deviations. We believe these extremely high depth regions that we excluded are areas of misassembly in the GRCh37 human reference genome in which variant calling is time-consuming and error-prone.
+For human genome alignment using the GRCh37 build, we recommend using the [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) windows to parallelize variant calling ([`speedseq var`](#speedseq-var) and [`speedseq somatic`](#speedseq-somatic)). This BED file excludes 15.6 Mb of the non-gapped genome where the coverage in the CEPH1463 pedigree was greater than twice the mode coverage plus 3 standard deviations. We believe these extremely high depth regions that we excluded are areas of misassembly in the GRCh37 human reference genome in which variant calling is time-consuming and error-prone.
 
 Additionally, the regions in [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) are variable-width windows which each contain approximately the same coverage depth in the CEPH1463 pedigree, and sorted from highest to lowest depth. This ensures that the parallelization of Freebayes uses approximately the same amount of time per region.
 
@@ -144,7 +142,6 @@ The regions in [annotations/ceph18.b37.exclude.2014-01-15.bed](annotations/ceph1
 In the [`speedseq sv`](#speedseq-sv) module, we recommend excluding the genomic regions in the [annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed](annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed) BED file. These regions represent the complement of those in [annotations/ceph18.b37.include.2014-01-15.bed](annotations/ceph18.b37.include.2014-01-15.bed) as well as the mitochondrial chromosome.
 
 ## Usage
-
 SpeedSeq is a modular framework with four components:
 
 * [speedseq align](#speedseq-align) - Process paired-end FASTQ sequences to produce a duplicate-marked, sorted, indexed BAM file that can be processed with other SpeedSeq modules.
@@ -152,8 +149,7 @@ SpeedSeq is a modular framework with four components:
 * [speedseq somatic](#speedseq-somatic) - Run FreeBayes on a tumor/normal pair of BAM files
 * [speedseq sv](#speedseq-sv) - Run LUMPY on one or more BAM files, with optional breakend genotyping and read-depth calculation.
 
-###speedseq align
-
+### speedseq align
 `speedseq align` converts paired-end FASTQ sequences to a duplicate-marked, sorted, indexed BAM file that can be processed with other SpeedSeq modules.
 
 Internally, `speedseq align` runs the following steps to produce [three output BAM files](#output):
@@ -169,7 +165,6 @@ usage:   speedseq align [options] <reference.fa> <in1.fq> [in2.fq]
 ```
 
 ##### Positional arguments
-
 ```
 reference.fa	genome reference fasta file (required)
 in1.fq          paired-end fastq file. if -p flag is used then expected to be
@@ -179,19 +174,19 @@ in2.fq	        paired-end fastq file. (may be gzipped) (required)
 ```
 
 ##### Alignment options
-
-These options determine the behavior of BWA-MEM
 ```
 -o STR          output prefix [default: in1.fq]
 -R              read group header line such as "@RG\tID:id\tSM:samplename\tLB:lib" (required)
 -p              first fastq file consists of interleaved paired-end sequences
 -t INT          number of threads to use [default: 1]
--T DIR          temp directory [default: ./temp]
+-T DIR          temp directory [./outprefix.XXXXXXXXXXXX]
+-I FLOAT[,FLOAT[,INT[,INT]]]
+                specify the mean, standard deviation (10% of the mean if absent), max
+                  (4 sigma from the mean if absent) and min of the insert size distribution.
+                  FR orientation only. [inferred]
 ```
 
 ##### Samblaster options
-
-These options determine the behavior of SAMBLASTER
 ```
 -i              include duplicates in splitters and discordants
                   (default: exclude duplicates)
@@ -207,7 +202,6 @@ These options determine the behavior of SAMBLASTER
 ```
 
 ##### Global options
-
 ```
 -K FILE         path to speedseq.config file (default: same directory as speedseq)
 -v              verbose
@@ -215,7 +209,6 @@ These options determine the behavior of SAMBLASTER
 ```
 
 #### Output
-
 `speedseq align` produces three sorted, indexed BAM files (plus their corresponding .bai index files):
 
 * `outprefix.bam`
@@ -242,7 +235,6 @@ input.bam       BAM file(s) to call variants on. Must have readgroup information
 ```
 
 ##### Options
-
 ```
 -o STR          output prefix [default: input1.bam]
 -w FILE         BED file of windowed genomic intervals. For human genomes,
@@ -250,7 +242,7 @@ input.bam       BAM file(s) to call variants on. Must have readgroup information
                   (see Annotations)
 -q FLOAT        minimum variant QUAL score to output [1]
 -t INT          number of threads to use [default: 1]
--T DIR          temp directory [default: ./temp]
+-T DIR          temp directory [./outprefix.XXXXXXXXXXXX]
 -A              annotate the vcf with VEP
 -K FILE         path to speedseq.config file [default: same directory as speedseq]
 -v              verbose
@@ -258,13 +250,11 @@ input.bam       BAM file(s) to call variants on. Must have readgroup information
 ```
 
 #### Output
-
 `speedseq var` produces a single indexed VCF file that is optionally annotated with VEP.
 
 * `outprefix.vcf.gz`
 
 ### speedseq somatic
-
 `speedseq somatic` runs FreeBayes on a tumor/normal pair of BAM files
 
 ```
@@ -272,7 +262,6 @@ usage:   speedseq somatic [options] <reference.fa> <normal.bam> <tumor.bam>
 ```
 
 ##### Positional arguments
-
 ```
 reference.fa      genome reference fasta file
 normal.bam        germline BAM file(s) (comma separated BAMs from multiple libraries).
@@ -284,23 +273,22 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 ```
 
 ##### Options
-
 ```
 -o STR           output prefix [default: tumor.bam]
 -w FILE          BED file of windowed genomic intervals. For human genomes,
                    we recommend using the annotations/ceph18.b37.include.2014-01-15.bed
                    (see Annotations)
 -t INT           number of threads to use [default: 1]
+-s               only output somatic variants
 -F FLOAT         require at least this fraction of observations supporting
                    an alternate allele within a single individual in order
                    to evaluate the position [0.05]
 -C INT           require at least this count of observations supporting
                    an alternate allele within a single individual in order
                    to evaluate the position [2]
--n FLOAT         minimum normal log odds ratio for PASS [7]
--u FLOAT         minimum tumor log odds ratio for PASS [7]
+-S FLOAT         minimum somatic score (SSC) for PASS [18]
 -q FLOAT         minimum QUAL score to output non-passing somatic variants [1e-5]
--T DIR           temp directory [./temp]
+-T DIR           temp directory [./outprefix.XXXXXXXXXXXX]
 -A               annotate the vcf with VEP
 -K FILE          path to speedseq.config file (default: same directory as speedseq)
 -v               verbose
@@ -334,7 +322,7 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 -A               annotate the vcf with VEP
 -m INT           minimum weight for a call [default: 4]
 -r FLOAT         trim threshold [0]
--T DIR           temp directory [default: ./temp]
+-T DIR           temp directory [./outprefix.XXXXXXXXXXXX]
 -k               keep temporary files
 ```
 
@@ -351,28 +339,22 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 `speedseq sv` produces a bgzipped, indexed VCF file.
 
 * `outprefix.sv.vcf.gz`
-* `outprefix.sv.vcf.gz.tbi`
 
-##Example Workflows
-
-###Call variants on a single sample
-
+## Example Workflows
+### Call variants on a single sample
 1. Use `speedseq align` to produce a sorted, duplicate-marked, BAM alignment from paired-end fastq data.
-
   ```
   speedseq align -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
       human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
   ```
 
   Note: if using an interleaved paired-end fastq file, use the `-p` flag
-
   ```
   speedseq align -p -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
       human_g1k_v37.fasta NA12878.interleaved.fq.gz
   ```
 
 2. Use `speedseq var` to call SNVs and indels on a single sample.
-
   ```
   speedseq var -o NA12878 \
       -w annotations/ceph18.b37.include.2014-01-15.bed \
@@ -380,7 +362,6 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
   ```
 
 3. Use `speedseq sv` to call structural variants. The optional `-g` and `-d` flags perform breakend genotyping and read-depth calculation respectively
-
   ```
   speedseq sv -o NA12878 \
       -x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
@@ -423,7 +404,7 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
       -D NA12878_S1.discordants.bam,NA12878_S2.discordants.bam,NA12878_S3.discordants.bam
   ```
 
-###Call variants on multiple samples
+### Call variants on multiple samples
 
 1. Use `speedseq align` to produce sorted, duplicate-marked, BAM alignments for each sample.
 
@@ -456,7 +437,7 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
       -S NA12877.splitters.bam,NA12878.splitters.bam,NA12879.splitters.bam
   ```
 
-###Call variants on a tumor/normal pair
+### Call variants on a tumor/normal pair
 
 1. Use `speedseq align` to produce sorted, duplicate-marked, BAM alignments for the tumor/normal pair
 
