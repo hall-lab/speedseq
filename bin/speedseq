@@ -1556,6 +1556,8 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
 	rm -r ${TEMP_DIR}
     fi
 
+    echo "SV calling done."
+    
     # exit cleanly
     exit 0
 }
