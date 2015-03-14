@@ -359,131 +359,144 @@ SpeedSeq is available as an Amazon Machine Image.
 ## Example workflows
 ### Call variants on a single sample
 1. Use `speedseq align` to produce a sorted, duplicate-marked, BAM alignment from paired-end fastq data.
-  ```
-  speedseq align -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
-      human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
-  ```
+	```
+	speedseq align \
+		-o NA12878 \
+		-R "@RG\tID:NA12878.S1\tSM:NA12878\tLB:lib1" \
+		human_g1k_v37.fasta \
+		NA12878.1.fq.gz \
+		NA12878.2.fq.gz
+	```
 
-  Note: if using an interleaved paired-end fastq file, use the `-p` flag
-  ```
-  speedseq align -p -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
-      human_g1k_v37.fasta NA12878.interleaved.fq.gz
-  ```
+	Note: if using an interleaved paired-end fastq file, use the `-p` flag
+	```
+	speedseq align \
+		-p \
+		-o NA12878 \
+		-R "@RG\tID:NA12878.S1\tSM:NA12878\tLB:lib1" \
+		human_g1k_v37.fasta \
+		NA12878.interleaved.fq.gz
+	```
 
 2. Use `speedseq var` to call SNVs and indels on a single sample.
-  ```
-  speedseq var -o NA12878 \
-      -w annotations/ceph18.b37.include.2014-01-15.bed \
-      human_g1k_v37.fasta NA12878.bam
-  ```
+	```
+	speedseq var -o NA12878 \
+		-w annotations/ceph18.b37.include.2014-01-15.bed \
+		human_g1k_v37.fasta NA12878.bam
+	```
 
 3. Use `speedseq sv` to call structural variants. The optional `-g` and `-d` flags perform breakend genotyping and read-depth calculation respectively
-  ```
-  speedseq sv -o NA12878 \
-      -x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
-      -g \
-      -d \
-      -B NA12878.bam \
-      -D NA12878.discordants.bam \
-      -S NA12878.splitters.bam
-  ```
+	```
+	speedseq sv -o NA12878 \
+		-x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
+		-g \
+		-d \
+		-B NA12878.bam \
+		-D NA12878.discordants.bam \
+		-S NA12878.splitters.bam
+	```
 
-###Call variants on a single sample sequenced with multiple libraries
-
+### Call variants on a single sample sequenced with multiple libraries
 1. Use `speedseq align` to produce a sorted, duplicate-marked, BAM alignment of each library.
+	```
+	speedseq align -o NA12878_S1 -R "@RG\tID:NA12878.S1\tSM:NA12878\tLB:lib1" \
+		human_g1k_v37.fasta NA12878.S1.1.fq.gz NA12878.S1.2.fq.gz
 
-  ```
-  speedseq align -o NA12878_S1 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
-      human_g1k_v37.fasta NA12878.S1.1.fq.gz NA12878.S1.2.fq.gz
+	speedseq align -o NA12878_S2 -R "@RG\tID:NA12878.S2\tSM:NA12878\tLB:lib2" \
+		human_g1k_v37.fasta NA12878.S2.1.fq.gz NA12878.S2.2.fq.gz
 
-  speedseq align -o NA12878_S2 -R "@RG\tID:NA12878.S2\tSM:NA12878" \
-      human_g1k_v37.fasta NA12878.S2.1.fq.gz NA12878.S2.2.fq.gz
+	speedseq align -o NA12878_S3 -R "@RG\tID:NA12878.S3\tSM:NA12878\tLB:lib3" \
+		human_g1k_v37.fasta NA12878.S3.1.fq.gz NA12878.S3.2.fq.gz
+	```
 
-  speedseq align -o NA12878_S3 -R "@RG\tID:NA12878.S3\tSM:NA12878" \
-      human_g1k_v37.fasta NA12878.S3.1.fq.gz NA12878.S3.2.fq.gz
-  ```
+2. Merge the samples
+	```
+	sambamba merge NA12878_merged.bam NA12878_S1.bam NA12878_S2.bam NA12878_S3.bam
+	sambamba index NA12878_merged.bam
+	```
 
-2. Use `speedseq var` to call SNVs and indels. `speedseq var` will automatically recognize libraries with the same SM readgroup tag to be the same sample.
+3. Use `speedseq var` to call SNVs and indels.
+	```
+	speedseq var -o NA12878 \
+		-w annotations/ceph18.b37.include.2014-01-15.bed \
+		human_g1k_v37.fasta \
+		NA12878_merged.bam
+	```
 
-  ```
-  speedseq var -o NA12878 \
-      -w annotations/ceph18.b37.include.2014-01-15.bed \
-      human_g1k_v37.fasta NA12878_S1.bam NA12878_S2.bam NA12878_S3.bam
-  ```
-
-3. Use `speedseq sv` to call structural variants. (For proper library merging, each library from the same sample must have the same SM readgroup tag.)
-  ```
-  speedseq -sv -o NA12878 \
-      -x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
-      -B NA12878_S1.bam,NA12878_S2.bam,NA12878_S3.bam
-      -S NA12878_S1.splitters.bam,NA12878_S2.splitters.bam,NA12878_S3.splitters.bam
-      -D NA12878_S1.discordants.bam,NA12878_S2.discordants.bam,NA12878_S3.discordants.bam
-  ```
+3. Use `speedseq sv` to call structural variants.
+	```
+	speedseq -sv -o NA12878 \
+		-x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
+		-B NA12878_merged.bam \
+		-S NA12878_merged.splitters.bam \
+		-D NA12878_merged.discordants.bam \
+		-R human_g1k_v37.fasta
+	```
 
 ### Call variants on multiple samples
-
 1. Use `speedseq align` to produce sorted, duplicate-marked, BAM alignments for each sample.
+	```
+	speedseq align -o NA12877 -R "@RG\tID:NA12877.S1\tSM:NA12877\tLB:lib1" \
+		human_g1k_v37.fasta NA12877.1.fq.gz NA12877.2.fq.gz
 
-  ```
-  speedseq align -o NA12877 -R "@RG\tID:NA12877.S1\tSM:NA12877" \
-      human_g1k_v37.fasta NA12877.1.fq.gz NA12877.2.fq.gz
+	speedseq align -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878\tLB:lib2" \
+		human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
 
-  speedseq align -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878" \
-      human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
-
-  speedseq align -o NA12879 -R "@RG\tID:NA12879.S1\tSM:NA12879" \
-      human_g1k_v37.fasta NA12879.1.fq.gz NA12879.2.fq.gz
-  ```
+	speedseq align -o NA12879 -R "@RG\tID:NA12879.S1\tSM:NA12879\tLB:lib3" \
+		human_g1k_v37.fasta NA12879.1.fq.gz NA12879.2.fq.gz
+	```
 
 2. Use `speedseq var` to call SNVs and indels on multiple samples.
-
-  ```
-  speedseq var -o cephtrio \
-      -w annotations/ceph18.b37.include.2014-01-15.bed \
-      human_g1k_v37.fasta NA12877.bam NA12878.bam NA12879.bam
-  ```
+	```
+	speedseq var -o cephtrio \
+		-w annotations/ceph18.b37.include.2014-01-15.bed \
+		human_g1k_v37.fasta NA12877.bam NA12878.bam NA12879.bam
+	```
 
 3. Use `speedseq sv` to call structural variants on multiple samples.
-
-  ```
-  speedseq sv -o cephtrio \
-      -x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
-      -B NA12877.bam,NA12878.bam,NA12879.bam \
-      -D NA12877.discordants.bam,NA12878.discordants.bam,NA12879.discordants.bam \
-      -S NA12877.splitters.bam,NA12878.splitters.bam,NA12879.splitters.bam
-  ```
+	```
+	speedseq sv -o cephtrio \
+		-x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
+		-B NA12877.bam,NA12878.bam,NA12879.bam \
+		-D NA12877.discordants.bam,NA12878.discordants.bam,NA12879.discordants.bam \
+		-S NA12877.splitters.bam,NA12878.splitters.bam,NA12879.splitters.bam
+	```
 
 ### Call variants on a tumor/normal pair
-
 1. Use `speedseq align` to produce sorted, duplicate-marked, BAM alignments for the tumor/normal pair
+	```
+	speedseq align -p -o TCGA-B6-A0I6.normal \
+		-R "@RG\tID:TCGA-B6-A0I6-10A-01D-A128-09\tSM:TCGA-B6-A0I6-10A-01D-A128-09\tLB:lib1" \
+		human_g1k_v37.fasta \
+		TCGA-B6-A0I6-10A-01D-A128-09.interleaved.fq.gz
 
-  ```
-  speedseq align -p -o TCGA-B6-A0I6.normal \
-      -R "@RG\tID:TCGA-B6-A0I6-10A-01D-A128-09\tSM:TCGA-B6-A0I6-10A-01D-A128-09" \
-      human_g1k_v37.fasta TCGA-B6-A0I6-10A-01D-A128-09.interleaved.fq.gz
-
-  speedseq align -p -o TCGA-B6-A0I6.tumor \
-      -R "@RG\tID:TCGA-B6-A0I6-01A-11D-A128-09\tSM:TCGA-B6-A0I6-01A-11D-A128-09" \
-      human_g1k_v37.fasta TCGA-B6-A0I6-01A-11D-A128-09.interleaved.fq.gz
-  ```
+	speedseq align -p -o TCGA-B6-A0I6.tumor \
+		-R "@RG\tID:TCGA-B6-A0I6-10A-01D-A128-09\tSM:TCGA-B6-A0I6-10A-01D-A128-09\tLB:lib1" \
+		human_g1k_v37.fasta \
+		TCGA-B6-A0I6-01A-11D-A128-09.interleaved.fq.gz
+	```
 
 2. Use `speedseq somatic` to call SNVs and indels on the tumor/normal pair.
-  ```
-  speedseq somatic -o TCGA-B6-A0I6 \
-      -w annotations/ceph18.b37.include.2014-01-15.bed \
-      -F 0.05 \
-      -q 1 \
-      human_g1k_v37.fasta TCGA-B6-A0I6.normal.bam TCGA-B6-A0I6.tumor.bam
-  ```
+	```
+	speedseq somatic -o TCGA-B6-A0I6 \
+		-w annotations/ceph18.b37.include.2014-01-15.bed \
+		-F 0.05 \
+		-q 1 \
+		human_g1k_v37.fasta \
+		TCGA-B6-A0I6.normal.bam \
+		TCGA-B6-A0I6.tumor.bam
+	```
 
 3. Use `speedseq sv` to call structural variants on the tumor/normal pair.
-  ```
-  speedseq sv -o TCGA-B6-A0I6 \
-      -x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
-      -B TCGA-B6-A0I6.normal.bam,TCGA-B6-A0I6.tumor.bam \
-      -D TCGA-B6-A0I6.normal.discordants.bam,TCGA-B6-A0I6.tumor.discordants.bam \
-      -S TCGA-B6-A0I6.normal.splitters.bam,TCGA-B6-A0I6.tumor.splitters.bam
-  ```
+	```
+	speedseq sv \
+		-o TCGA-B6-A0I6 \
+		-x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
+		-B TCGA-B6-A0I6.normal.bam,TCGA-B6-A0I6.tumor.bam \
+		-D TCGA-B6-A0I6.normal.discordants.bam,TCGA-B6-A0I6.tumor.discordants.bam \
+		-S TCGA-B6-A0I6.normal.splitters.bam,TCGA-B6-A0I6.tumor.splitters.bam \
+		-R human_g1k_v37.fasta
+	```
 
 ## Troubleshooting
 * Installation failure with error: "No targets specified and no makefile found."
