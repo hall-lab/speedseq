@@ -1,0 +1,24 @@
+# Example speedseq commands on a small slice of chromosome 20
+
+# 1. Align with BWA
+speedseq align \
+    -o example \
+    -M 3 \
+    -p \
+    -R "@RG\tID:NA12878\tSM:NA12878\tLB:lib1" \
+    human_g1k_v37_20_42220611-42542245.fasta \
+    NA12878.20slice.30X.fastq.gz
+
+# 2. Detect SNVs and indels
+speedseq var \
+    -o example \
+    human_g1k_v37_20_42220611-42542245.fasta \
+    example.bam
+
+# 3. Detect SVs
+speedseq sv \
+    -o example \
+    -B example.bam \
+    -S example.splitters.bam \
+    -D example.discordants.bam \
+    -R human_g1k_v37_20_42220611-42542245.fasta
