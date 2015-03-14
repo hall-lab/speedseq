@@ -338,9 +338,6 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 
 * `outprefix.sv.vcf.gz`
 
-## SpeedSeq AMI
-SpeedSeq is available as an Amazon Machine Image.
-
 ## Example workflows
 ### Call variants on a single sample
 1. Use `speedseq align` to produce a sorted, duplicate-marked, BAM alignment from paired-end fastq data.
@@ -482,6 +479,37 @@ SpeedSeq is available as an Amazon Machine Image.
 		-S TCGA-B6-A0I6.normal.splitters.bam,TCGA-B6-A0I6.tumor.splitters.bam \
 		-R human_g1k_v37.fasta
 	```
+
+## SpeedSeq AMI
+SpeedSeq is available as a public AMI (Amazon Machine Image) on the Amazon Elastic Compute Cloud (EC2).
+
+1. From the EC2 Dashboard, set your region to N. Virginia and click "Launch Instance"
+![EC2 dashboard](etc/launch-01.png?raw=true "EC2 dashboard")
+
+2. Choose, "Community AMIs" in the sidebar and search for SpeedSeq in the dialog box.
+![Select SpeedSeq](etc/community_ami-01.png?raw=true "Select SpeedSeq")
+
+3. Select hardware specifications. For deep whole genomes, we recommend c3.8xlarge (32 vCPUs, 60 GB RAM). For testing purposes any machine with 16 GB RAM is sufficient.
+![Instance type](etc/instance_type-01.png?raw=true "Instance type")
+
+4. Add storage for the data. Note that the SpeedSeq footprint is ~ 26 GB (including the reference genome and GEMINI).
+![Add storage](etc/add_storage-01.png?raw=true "Add storage")
+
+5. Launch the instance and login.
+	```
+	ssh -i mykey.pem ec2-user@ec2-54-173-62-218.compute-1.amazonaws.com
+	```
+
+6. Run the SpeedSeq test script.
+	```
+	./run_speedseq
+	```
+	This should produce the following files:
+	* example.bam
+	* example.discordants.bam
+	* example.splitters.bam
+	* example.vcf.gz
+	* example.sv.vcf.gz
 
 ## Troubleshooting
 * Installation failure with error: "No targets specified and no makefile found."
