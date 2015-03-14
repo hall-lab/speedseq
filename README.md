@@ -1,6 +1,6 @@
 # SpeedSeq         
 
-SpeedSeq is a flexible and open-source framework to rapidly identify genomic variation.
+ A flexible framework for rapid genome analysis and interpretation
 
 C Chiang, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth, A R Quinlan, and I M Hall. 2014. SpeedSeq: Ultra-Fast Personal Genome Analysis and Interpretation. bioRxiv. [doi:10.1101/012179](http://dx.doi.org/10.1101/012179).
 
@@ -27,33 +27,18 @@ C Chiang, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth,
 	make
 	```
 
-2. Align from FASTQ
+2. Run the [example script](example/run_speedseq.sh)
 	```
-	bin/speedseq align \
-		-o sample \
-		-R "@RG\tID:id\tSM:samplename\tLB:lib" \
-		human_g1k_v37.fasta \
-		in1.fq.gz \
-		in2.fq.gz
+	cd example
+	./run_speedseq
 	```
-
-3. Detect SNVs and indels
-	```
-	bin/speedseq var \
-		-o sample \
-		human_g1k_v37.fasta \
-		sample.bam
-	```
-
-4. Detect structural variants
-	```
-	bin/speedseq sv \
-		-o sample \
-		-B sample.bam \
-		-S sample.splitters.bam \
-		-D sample.discordants.bam \
-		-R human_g1k_v37.fasta \
-	```
+	
+	This should produce the following files:
+	* example.bam
+	* example.discordants.bam
+	* example.splitters.bam
+	* example.vcf.gz
+	* example.sv.vcf.gz
 
 ## Installation
 
