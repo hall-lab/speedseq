@@ -64,9 +64,26 @@ function check_python_modules() {
     PYTHON_TEST=$1
     echo -e "\nChecking for required python modules ($PYTHON_TEST)..."
 
-    $PYTHON_TEST -c "import imp; imp.find_module('pysam')"
-    $PYTHON_TEST -c "import imp; imp.find_module('numpy')"
-    $PYTHON_TEST -c "import imp; imp.find_module('scipy')"
+    PYSAM=`$PYTHON_TEST -c "import imp; imp.find_module('pysam')" 2>&1 || true`
+    NUMPY=`$PYTHON_TEST -c "import imp; imp.find_module('numpy')" 2>&1 || true`
+    SCIPY=`$PYTHON_TEST -c "import imp; imp.find_module('scipy')" 2>&1 || true`
+
+    if [[ ! -z "$PYSAM" ]]
+    then
+	usage
+	echo  -e "Error: pysam is not installed for $PYTHON_TEST\n"
+	exit 1
+    elif [[ ! -z "$NUMPY" ]]
+    then
+	usage
+	echo  -e "Error: numpy is not installed for $PYTHON_TEST\n"
+	exit 1
+    elif [[ ! -z "$SCIPY" ]]
+    then
+	usage
+	echo  -e "Error: scipy is not installed for $PYTHON_TEST\n"
+	exit 1
+    fi
 }
 
 ## global usage
