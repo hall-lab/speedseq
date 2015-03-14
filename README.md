@@ -483,24 +483,26 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 ## SpeedSeq AMI
 SpeedSeq is available as a public AMI (Amazon Machine Image) on the Amazon Elastic Compute Cloud (EC2).
 
-1. From the EC2 Dashboard, set your region to N. Virginia and click "Launch Instance"
+1. Log in to the [Amazon AWS console](http://aws.amazon.com/)
+
+2. From the EC2 Dashboard, set your region to N. Virginia and click "Launch Instance"
 ![EC2 dashboard](etc/launch-01.png?raw=true "EC2 dashboard")
 
-2. Choose, "Community AMIs" in the sidebar and search for SpeedSeq in the dialog box.
+3. Choose, "Community AMIs" in the sidebar and search for SpeedSeq in the dialog box.
 ![Select SpeedSeq](etc/community_ami-01.png?raw=true "Select SpeedSeq")
 
-3. Select hardware specifications. For deep whole genomes, we recommend c3.8xlarge (32 vCPUs, 60 GB RAM). For testing purposes any machine with 16 GB RAM is sufficient.
+4. Select hardware specifications. For deep whole genomes, we recommend c3.8xlarge (32 vCPUs, 60 GB RAM). For testing purposes any machine with 16 GB RAM is sufficient.
 ![Instance type](etc/instance_type-01.png?raw=true "Instance type")
 
-4. Add storage for the data. Note that the SpeedSeq footprint is ~ 26 GB (including the reference genome and GEMINI).
+5. Add storage for the data. Note that the SpeedSeq footprint is ~ 26 GB (including the reference genome and GEMINI).
 ![Add storage](etc/add_storage-01.png?raw=true "Add storage")
 
-5. Launch the instance and login.
+6. Launch the instance and log in.
 	```
 	ssh -i mykey.pem ec2-user@ec2-54-173-62-218.compute-1.amazonaws.com
 	```
 
-6. Run the SpeedSeq test script.
+7. Run the SpeedSeq test script.
 	```
 	./run_speedseq
 	```
