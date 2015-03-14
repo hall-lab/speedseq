@@ -331,7 +331,7 @@ global options:
     # create temp directory if not specified by command argument
     if [[ -z $TEMP_DIR ]]
     then
-	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+	TEMP_DIR=`mktemp -d ${OUTBASE}.XXXXXXXXXXXX`
     fi
 
     if [[ $VERBOSE -eq 1 ]]
@@ -592,7 +592,7 @@ options:
     fi
     if [[ -z $TEMP_DIR ]]
     then
-	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+	TEMP_DIR=`mktemp -d ${OUTBASE}.XXXXXXXXXXXX`
     else
 	mkdir -p $TEMP_DIR	
     fi
@@ -941,7 +941,7 @@ options:
     fi
     if [[ -z $TEMP_DIR ]]
     then
-	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+	TEMP_DIR=`mktemp -d ${OUTBASE}.XXXXXXXXXXXX`
     else
 	mkdir -p $TEMP_DIR	
     fi
@@ -1374,7 +1374,7 @@ global options:
     fi
     if [[ -z $TEMP_DIR ]]
     then
-	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+	TEMP_DIR=`mktemp -d ${OUTBASE}.XXXXXXXXXXXX`
     else
 	mkdir -p $TEMP_DIR	
     fi
@@ -1750,7 +1750,7 @@ global options:
     # create temp directory if not specified by command argument
     if [[ -z $TEMP_DIR ]]
     then
-	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+	TEMP_DIR=`mktemp -d ${OUTBASE}.XXXXXXXXXXXX`
     fi
 
     if [[ $VERBOSE -eq 1 ]]
