@@ -86,8 +86,8 @@ config:
 	@echo "# CNVnator" >> $(TARGET_BIN)/speedseq.config
 	@echo "CNVNATOR_WRAPPER=$(MKFILE_DIR)/$(TARGET_BIN)/cnvnator_wrapper.py" >> $(TARGET_BIN)/speedseq.config
 	@echo "CNVNATOR_MULTI=$(MKFILE_DIR)/$(TARGET_BIN)/cnvnator-multi" >> $(TARGET_BIN)/speedseq.config
-	@echo "ANNOTATE_RD=$(MKFILE_DIR)/$(TARGET_BIN)/annotate_rd" >> $(TARGET_BIN)/speedseq.config
-	@echo "CNVNATOR_CHROMS_DIR=" >> $(TARGET_BIN)/speedseq.config
+	@echo "ANNOTATE_RD=$(MKFILE_DIR)/$(TARGET_BIN)/annotate_rd.py" >> $(TARGET_BIN)/speedseq.config
+	@echo "CNVNATOR_CHROMS_DIR=$(MKFILE_DIR)/$(ANNOTATIONS_DIR)/cnvnator_chroms" >> $(TARGET_BIN)/speedseq.config
 
 	@echo "" >> $(TARGET_BIN)/speedseq.config
 	@echo "# realign" >> $(TARGET_BIN)/speedseq.config
