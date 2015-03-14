@@ -27,13 +27,13 @@ C Chiang, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth,
 	make
 	```
 
-2. Run [example script](example/run_speedseq.sh)
+2. Run the [example script](example/run_speedseq.sh)
 	```
 	cd example
 	./run_speedseq
 	```
 	
-	This should produce the following files
+	This should produce the following files:
 	* example.bam
 	* example.discordants.bam
 	* example.splitters.bam
