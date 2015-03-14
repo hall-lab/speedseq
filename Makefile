@@ -45,7 +45,7 @@ var: freebayes tabix vawk parallel config
 
 somatic: var
 
-sv: lumpy sambamba samblaster vawk bamkit cnvnator-multi config
+sv: lumpy sambamba samblaster vawk bamkit tabix cnvnator-multi config
 
 realign: bwa sambamba samblaster parallel mbuffer bamkit config
 
