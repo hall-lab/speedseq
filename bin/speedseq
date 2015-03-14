@@ -1733,7 +1733,7 @@ global options:
     # parse the libraries in the BAM header to extract readgroups from the same library
     if [[ -z $REALIGN_RG_LIST ]]
     then
-	REALIGN_RG_LIST=(`$BAMCLEANHEADER $IN_BAM | $BAMLIBS -S`)
+	REALIGN_RG_LIST=(`$PYTHON $BAMCLEANHEADER $IN_BAM | $PYTHON $BAMLIBS -S`)
     fi
 
     if [[ ${#REALIGN_RG_LIST[@]} -eq 0 ]]
