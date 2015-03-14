@@ -12,7 +12,6 @@ SVTYPER_DIR=$(SRC)/svtyper
 CNVNATOR_DIR=$(SRC)/cnvnator
 TABIX_DIR=$(SRC)/tabix
 VAWK_DIR=$(SRC)/vawk
-SVTOOLS_DIR=$(SRC)/svtools
 MBUFFER_DIR=$(SRC)/mbuffer
 PARALLEL_DIR=$(SRC)/parallel
 BAMKIT_DIR=$(SRC)/bamkit
@@ -45,7 +44,7 @@ var: freebayes tabix vawk parallel config
 
 somatic: var
 
-sv: lumpy sambamba samblaster vawk bamkit tabix cnvnator-multi config
+sv: lumpy sambamba samblaster vawk bamkit tabix svtyper cnvnator-multi config
 
 realign: bwa sambamba samblaster parallel mbuffer bamkit config
 
@@ -118,6 +117,7 @@ lumpy:
 	cp $(LUMPY_DIR)/scripts/pairend_distro.py $(TARGET_BIN)
 	cp $(LUMPY_DIR)/bin/lumpy $(TARGET_BIN)
 	cp $(LUMPY_DIR)/bin/lumpyexpress $(TARGET_BIN)
+	cp $(LUMPY_DIR)/scripts/vcfToBedpe $(TARGET_BIN)
 
 svtyper:
 	cp $(SVTYPER_DIR)/svtyper $(TARGET_BIN)
@@ -142,14 +142,6 @@ tabix:
 vawk:
 	cp $(VAWK_DIR)/vawk $(TARGET_BIN)
 
-svtools:
-	cp $(SVTOOLS_DIR)/bedpeToBed12 $(TARGET_BIN)
-	cp $(SVTOOLS_DIR)/bedpeToVcf $(TARGET_BIN)
-	cp $(SVTOOLS_DIR)/splitReadSamToBedpe $(TARGET_BIN)
-	cp $(SVTOOLS_DIR)/splitterToBreakpoint $(TARGET_BIN)
-	cp $(SVTOOLS_DIR)/vcfToBedpe $(TARGET_BIN)
-	cp $(SVTOOLS_DIR)/lumpyToBedpe $(TARGET_BIN)
-
 mbuffer:
 	cd $(MBUFFER_DIR); ./configure --prefix=$(shell pwd)
 	$(MAKE) -C $(MBUFFER_DIR)
@@ -170,8 +162,6 @@ bamkit:
 
 clean:
 	rm -f \
-		bin/bedpeToBed12 \
-		bin/bedpeToVcf \
 		bin/bgzip \
 		bin/sambamba \
 		bin/cnvnator \
@@ -182,14 +172,11 @@ clean:
 		bin/lumpyexpress \
 		bin/pairend_distro.py \
 		bin/samblaster \
-		bin/splitReadSamToBedpe \
-		bin/splitterToBreakpoint \
 		bin/svtyper \
 		bin/tabix \
 		bin/vawk \
 		bin/vcfToBedpe \
 		bin/bwa \
-		bin/lumpyToBedpe \
 		bin/mbuffer \
 		bin/parallel \
 		bin/bamtofastq.py \

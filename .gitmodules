@@ -16,9 +16,6 @@
 [submodule "src/freebayes"]
 	path = src/freebayes
 	url = https://github.com/ekg/freebayes.git
-[submodule "src/svtools"]
-	path = src/svtools
-	url = https://github.com/hall-lab/sv-tools.git
 [submodule "src/bwa"]
 	path = src/bwa
 	url = https://github.com/lh3/bwa.git
