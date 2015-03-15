@@ -314,22 +314,22 @@ global options:
     # Check the for the relevant binaries
     source_binaries $CONFIG
 
-    if [[ -z "$BWA" ]]
+    if [[ ! -f "$BWA" ]]
     then
 	align_usage
         echo -e "Error: bwa executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z  "$SAMBLASTER" ]]
+    elif [[ ! -f  "$SAMBLASTER" ]]
     then
 	align_usage
         echo -e "Error: samblaster executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$SAMBAMBA" ]]
+    elif [[ ! -f "$SAMBAMBA" ]]
     then
 	align_usage
         echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$PARALLEL" ]]
+    elif [[ ! -f "$PARALLEL" ]]
     then
 	align_usage
         echo -e "Error: parallel executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -570,12 +570,12 @@ options:
 	var_usage
         echo -e "Error: VEP cache directory not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$PARALLEL" ]]
+    elif [[ ! -f "$PARALLEL" ]]
     then
 	var_usage
         echo -e "Error: parallel executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$VAWK" ]]
+    elif [[ ! -f "$VAWK" ]]
     then
 	var_usage
         echo -e "Error: vawk executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -1262,22 +1262,22 @@ global options:
     # Check the for the relevant binaries
     source_binaries $CONFIG
 
-    if [[ -z "$LUMPY" ]]
+    if [[ ! -f "$LUMPY" ]]
     then
 	sv_usage
         echo -e "Error: lumpy executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$LUMPYEXPRESS" ]]
+    elif [[ ! -f "$LUMPYEXPRESS" ]]
     then
 	sv_usage
         echo -e "Error: lumpyexpress executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z  "$PAIREND_DISTRO" ]]
+    elif [[ ! -f  "$PAIREND_DISTRO" ]]
     then
 	sv_usage
         echo -e "Error: pairend_distro.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z  "$SAMBAMBA" ]]
+    elif [[ ! -f  "$SAMBAMBA" ]]
     then
 	sv_usage
         echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -1292,22 +1292,22 @@ global options:
 	sv_usage
         echo -e "Error: VEP cache directory not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$VAWK" ]] && [[ "$ANNOTATE" -eq 1 ]]
+    elif [[ ! -f "$VAWK" ]] && [[ "$ANNOTATE" -eq 1 ]]
     then
 	sv_usage
         echo -e "Error: vawk executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$SAMBLASTER" ]] && [[ -z "${DISC_BAM_STRING}${SPL_BAM_STRING}" ]]
+    elif [[ ! -f "$SAMBLASTER" ]] && [[ -z "${DISC_BAM_STRING}${SPL_BAM_STRING}" ]]
     then
 	sv_usage
         echo -e "Error: samblaster executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$BAMFILTERRG" ]]
+    elif [[ ! -f "$BAMFILTERRG" ]]
     then
 	sv_usage
 	echo -e "Error: bamfilterrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
-    elif [[ -z "$BAMLIBS" ]]
+    elif [[ ! -f "$BAMLIBS" ]]
     then
 	sv_usage
 	echo -e "Error: bamlibs.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -1315,7 +1315,7 @@ global options:
     fi
 
     # if genotyping requested, look for svtyper
-    if [[ "$GENOTYPE" -eq 1 ]] && [[ -z "$SVTYPER" ]]
+    if [[ "$GENOTYPE" -eq 1 ]] && [[ ! -f "$SVTYPER" ]]
     then
 	sv_usage
         echo -e "Error: svtyper executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -1325,17 +1325,17 @@ global options:
     # if CNV read-depth requested, look for cnvnator executables
     if [[ "$READDEPTH" -eq 1 ]]
     then
-	if [[ -z "$CNVNATOR_MULTI" ]]
+	if [[ ! -f "$CNVNATOR_MULTI" ]]
 	then
 	    sv_usage
             echo -e "Error: cnvnator executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
             exit 1
-	elif [[ -z "$CNVNATOR_WRAPPER" ]]
+	elif [[ ! -f "$CNVNATOR_WRAPPER" ]]
 	then
 	    sv_usage
             echo -e "Error: cnvnator_wrapper.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
             exit 1
-	elif [[ -z "$ANNOTATE_RD" ]]
+	elif [[ ! -f "$ANNOTATE_RD" ]]
 	then
 	    sv_usage
             echo -e "Error: annotate_rd.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -1696,47 +1696,47 @@ global options:
 
     # Check the for the relevant binaries
     source_binaries $CONFIG
-    if [[ -z "$BWA" ]]
+    if [[ ! -f "$BWA" ]]
     then
 	realign_usage
         echo -e "Error: bwa executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z  "$SAMBLASTER" ]]
+    elif [[ ! -f  "$SAMBLASTER" ]]
     then
 	realign_usage
         echo -e "Error: samblaster executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$SAMBAMBA" ]]
+    elif [[ ! -f "$SAMBAMBA" ]]
     then
 	realign_usage
         echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$MBUFFER" ]]
+    elif [[ ! -f "$MBUFFER" ]]
     then
 	realign_usage
 	echo -e "Error: mbuffer executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
-    elif [[ -z "$BAMTOFASTQ" ]]
+    elif [[ ! -f "$BAMTOFASTQ" ]]
     then
 	realign_usage
 	echo -e "Error: bamtofastq.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
-    elif [[ -z "$BAMHEADRG" ]]
+    elif [[ ! -f "$BAMHEADRG" ]]
     then
 	realign_usage
 	echo -e "Error: bamheadrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
-    elif [[ -z "$BAMCLEANHEADER" ]]
+    elif [[ ! -f "$BAMCLEANHEADER" ]]
     then
 	realign_usage
 	echo -e "Error: bamcleanheader.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
-    elif [[ -z "$BAMLIBS" ]]
+    elif [[ ! -f "$BAMLIBS" ]]
     then
 	realign_usage
 	echo -e "Error: bamlibs.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
-    elif [[ -z "$PARALLEL" ]]
+    elif [[ ! -f "$PARALLEL" ]]
     then
         realign_usage
 	echo parallel is $PARALLEL
