@@ -494,7 +494,8 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 
 2. Use `speedseq var` to call SNVs and indels on multiple samples with high sensitivity.
 	```
-	speedseq var -o trio \
+	speedseq var \
+		-o trio \
 		-w annotations/ceph18.b37.include.2014-01-15.bed \
 		-q 0.01 \
 		human_g1k_v37.fasta \
