@@ -534,6 +534,3 @@ SpeedSeq is available as a public AMI (Amazon Machine Image) on the Amazon Elast
 
 * Runtime error: "ImportError: No module named argparse"
 > Ensure you are running Python 2.7 or later.
-
-* `speedseq sv` runtime error: "TypeError: %d format: a number is required, not numpy.float64"
-> This is a [known issue](https://github.com/cc2qe/speedseq/issues/20) that occurs when attempting to call SVs on BAM files with less than 10,000,000 reads. We're working on it.
