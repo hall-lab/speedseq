@@ -52,12 +52,12 @@ Chiang, C, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth
 ## Installation
 
 #### Prerequisites
-* Python 2.7 (https://www.python.org/)
+* Python 2.7
 	* numpy
-	* scipy
 	* pysam
-* ROOT (https://root.cern.ch/drupal/) (required if running CNVnator)
-* Variant Effect Predictor (http://www.ensembl.org/info/docs/tools/vep/index.html) (required if annotating VCF files)
+	* scipy
+* ROOT (required if running CNVnator)
+* Variant Effect Predictor (required if annotating VCF files)
 
 #### Install core components
 The core components enable standard functionality outlined in [Quick start](#quick-start).
@@ -90,26 +90,13 @@ cp -r Bio $SPEEDSEQ_DIR/bin
 ```
 
 ##### CNVnator
-http://sv.gersteinlab.org/  
-CNVnator requires the ROOT package as a prerequisite (https://root.cern.ch/drupal/)
+CNVnator requires the ROOT package as a prerequiste (https://root.cern.ch/drupal/)
+```
+cd speedseq
+make cnvnator-multi
+```
 
-1. Install ROOT
-	```
-	curl -OL ftp://root.cern.ch/root/root_v5.34.20.source.tar.gz
-	tar -xvf root_v5.34.20.source.tar.gz
-	cd root
-	./configure
-	make
-	cd ..
-	```
-
-2. asfkasdf
-	```
-	cd speedseq
-	make cnvnator-multi
-	```
-
-For alternative installations and release issues for any of the above tools please consult the tool's developer.
+For alternative installations and release issues for any of the above tools please consult the developer.
 
 ## Usage
 
