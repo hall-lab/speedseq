@@ -62,6 +62,14 @@ System paths to SpeedSeq's component software are specified in the [speedseq.con
 
 #### Install core components
 The core components enable standard functionality outlined in [Quick start](#quick-start).
+* BWA (http://bio-bwa.sourceforge.net/)
+* FreeBayes (https://github.com/ekg/freebayes)
+* LUMPY (https://github.com/arq5x/lumpy-sv)
+* Sambamba (http://lomereiter.github.io/sambamba/)
+* SAMBLASTER (https://github.com/GregoryFaust/samblaster)
+* Vawk (https://github.com/cc2qe/vawk)
+* GNU Parallel (http://www.gnu.org/software/parallel/)
+* mbuffer (http://www.maier-komor.de/mbuffer.html)
 
 Compilation requires g++ and the standard C and C++ development libraries. Additionally, cmake is required for building the BamTools API within FreeBayes and LUMPY.
 ```
@@ -77,9 +85,10 @@ If any components already exist on the system or fail to install, their paths ca
 
 #### Install optional components
 Optional components enable advanced features such as variant annotation and read-depth analysis.
+* Ensembl Variant Effect Predictor (VEP) (http://www.ensembl.org/info/docs/tools/vep/index.html)
+* CNVnator (http://sv.gersteinlab.org/)
 
 ##### Variant Effect Predictor
-http://www.ensembl.org/info/docs/tools/vep/index.html
 ```
 curl -OL https://github.com/Ensembl/ensembl-tools/archive/release/76.zip
 unzip 76.zip
