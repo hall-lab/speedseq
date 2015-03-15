@@ -530,7 +530,7 @@ SpeedSeq is available as a public AMI (Amazon Machine Image) on the Amazon Elast
 
 7. Run the SpeedSeq test script.
 	```
-	./run_speedseq
+	./run_speedseq.sh
 	```
 	This should produce the following files:
 	* example.bam
