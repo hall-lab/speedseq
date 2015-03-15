@@ -12,12 +12,44 @@ SVTYPER_DIR=$(SRC)/svtyper
 CNVNATOR_DIR=$(SRC)/cnvnator
 TABIX_DIR=$(SRC)/tabix
 VAWK_DIR=$(SRC)/vawk
-SVTOOLS_DIR=$(SRC)/svtools
 MBUFFER_DIR=$(SRC)/mbuffer
+PARALLEL_DIR=$(SRC)/parallel
 BAMKIT_DIR=$(SRC)/bamkit
 
-all:	bwa sambamba samblaster freebayes lumpy svtyper tabix vawk svtools mbuffer bamkit cnvnator-multi
+# all
+all:
+	@echo "" > $(MKFILE_DIR)/install.log
+	@echo "Installing align module..." >> $(MKFILE_DIR)/install.log
+	$(MAKE) align
+	@echo "Done." >> $(MKFILE_DIR)/install.log
 
+	@echo "Installing var and somatic modules..." >> $(MKFILE_DIR)/install.log
+	$(MAKE) var
+	@echo "Done." >> $(MKFILE_DIR)/install.log
+
+	@echo "Installing sv module..." >> $(MKFILE_DIR)/install.log
+	$(MAKE) sv
+	@echo "Done." >> $(MKFILE_DIR)/install.log
+
+	@echo "Installing realign module..." >> $(MKFILE_DIR)/install.log
+	$(MAKE) realign
+	@echo "Done." >> $(MKFILE_DIR)/install.log
+
+	@echo "Installation successful" >> $(MKFILE_DIR)/install.log
+
+# modules
+align: bwa sambamba samblaster parallel config
+
+var: freebayes tabix vawk parallel config
+
+somatic: var
+
+sv: lumpy sambamba samblaster vawk bamkit tabix svtyper cnvnator-multi config
+
+realign: bwa sambamba samblaster parallel mbuffer bamkit config
+
+# autogenerate speedseq.config
+config:
 	@echo "" > $(TARGET_BIN)/speedseq.config
 	@echo "SPEEDSEQ_HOME=$(MKFILE_DIR)" >> $(TARGET_BIN)/speedseq.config
 	@echo "" >> $(TARGET_BIN)/speedseq.config
@@ -26,14 +58,13 @@ all:	bwa sambamba samblaster freebayes lumpy svtyper tabix vawk svtools mbuffer 
 	@echo "BGZIP=$(MKFILE_DIR)/$(TARGET_BIN)/bgzip" >> $(TARGET_BIN)/speedseq.config
 	@echo "TABIX=$(MKFILE_DIR)/$(TARGET_BIN)/tabix" >> $(TARGET_BIN)/speedseq.config
 	@echo "VAWK=$(MKFILE_DIR)/$(TARGET_BIN)/vawk" >> $(TARGET_BIN)/speedseq.config
-	@echo "PARALLEL=`which parallel`" >> $(TARGET_BIN)/speedseq.config
+	@echo "PARALLEL=$(MKFILE_DIR)/$(TARGET_BIN)/parallel" >> $(TARGET_BIN)/speedseq.config
 	@echo "PYTHON=`which python2.7`" >> $(TARGET_BIN)/speedseq.config
 
 	@echo "" >> $(TARGET_BIN)/speedseq.config
 	@echo "# align" >> $(TARGET_BIN)/speedseq.config
 	@echo "BWA=$(MKFILE_DIR)/$(TARGET_BIN)/bwa" >> $(TARGET_BIN)/speedseq.config
 	@echo "SAMBLASTER=$(MKFILE_DIR)/$(TARGET_BIN)/samblaster" >> $(TARGET_BIN)/speedseq.config
-	@echo "SAMBAMBA=$(MKFILE_DIR)/$(TARGET_BIN)/sambamba" >> $(TARGET_BIN)/speedseq.config
 
 	@echo "" >> $(TARGET_BIN)/speedseq.config
 	@echo "# var/somatic" >> $(TARGET_BIN)/speedseq.config
@@ -55,8 +86,8 @@ all:	bwa sambamba samblaster freebayes lumpy svtyper tabix vawk svtools mbuffer 
 	@echo "# CNVnator" >> $(TARGET_BIN)/speedseq.config
 	@echo "CNVNATOR_WRAPPER=$(MKFILE_DIR)/$(TARGET_BIN)/cnvnator_wrapper.py" >> $(TARGET_BIN)/speedseq.config
 	@echo "CNVNATOR_MULTI=$(MKFILE_DIR)/$(TARGET_BIN)/cnvnator-multi" >> $(TARGET_BIN)/speedseq.config
-	@echo "ANNOTATE_RD=$(MKFILE_DIR)/$(TARGET_BIN)/annotate_rd" >> $(TARGET_BIN)/speedseq.config
-	@echo "CNVNATOR_CHROMS_DIR=" >> $(TARGET_BIN)/speedseq.config
+	@echo "ANNOTATE_RD=$(MKFILE_DIR)/$(TARGET_BIN)/annotate_rd.py" >> $(TARGET_BIN)/speedseq.config
+	@echo "CNVNATOR_CHROMS_DIR=$(MKFILE_DIR)/$(ANNOTATIONS_DIR)/cnvnator_chroms" >> $(TARGET_BIN)/speedseq.config
 
 	@echo "" >> $(TARGET_BIN)/speedseq.config
 	@echo "# realign" >> $(TARGET_BIN)/speedseq.config
@@ -65,6 +96,7 @@ all:	bwa sambamba samblaster freebayes lumpy svtyper tabix vawk svtools mbuffer 
 	@echo "BAMHEADRG=$(MKFILE_DIR)/$(TARGET_BIN)/bamheadrg.py" >> $(TARGET_BIN)/speedseq.config
 	@echo "BAMCLEANHEADER=$(MKFILE_DIR)/$(TARGET_BIN)/bamcleanheader.py" >> $(TARGET_BIN)/speedseq.config
 
+# applications
 bwa:
 	$(MAKE) -C $(BWA_DIR)
 	cp $(BWA_DIR)/bwa $(TARGET_BIN)
@@ -85,6 +117,7 @@ lumpy:
 	cp $(LUMPY_DIR)/scripts/pairend_distro.py $(TARGET_BIN)
 	cp $(LUMPY_DIR)/bin/lumpy $(TARGET_BIN)
 	cp $(LUMPY_DIR)/bin/lumpyexpress $(TARGET_BIN)
+	cp $(LUMPY_DIR)/scripts/vcfToBedpe $(TARGET_BIN)
 
 svtyper:
 	cp $(SVTYPER_DIR)/svtyper $(TARGET_BIN)
@@ -109,18 +142,15 @@ tabix:
 vawk:
 	cp $(VAWK_DIR)/vawk $(TARGET_BIN)
 
-svtools:
-	cp $(SVTOOLS_DIR)/bedpeToBed12 $(TARGET_BIN)
-	cp $(SVTOOLS_DIR)/bedpeToVcf $(TARGET_BIN)
-	cp $(SVTOOLS_DIR)/splitReadSamToBedpe $(TARGET_BIN)
-	cp $(SVTOOLS_DIR)/splitterToBreakpoint $(TARGET_BIN)
-	cp $(SVTOOLS_DIR)/vcfToBedpe $(TARGET_BIN)
-	cp $(SVTOOLS_DIR)/lumpyToBedpe $(TARGET_BIN)
-
 mbuffer:
 	cd $(MBUFFER_DIR); ./configure --prefix=$(shell pwd)
 	$(MAKE) -C $(MBUFFER_DIR)
 	cp $(MBUFFER_DIR)/mbuffer $(TARGET_BIN)
+
+parallel:
+	cd $(PARALLEL_DIR); ./configure --prefix=$(shell pwd)
+	$(MAKE) -C $(PARALLEL_DIR)
+	cp $(PARALLEL_DIR)/src/parallel $(TARGET_BIN)
 
 bamkit:
 	cp $(BAMKIT_DIR)/bamtofastq.py $(TARGET_BIN)
@@ -132,8 +162,6 @@ bamkit:
 
 clean:
 	rm -f \
-		bin/bedpeToBed12 \
-		bin/bedpeToVcf \
 		bin/bgzip \
 		bin/sambamba \
 		bin/cnvnator \
@@ -144,15 +172,13 @@ clean:
 		bin/lumpyexpress \
 		bin/pairend_distro.py \
 		bin/samblaster \
-		bin/splitReadSamToBedpe \
-		bin/splitterToBreakpoint \
 		bin/svtyper \
 		bin/tabix \
 		bin/vawk \
 		bin/vcfToBedpe \
 		bin/bwa \
-		bin/lumpyToBedpe \
 		bin/mbuffer \
+		bin/parallel \
 		bin/bamtofastq.py \
 		bin/bamheadrg.py \
 		bin/bamgroupreads.py \
@@ -168,3 +194,4 @@ clean:
 	$(MAKE) -C $(CNVNATOR_DIR) clean
 	$(MAKE) -C $(TABIX_DIR) clean
 	$(MAKE) -C $(MBUFFER_DIR) clean
+	$(MAKE) -C $(PARALLEL_DIR) clean

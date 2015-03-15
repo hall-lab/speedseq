@@ -43,8 +43,6 @@ function source_binaries() {
 	PAIREND_DISTRO=`which pairend_distro.py || true`
 	SVTYPER=`which svtyper || true`
 	BAMGROUPREADS=`which bamgroupreads.py || true`
-	BAMFILTERRG=`which bamfilterrg.py || true`
-	BAMLIBS=`which bamlibs.py || true`
 
         # CNVnator
 	CNVNATOR_WRAPPER=`which cnvnator_wrapper.py || true`
@@ -66,9 +64,26 @@ function check_python_modules() {
     PYTHON_TEST=$1
     echo -e "\nChecking for required python modules ($PYTHON_TEST)..."
 
-    $PYTHON_TEST -c "import imp; imp.find_module('pysam')"
-    $PYTHON_TEST -c "import imp; imp.find_module('numpy')"
-    $PYTHON_TEST -c "import imp; imp.find_module('scipy')"
+    PYSAM=`$PYTHON_TEST -c "import imp; imp.find_module('pysam')" 2>&1 || true`
+    NUMPY=`$PYTHON_TEST -c "import imp; imp.find_module('numpy')" 2>&1 || true`
+    SCIPY=`$PYTHON_TEST -c "import imp; imp.find_module('scipy')" 2>&1 || true`
+
+    if [[ ! -z "$PYSAM" ]]
+    then
+	usage
+	echo  -e "Error: pysam is not installed for $PYTHON_TEST\n"
+	exit 1
+    elif [[ ! -z "$NUMPY" ]]
+    then
+	usage
+	echo  -e "Error: numpy is not installed for $PYTHON_TEST\n"
+	exit 1
+    elif [[ ! -z "$SCIPY" ]]
+    then
+	usage
+	echo  -e "Error: scipy is not installed for $PYTHON_TEST\n"
+	exit 1
+    fi
 }
 
 ## global usage
@@ -241,13 +256,7 @@ global options:
 	    OUTPUT=`basename "$FQ"`
 	fi
 
-        # Check that the ref and fastq files exist
-	if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
-	then
-            align_usage
-            echo -e "Error: Reference file $REF not found.\n"
-            exit 1
-	elif [[ -z "$FQ" ]]
+	if [[ -z "$FQ" ]]
 	then
             align_usage
             echo -e "Error: Fastq file $FQ not found.\n"
@@ -262,13 +271,7 @@ global options:
 	    OUTPUT=`basename "$FQ1"`
 	fi
 
-        # Check that the ref and fastq files exist
-	if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
-	then
-            align_usage
-            echo -e "Error: Reference file $REF not found.\n"
-            exit 1
-	elif [[ -z "$FQ1" ]]
+	if [[ -z "$FQ1" ]]
 	then
             align_usage
             echo -e "Error: Fastq file $FQ1 not found.\n"
@@ -280,6 +283,15 @@ global options:
             exit 1
 	fi
     fi
+
+    # Check that the ref and fastq files exist
+    if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
+    then
+	align_usage
+	echo -e "Error: Reference file $REF not found.\n"
+	exit 1
+    fi
+
 
     OUTBASE=`basename "$OUTPUT"`
 
@@ -324,11 +336,19 @@ global options:
         exit 1
     fi
 
+    # Check for BWA index of the reference
+    if [[ ! -f "$REF.sa" ]]
+    then
+	echo "Warning: Reference file not indexed with BWA. Indexing now..."
+	$BWA index $REF
+	echo "Done"
+    fi
+
     echo "Aligning..."
     # create temp directory if not specified by command argument
     if [[ -z $TEMP_DIR ]]
     then
-	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+	TEMP_DIR=`mktemp -d ${OUTBASE}.XXXXXXXXXXXX`
     fi
 
     if [[ $VERBOSE -eq 1 ]]
@@ -589,7 +609,7 @@ options:
     fi
     if [[ -z $TEMP_DIR ]]
     then
-	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+	TEMP_DIR=`mktemp -d ${OUTBASE}.XXXXXXXXXXXX`
     else
 	mkdir -p $TEMP_DIR	
     fi
@@ -608,7 +628,7 @@ options:
     fi
     
     # construct the parallel command over windows
-    if [[ $VERBOSE ]]
+    if [[ $VERBOSE -eq 1 ]]
     then
         echo -e "
         $FREEBAYES \\
@@ -634,7 +654,7 @@ options:
     done > $TEMP_DIR/var_command.txt
 
     # run the parallel freebayes command
-    if [[ $VERBOSE ]]
+    if [[ $VERBOSE -eq 1 ]]
     then
 	echo "
         cat $TEMP_DIR/var_command.txt | $PARALLEL -j $THREADS"
@@ -938,7 +958,7 @@ options:
     fi
     if [[ -z $TEMP_DIR ]]
     then
-	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+	TEMP_DIR=`mktemp -d ${OUTBASE}.XXXXXXXXXXXX`
     else
 	mkdir -p $TEMP_DIR	
     fi
@@ -1282,31 +1302,6 @@ global options:
 	sv_usage
         echo -e "Error: samblaster executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$BWA" ]] && [[ "$REALIGN" -eq 1 ]]
-    then
-	sv_usage
-	echo -e "Error: BWA executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ -z "$BAMTOFASTQ" ]] && [[ "$REALIGN" -eq 1 ]]
-    then
-	sv_usage
-	echo -e "Error: bamtofastq.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ -z "$BAMHEADRG" ]] && [[ "$REALIGN" -eq 1 ]]
-    then
-	sv_usage
-	echo -e "Error: bamheadrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ -z "$BAMCLEANHEADER" ]] && [[ "$REALIGN" -eq 1 ]]
-    then
-	sv_usage
-	echo -e "Error: bamcleanheader.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ -z "$MBUFFER" ]] && [[ "$REALIGN" -eq 1 ]]
-    then
-	sv_usage
-	echo -e "Error: mbuffer executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
     elif [[ -z "$BAMFILTERRG" ]]
     then
 	sv_usage
@@ -1396,7 +1391,7 @@ global options:
     fi
     if [[ -z $TEMP_DIR ]]
     then
-	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+	TEMP_DIR=`mktemp -d ${OUTBASE}.XXXXXXXXXXXX`
     else
 	mkdir -p $TEMP_DIR	
     fi
@@ -1561,8 +1556,8 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
 	rm -r ${TEMP_DIR}
     fi
 
-    echo "done"
-
+    echo "SV calling done."
+    
     # exit cleanly
     exit 0
 }
@@ -1755,7 +1750,7 @@ global options:
     # parse the libraries in the BAM header to extract readgroups from the same library
     if [[ -z $REALIGN_RG_LIST ]]
     then
-	REALIGN_RG_LIST=(`$BAMCLEANHEADER $IN_BAM | $BAMLIBS -S`)
+	REALIGN_RG_LIST=(`$PYTHON $BAMCLEANHEADER $IN_BAM | $PYTHON $BAMLIBS -S`)
     fi
 
     if [[ ${#REALIGN_RG_LIST[@]} -eq 0 ]]
@@ -1772,7 +1767,7 @@ global options:
     # create temp directory if not specified by command argument
     if [[ -z $TEMP_DIR ]]
     then
-	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+	TEMP_DIR=`mktemp -d ${OUTBASE}.XXXXXXXXXXXX`
     fi
 
     if [[ $VERBOSE -eq 1 ]]
