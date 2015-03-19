@@ -489,6 +489,23 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 		-R human_g1k_v37.fasta
 	```
 
+### Call _de novo_ mutations in a trio
+1. Use `speedseq align` to produce sorted, duplicate-marked, BAM alignments (as shown above).
+
+2. Use `speedseq var` to call SNVs and indels on multiple samples with high sensitivity.
+	```
+	speedseq var \
+		-o trio \
+		-w annotations/ceph18.b37.include.2014-01-15.bed \
+		-q 0.01 \
+		human_g1k_v37.fasta \
+		mother.bam \
+		father.bam \
+		child.bam
+	```
+
+3. Filter variants for _de novo_ status using [GEMINI's built-in analysis tools](http://gemini.readthedocs.org/en/latest/content/tools.html#de-novo-identifying-potential-de-novo-mutations).
+
 ## SpeedSeq AMI
 SpeedSeq is available as a public AMI (Amazon Machine Image) on the Amazon Elastic Compute Cloud (EC2).
 
@@ -513,7 +530,7 @@ SpeedSeq is available as a public AMI (Amazon Machine Image) on the Amazon Elast
 
 7. Run the SpeedSeq test script.
 	```
-	./run_speedseq
+	./run_speedseq.sh
 	```
 	This should produce the following files:
 	* example.bam
