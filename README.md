@@ -362,8 +362,8 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 	Note: if using an interleaved paired-end fastq file, use the `-p` flag
 	```
 	speedseq align \
-		-p \
 		-o NA12878 \
+		-p \
 		-R "@RG\tID:NA12878.S1\tSM:NA12878\tLB:lib1" \
 		human_g1k_v37.fasta \
 		NA12878.interleaved.fq.gz
@@ -371,14 +371,16 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 
 2. Use `speedseq var` to call SNVs and indels on a single sample.
 	```
-	speedseq var -o NA12878 \
+	speedseq var \
+		-o NA12878 \
 		-w annotations/ceph18.b37.include.2014-01-15.bed \
 		human_g1k_v37.fasta NA12878.bam
 	```
 
 3. Use `speedseq sv` to call structural variants. The optional `-g` and `-d` flags perform breakend genotyping and read-depth calculation respectively
 	```
-	speedseq sv -o NA12878 \
+	speedseq sv \
+		-o NA12878 \
 		-x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
 		-g \
 		-d \
@@ -408,7 +410,8 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 
 3. Use `speedseq var` to call SNVs and indels.
 	```
-	speedseq var -o NA12878 \
+	speedseq var \
+		-o NA12878 \
 		-w annotations/ceph18.b37.include.2014-01-15.bed \
 		human_g1k_v37.fasta \
 		NA12878_merged.bam
@@ -416,7 +419,8 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 
 3. Use `speedseq sv` to call structural variants.
 	```
-	speedseq -sv -o NA12878 \
+	speedseq -sv \
+		-o NA12878 \
 		-x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
 		-B NA12878_merged.bam \
 		-S NA12878_merged.splitters.bam \
@@ -427,26 +431,40 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 ### Call variants on multiple samples
 1. Use `speedseq align` to produce sorted, duplicate-marked, BAM alignments for each sample.
 	```
-	speedseq align -o NA12877 -R "@RG\tID:NA12877.S1\tSM:NA12877\tLB:lib1" \
-		human_g1k_v37.fasta NA12877.1.fq.gz NA12877.2.fq.gz
+	speedseq align \
+		-o NA12877 \
+		-R "@RG\tID:NA12877.S1\tSM:NA12877\tLB:lib1" \
+		human_g1k_v37.fasta \
+		NA12877.1.fq.gz \
+		NA12877.2.fq.gz
 
-	speedseq align -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878\tLB:lib2" \
-		human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
+	speedseq align \
+		-o NA12878 \
+		-R "@RG\tID:NA12878.S1\tSM:NA12878\tLB:lib2" \
+		human_g1k_v37.fasta \
+		NA12878.1.fq.gz \
+		NA12878.2.fq.gz
 
-	speedseq align -o NA12879 -R "@RG\tID:NA12879.S1\tSM:NA12879\tLB:lib3" \
-		human_g1k_v37.fasta NA12879.1.fq.gz NA12879.2.fq.gz
+	speedseq align \
+		-o NA12879 \
+		-R "@RG\tID:NA12879.S1\tSM:NA12879\tLB:lib3" \
+		human_g1k_v37.fasta \
+		NA12879.1.fq.gz \
+		NA12879.2.fq.gz
 	```
 
 2. Use `speedseq var` to call SNVs and indels on multiple samples.
 	```
-	speedseq var -o cephtrio \
+	speedseq var \
+		-o cephtrio \
 		-w annotations/ceph18.b37.include.2014-01-15.bed \
 		human_g1k_v37.fasta NA12877.bam NA12878.bam NA12879.bam
 	```
 
 3. Use `speedseq sv` to call structural variants on multiple samples.
 	```
-	speedseq sv -o cephtrio \
+	speedseq sv \
+		-o cephtrio \
 		-x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
 		-B NA12877.bam,NA12878.bam,NA12879.bam \
 		-D NA12877.discordants.bam,NA12878.discordants.bam,NA12879.discordants.bam \
@@ -456,12 +474,16 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 ### Call variants on a tumor/normal pair
 1. Use `speedseq align` to produce sorted, duplicate-marked, BAM alignments for the tumor/normal pair
 	```
-	speedseq align -p -o TCGA-B6-A0I6.normal \
+	speedseq align \
+		-o TCGA-B6-A0I6.normal \
+		-p \
 		-R "@RG\tID:TCGA-B6-A0I6-10A-01D-A128-09\tSM:TCGA-B6-A0I6-10A-01D-A128-09\tLB:lib1" \
 		human_g1k_v37.fasta \
 		TCGA-B6-A0I6-10A-01D-A128-09.interleaved.fq.gz
 
-	speedseq align -p -o TCGA-B6-A0I6.tumor \
+	speedseq align \
+		-o TCGA-B6-A0I6.tumor \
+		-p \
 		-R "@RG\tID:TCGA-B6-A0I6-10A-01D-A128-09\tSM:TCGA-B6-A0I6-10A-01D-A128-09\tLB:lib1" \
 		human_g1k_v37.fasta \
 		TCGA-B6-A0I6-01A-11D-A128-09.interleaved.fq.gz
@@ -469,7 +491,8 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 
 2. Use `speedseq somatic` to call SNVs and indels on the tumor/normal pair.
 	```
-	speedseq somatic -o TCGA-B6-A0I6 \
+	speedseq somatic \
+		-o TCGA-B6-A0I6 \
 		-w annotations/ceph18.b37.include.2014-01-15.bed \
 		-F 0.05 \
 		-q 1 \
