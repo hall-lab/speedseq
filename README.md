@@ -159,6 +159,8 @@ SpeedSeq is a modular framework with four components:
 * [speedseq somatic](#speedseq-somatic) - Run FreeBayes on a tumor/normal pair of BAM files
 * [speedseq sv](#speedseq-sv) - Run LUMPY on one or more BAM files, with optional breakend genotyping and read-depth calculation.
 
+These modules operate independently of each other and produce universal output formats that are compatible with external tools. SpeedSeq modules can also run on BAM alignments that were produced outside of the SpeedSeq framework. . However, structural variant detection on BAM files generated outside of SpeedSeq will be slower due to two unique features of `speedseq align`. First, our alignment uses SAMBLASTER to automatically extract split and discordant reads for SV detection. While the `speedseq sv` module will internally extract split and discordant reads from regular BAM files, it takes much longer due to obligate name-sorting of the BAM file. Secondly, structural variant genotyping is much faster on BAM files processed by SAMBLASTER due to the addition of mate CIGAR and mate mapping quality tags. In the absence of these tags, SVTyper must jump to each read’s mate position in the BAM file, which greatly increases run time.
+
 ### speedseq align
 `speedseq align` converts paired-end FASTQ sequences to a duplicate-marked, sorted, indexed BAM file that can be processed with other SpeedSeq modules.
 
