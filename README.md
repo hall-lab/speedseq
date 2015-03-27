@@ -289,7 +289,6 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
                    we recommend using the annotations/ceph18.b37.include.2014-01-15.bed
                    (see Annotations)
 -t INT           number of threads to use [default: 1]
--s               only output somatic variants
 -F FLOAT         require at least this fraction of observations supporting
                    an alternate allele within a single individual in order
                    to evaluate the position [0.05]

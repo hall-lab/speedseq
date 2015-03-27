@@ -794,7 +794,6 @@ options:
          -o STR   output prefix [tumor.bam]
          -w FILE  BED file of windowed genomic intervals
          -t INT   threads [1]
-         -s       only output somatic variants
          -F FLOAT Require at least this fraction of observations supporting
                     an alternate allele within a single individual in order
                     to evaluate the position [0.05]
@@ -836,7 +835,7 @@ options:
     VERBOSE=0
     KEEP=0
 
-    while getopts ":ho:w:t:F:C:T:Aq:S:svkK:" OPTION
+    while getopts ":ho:w:t:F:C:T:Aq:S:vkK:" OPTION
     do
         case "${OPTION}" in
             h)
@@ -869,9 +868,6 @@ options:
 		;;
 	    S)
 		SSC_THRES="$OPTARG"
-		;;
-	    s)
-		ONLY_SOMATIC=1
 		;;
             v)
                 VERBOSE=1
