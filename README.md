@@ -375,7 +375,8 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 	speedseq var \
 		-o NA12878 \
 		-w annotations/ceph18.b37.include.2014-01-15.bed \
-		human_g1k_v37.fasta NA12878.bam
+		human_g1k_v37.fasta \
+		NA12878.bam
 	```
 
 3. Use `speedseq sv` to call structural variants. The optional `-g` and `-d` flags perform breakend genotyping and read-depth calculation respectively
@@ -394,13 +395,19 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 1. Use `speedseq align` to produce a sorted, duplicate-marked, BAM alignment of each library.
 	```
 	speedseq align -o NA12878_S1 -R "@RG\tID:NA12878.S1\tSM:NA12878\tLB:lib1" \
-		human_g1k_v37.fasta NA12878.S1.1.fq.gz NA12878.S1.2.fq.gz
+		human_g1k_v37.fasta \
+		NA12878.S1.1.fq.gz \
+		NA12878.S1.2.fq.gz
 
 	speedseq align -o NA12878_S2 -R "@RG\tID:NA12878.S2\tSM:NA12878\tLB:lib2" \
-		human_g1k_v37.fasta NA12878.S2.1.fq.gz NA12878.S2.2.fq.gz
+		human_g1k_v37.fasta \
+		NA12878.S2.1.fq.gz \
+		NA12878.S2.2.fq.gz
 
 	speedseq align -o NA12878_S3 -R "@RG\tID:NA12878.S3\tSM:NA12878\tLB:lib3" \
-		human_g1k_v37.fasta NA12878.S3.1.fq.gz NA12878.S3.2.fq.gz
+		human_g1k_v37.fasta \
+		NA12878.S3.1.fq.gz \
+		NA12878.S3.2.fq.gz
 	```
 
 2. Merge the samples
@@ -459,7 +466,10 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 	speedseq var \
 		-o cephtrio \
 		-w annotations/ceph18.b37.include.2014-01-15.bed \
-		human_g1k_v37.fasta NA12877.bam NA12878.bam NA12879.bam
+		human_g1k_v37.fasta \
+		NA12877.bam \
+		NA12878.bam \
+		NA12879.bam
 	```
 
 3. Use `speedseq sv` to call structural variants on multiple samples.
