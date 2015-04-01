@@ -2,7 +2,7 @@
 
 ############################################################
 #  Program: speedseq
-#  Version: 0.0.3
+#  Version: 0.0.3a
 #  Author: Colby Chiang (cc2qe@virginia.edu)
 ############################################################
 
@@ -90,7 +90,7 @@ function check_python_modules() {
 function usage() {
     echo "
 Program: speedseq
-Version: 0.0.3
+Version: 0.0.3a
 Author: Colby Chiang (cc2qe@virginia.edu)
 
 usage:   speedseq <command> [options]
