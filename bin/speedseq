@@ -50,7 +50,7 @@ function source_binaries() {
 	ANNOTATE_RD=`which annotate_rd.py || true`
 	CNVNATOR_CHROMS_DIR=~/genomes/GRCh37/chroms
 
-	# re-align
+	# realign
 	BAMTOFASTQ=`which bamtofastq.py || true`
 	MBUFFER=`which mbuffer || true`
 	BAMHEADRG=`which bamheadrg.py || true`
@@ -99,7 +99,7 @@ command: align    align FASTQ files with BWA-MEM
          var      call SNV and indel variants with FreeBayes
          somatic  call somatic SNV and indel variants in a tumor/normal pair with FreeBayes
          sv       call SVs with LUMPY
-         realign  re-align from a coordinate sorted BAM file
+         realign  realign from a coordinate sorted BAM file
 
 options: -h       show this message
 "
@@ -1565,13 +1565,12 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
 function realign() {
     function realign_usage() {
 	echo "
-usage:   speedseq realign [options] <reference.fa> <in.bam>
+usage:   speedseq realign [options] <reference.fa> <in1.bam> [in2.bam [...]]
 
 positional args:
          reference.fa
                   fasta file (indexed with bwa)
-         in.bam   re-align from a coordinate sorted BAM file
-                    this BAM file must contain read group tags
+         in.bam   BAM file(s) (must contain read group tags)
 
 alignment options:
          -o STR   output prefix [in.realign]
