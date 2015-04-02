@@ -1666,8 +1666,6 @@ global options:
     done
 
     REF="${@:${OPTIND}:1}"
-    # IN_BAM_LIST="${@:$((${OPTIND}+1)):1}"
-
     BAM_STRING="${@:$((${OPTIND}+1))}"
     BAM_LIST=($BAM_STRING)
 
