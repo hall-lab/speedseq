@@ -50,7 +50,7 @@ function source_binaries() {
 	ANNOTATE_RD=`which annotate_rd.py || true`
 	CNVNATOR_CHROMS_DIR=~/genomes/GRCh37/chroms
 
-	# re-align
+	# realign
 	BAMTOFASTQ=`which bamtofastq.py || true`
 	MBUFFER=`which mbuffer || true`
 	BAMHEADRG=`which bamheadrg.py || true`
@@ -99,7 +99,7 @@ command: align    align FASTQ files with BWA-MEM
          var      call SNV and indel variants with FreeBayes
          somatic  call somatic SNV and indel variants in a tumor/normal pair with FreeBayes
          sv       call SVs with LUMPY
-         realign  re-align from a coordinate sorted BAM file
+         realign  realign from a coordinate sorted BAM file
 
 options: -h       show this message
 "
@@ -1565,13 +1565,12 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
 function realign() {
     function realign_usage() {
 	echo "
-usage:   speedseq realign [options] <reference.fa> <in.bam>
+usage:   speedseq realign [options] <reference.fa> <in1.bam> [in2.bam [...]]
 
 positional args:
          reference.fa
                   fasta file (indexed with bwa)
-         in.bam   re-align from a coordinate sorted BAM file
-                    this BAM file must contain read group tags
+         in.bam   BAM file(s) (must contain read group tags)
 
 alignment options:
          -o STR   output prefix [in.realign]
@@ -1667,24 +1666,32 @@ global options:
     done
 
     REF="${@:${OPTIND}:1}"
-    IN_BAM="${@:$((${OPTIND}+1)):1}"
+    BAM_STRING="${@:$((${OPTIND}+1))}"
+    BAM_LIST=($BAM_STRING)
+
     if [[ -z "$OUTPUT" ]]
     then
-	OUTPUT=`basename "$IN_BAM" ".bam"`".realign"
+	OUTPUT=`basename "${BAM_LIST[0]}" ".bam"`".realign"
     fi
 
-    # Check that the ref and bam files exist
+    # Check that the ref files exists
     if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
     then
 	realign_usage
 	echo -e "Error: Reference file $REF not found.\n"
 	exit 1
-    elif [[ -z "$IN_BAM" ]] || [[ ! -e "$IN_BAM" ]]
-    then
-	realign_usage
-	echo -e "Error: BAM file $IN_BAM not found.\n"
-	exit 1
     fi
+
+    # Check that the input BAMs exist
+    for TEST_BAM in ${BAM_LIST[@]}
+    do
+        if [[ ! -f $TEST_BAM ]]
+        then
+            realign_usage
+            echo -e "Error: BAM file $TEST_BAM not found.\n"
+            exit 1
+        fi
+    done
 
     # Check that SORT_MEM > 2
     if [[ "$SORT_MEM" -lt 3 ]]
@@ -1747,24 +1754,9 @@ global options:
     # check for required python modules (pysam, numpy, scipy, etc)
     check_python_modules $PYTHON
 
-    # parse the libraries in the BAM header to extract readgroups from the same library
-    if [[ -z $REALIGN_RG_LIST ]]
-    then
-	REALIGN_RG_LIST=(`$PYTHON $BAMCLEANHEADER $IN_BAM | $PYTHON $BAMLIBS -S`)
-    fi
-
-    if [[ ${#REALIGN_RG_LIST[@]} -eq 0 ]]
-    then
-	realign_usage
-        echo -e "Error: $IN_BAM lacks read group fields (@RG) in BAM header\n"
-        exit 1
-    fi
-
     # set the output name
     OUTBASE=`basename "$OUTPUT"`
-
-    echo "Aligning..."
-    # create temp directory if not specified by command argument
+    # create temp directory and pipes
     if [[ -z $TEMP_DIR ]]
     then
 	TEMP_DIR=`mktemp -d ${OUTBASE}.XXXXXXXXXXXX`
@@ -1784,8 +1776,6 @@ global options:
         mkdir -p $TEMP_DIR/full $TEMP_DIR/spl $TEMP_DIR/disc
         mkfifo $TEMP_DIR/spl_pipe $TEMP_DIR/disc_pipe $TEMP_DIR/fq_pipe"
     fi
-
-    # create temp files and pipes
     mkdir -p $TEMP_DIR $TEMP_DIR/full $TEMP_DIR/spl $TEMP_DIR/disc
     if [[ ! -e $TEMP_DIR/spl_pipe ]]
     then
@@ -1801,18 +1791,38 @@ global options:
     fi
     FQ="$TEMP_DIR/fq_pipe"
 
+    # make a sloppy "merged" header.
+    $PYTHON $BAMCLEANHEADER $BAM_STRING > $TEMP_DIR/header.txt
+
+    # SHOULD ADD A CHECK HERE TO MAKE SURE EACH INDIVIDUAL BAM CONTAINS READGROUPS
+
+    # parse the libraries in the BAM header to extract readgroups from the same library
+    if [[ -z $REALIGN_RG_LIST ]]
+    then
+	REALIGN_RG_LIST+=(`$PYTHON $BAMLIBS -S $TEMP_DIR/header.txt`)
+    fi
+
+    if [[ ${#REALIGN_RG_LIST[@]} -eq 0 ]]
+    then
+	realign_usage
+        echo -e "Error: BAM headers lack read group fields (@RG)\n"
+        exit 1
+    fi
+
+
+    echo "Aligning..."
     for i in $( seq 0 $(( ${#REALIGN_RG_LIST[@]}-1 )) )
     do
 	REALIGN_RG=${REALIGN_RG_LIST[i]}
-	echo "             Re-aligning readgroups: $REALIGN_RG"
+	echo "             Realigning readgroups: $REALIGN_RG"
 
 	# alignment command
 	if [[ $VERBOSE -eq 1 ]]
 	    then
 	        echo -e "
-            $PYTHON $BAMTOFASTQ -r $REALIGN_RG $RENAME -i $IN_BAM | $MBUFFER -q -m 1G > $FQ
+            $PYTHON $BAMTOFASTQ -r $REALIGN_RG $RENAME $BAM_STRING | $MBUFFER -q -m 1G > $FQ
             $BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ \\
-                | $PYTHON $BAMHEADRG -d $IN_BAM -r $REALIGN_RG \\
+                | $PYTHON $BAMHEADRG -d $TEMP_DIR/header.txt -r $REALIGN_RG \\
                 | $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \\
                 | $SAMBAMBA view -S -f bam -l 0 /dev/stdin \\
                 | $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $TEMP_DIR/$OUTBASE.$(($i+1)).bam /dev/stdin
@@ -1823,9 +1833,9 @@ global options:
 	fi
 
 	echo -e "
-            $PYTHON $BAMTOFASTQ -r $REALIGN_RG $RENAME -i $IN_BAM | $MBUFFER -q -m 1G > $FQ
+            $PYTHON $BAMTOFASTQ -r $REALIGN_RG $RENAME $BAM_STRING | $MBUFFER -q -m 1G > $FQ
             $BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ \
-                | $PYTHON $BAMHEADRG -d $IN_BAM -r $REALIGN_RG \
+                | $PYTHON $BAMHEADRG -d $TEMP_DIR/header.txt -r $REALIGN_RG \
                 | $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
                 | $SAMBAMBA view -S -f bam -l 0 /dev/stdin \
                 | $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $TEMP_DIR/$OUTBASE.$(($i+1)).bam /dev/stdin
