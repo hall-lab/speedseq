@@ -585,3 +585,11 @@ SpeedSeq is available as a public AMI (Amazon Machine Image) on the Amazon Elast
 
 * Runtime error: "ImportError: No module named argparse"
 > Ensure you are running Python 2.7 or later.
+
+* CNVnator fails to run during `speedseq sv`
+> This may be due to a problem with the ROOT installation. Try configuring the ROOT package without the --prefix flag. Then run
+> ```
+./configure
+make
+> ```
+> Add /pathto/root/bin/thisroot.sh to the speedseq.config file
