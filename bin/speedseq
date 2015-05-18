@@ -380,9 +380,11 @@ global options:
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
-        $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \\
+        gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/spl_pipe | \\
+            $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
-        $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \\
+        gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/disc_pipe | \\
+            $SAMBAMBA view -S -f bam /dev/stdin | \\
             $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin"
 	fi
 
@@ -391,10 +393,12 @@ global options:
 	    $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
 	    $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
-        
-        $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \
+
+        gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/spl_pipe | \
+            $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
 	    $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
-        $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
+        gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/disc_pipe | \
+            $SAMBAMBA view -S -f bam /dev/stdin | \
 	    $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
         " | $PARALLEL -j 3
     else
@@ -406,9 +410,11 @@ global options:
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
-        $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \\
+        gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/spl_pipe | \\
+            $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
-        $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \\
+        gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/disc_pipe | \\
+            $SAMBAMBA view -S -f bam /dev/stdin | \\
             $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin"
 	fi
 
@@ -418,9 +424,11 @@ global options:
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
-        $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \
+        gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/spl_pipe | \
+            $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
             $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
-        $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
+        gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/disc_pipe | \
+            $SAMBAMBA view -S -f bam /dev/stdin | \
             $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
         " | $PARALLEL -j 3
     fi
@@ -1826,9 +1834,11 @@ global options:
                 | $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \\
                 | $SAMBAMBA view -S -f bam -l 0 /dev/stdin \\
                 | $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $TEMP_DIR/$OUTBASE.$(($i+1)).bam /dev/stdin
-            $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe \\
+	    gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/spl_pipe \\
+		| $SAMBAMBA view -S -f bam -l 0 /dev/stdin \\
                 | $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.$(($i+1)).splitters.bam /dev/stdin
-            $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe \\
+	    gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/disc_pipe \\
+		| $SAMBAMBA view -S -f bam -l 0 /dev/stdin \\
                 | $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.$(($i+1)).discordants.bam /dev/stdin"
 	fi
 
@@ -1839,9 +1849,11 @@ global options:
                 | $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
                 | $SAMBAMBA view -S -f bam -l 0 /dev/stdin \
                 | $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $TEMP_DIR/$OUTBASE.$(($i+1)).bam /dev/stdin
-            $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe \
+	    gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/spl_pipe \
+		| $SAMBAMBA view -S -f bam -l 0 /dev/stdin \
                 | $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.$(($i+1)).splitters.bam /dev/stdin
-            $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe \
+	    gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/disc_pipe \
+		| $SAMBAMBA view -S -f bam -l 0 /dev/stdin \
                 | $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.$(($i+1)).discordants.bam /dev/stdin
             " | $PARALLEL -j 4
     done
