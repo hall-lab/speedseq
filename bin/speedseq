@@ -375,7 +375,7 @@ global options:
 	if [[ $VERBOSE -eq 1 ]]
 	then
 	    echo -e "
-        $BWA mem -t $THREADS -M -p $INS_DIST $RG_FMT $REF $FQ | \\
+        $BWA mem -t $THREADS -p $INS_DIST $RG_FMT $REF $FQ | \\
             $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
@@ -389,7 +389,7 @@ global options:
 	fi
 
 	echo "
-        $BWA mem -t $THREADS -M -p $INS_DIST $RG_FMT $REF $FQ | \
+        $BWA mem -t $THREADS -p $INS_DIST $RG_FMT $REF $FQ | \
 	    $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
 	    $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
@@ -405,7 +405,7 @@ global options:
 	if [[ $VERBOSE -eq 1 ]]
 	then
         echo -e "
-        $BWA mem -t $THREADS -M $INS_DIST $RG_FMT $REF $FQ1 $FQ2 | \\
+        $BWA mem -t $THREADS $INS_DIST $RG_FMT $REF $FQ1 $FQ2 | \\
             $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
@@ -419,7 +419,7 @@ global options:
 	fi
 
         echo "
-        $BWA mem -t $THREADS -M $INS_DIST $RG_FMT $REF $FQ1 $FQ2 | \
+        $BWA mem -t $THREADS $INS_DIST $RG_FMT $REF $FQ1 $FQ2 | \
             $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
@@ -1829,7 +1829,7 @@ global options:
 	    then
 	        echo -e "
             $PYTHON $BAMTOFASTQ -r $REALIGN_RG $RENAME $BAM_STRING | $MBUFFER -q -m 1G > $FQ
-            $BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ \\
+            $BWA mem -t $THREADS -C -p $INS_DIST $RG_FMT $REF $FQ \\
                 | $PYTHON $BAMHEADRG -d $TEMP_DIR/header.txt -r $REALIGN_RG \\
                 | $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \\
                 | $SAMBAMBA view -S -f bam -l 0 /dev/stdin \\
@@ -1844,7 +1844,7 @@ global options:
 
 	echo -e "
             $PYTHON $BAMTOFASTQ -r $REALIGN_RG $RENAME $BAM_STRING | $MBUFFER -q -m 1G > $FQ
-            $BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ \
+            $BWA mem -t $THREADS -C -p $INS_DIST $RG_FMT $REF $FQ \
                 | $PYTHON $BAMHEADRG -d $TEMP_DIR/header.txt -r $REALIGN_RG \
                 | $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
                 | $SAMBAMBA view -S -f bam -l 0 /dev/stdin \
