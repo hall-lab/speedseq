@@ -52,7 +52,7 @@ As a template for installation on other systems, we have provided the exact comm
 * CMake (http://www.cmake.org/)
 * Python 2.7 (https://www.python.org/)
 	* numpy
-	* pysam
+	* pysam 0.8.0+
 	* scipy
 * ROOT (https://root.cern.ch/) (required if running CNVnator)
 * Variant Effect Predictor (http://www.ensembl.org/info/docs/tools/vep/index.html) (required if annotating VCF files)
@@ -593,3 +593,6 @@ SpeedSeq is available as a public AMI (Amazon Machine Image) on the Amazon Elast
 make
 > ```
 > Add /pathto/root/bin/thisroot.sh to the speedseq.config file
+
+* Python errors
+> Python errors commonly result from incompatibilities with older versions of Pysam. SpeedSeq runs on Pysam versions 0.8.0 and newer.
