@@ -2,7 +2,7 @@
 
 ############################################################
 #  Program: speedseq
-#  Version: 0.0.3a
+#  Version: 0.0.3b
 #  Author: Colby Chiang (cc2qe@virginia.edu)
 ############################################################
 
@@ -90,7 +90,7 @@ function check_python_modules() {
 function usage() {
     echo "
 Program: speedseq
-Version: 0.0.3a
+Version: 0.0.3b
 Author: Colby Chiang (cc2qe@virginia.edu)
 
 usage:   speedseq <command> [options]
@@ -635,7 +635,6 @@ options:
             -f $REF \\
             --region \$chrom:\$start..\$end \\
             $BAM_STRING \\
-            --experimental-gls \\
             --min-repeat-entropy 1 \\
             | $VAWK --header '\$6>=$MINQUAL && I\$RPR>0 && I\$RPL>0' \\
             > ${TEMP_DIR}/$OUTBASE.\$i.vcf"
@@ -646,7 +645,6 @@ options:
         echo "$FREEBAYES \
         -f $REF \
         --region $i \
-        --experimental-gls \
         --min-repeat-entropy 1 \
         $BAM_STRING \
         | $VAWK --header '\$6>=$MINQUAL && I\$RPR>0 && I\$RPL>0' \
