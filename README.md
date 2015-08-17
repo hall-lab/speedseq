@@ -2,7 +2,8 @@
 
  A flexible framework for rapid genome analysis and interpretation
 
-C Chiang, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth, A R Quinlan, and I M Hall. 2014. SpeedSeq: Ultra-Fast Personal Genome Analysis and Interpretation. bioRxiv. [doi:10.1101/012179](http://dx.doi.org/10.1101/012179).
+C Chiang, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth, A R Quinlan, and I M Hall. SpeedSeq: ultra-fast personal genome analysis and interpretation. Nat Meth (2015). doi:10.1038/nmeth.3505   http://www.nature.com/nmeth/journal/vaop/ncurrent/full/nmeth.3505.html
+
 
 ![SpeedSeq workflow](etc/speedseq_workflow.png?raw=true "SpeedSeq workflow")
 
@@ -15,6 +16,7 @@ C Chiang, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth,
 	* [var](#speedseq-var)
 	* [somatic](#speedseq-somatic)
 	* [sv](#speedseq-sv)
+	* [realign](#speedseq-realign)
 5. [Example workflows](#example-workflows)
 6. [SpeedSeq AMI (Amazon Machine Image)](#speedseq-ami)
 7. [Troubleshooting](#troubleshooting)
@@ -158,6 +160,7 @@ SpeedSeq is a modular framework with four components:
 * [speedseq var](#speedseq-var) - Run FreeBayes one or more BAM files
 * [speedseq somatic](#speedseq-somatic) - Run FreeBayes on a tumor/normal pair of BAM files
 * [speedseq sv](#speedseq-sv) - Run LUMPY on one or more BAM files, with optional breakend genotyping and read-depth calculation.
+* [speedseq realign](#speedseq-realign) - Realign from a BAM file.
 
 These modules operate independently of each other and produce universal output formats that are compatible with external tools. SpeedSeq modules can also run on BAM alignments that were produced outside of the SpeedSeq framework. . However, structural variant detection on BAM files generated outside of SpeedSeq will be slower due to two unique features of `speedseq align`. First, our alignment uses SAMBLASTER to automatically extract split and discordant reads for SV detection. While the `speedseq sv` module will internally extract split and discordant reads from regular BAM files, it takes much longer due to obligate name-sorting of the BAM file. Secondly, structural variant genotyping is much faster on BAM files processed by SAMBLASTER due to the addition of mate CIGAR and mate mapping quality tags. In the absence of these tags, SVTyper must jump to each read’s mate position in the BAM file, which greatly increases run time.
 
@@ -347,6 +350,56 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 `speedseq sv` produces a bgzipped, indexed VCF file.
 
 * `outprefix.sv.vcf.gz`
+
+### speedseq realign
+`speedseq realign` allows alignment from one or more BAM files, rather than FASTQ inputs. It automatically read group information from the BAM header to mark duplicates by library.
+
+```
+usage:   speedseq realign [options] <reference.fa> <in1.bam> [in2.bam [...]]
+```
+
+##### Positional arguments
+```
+reference.fa    genome reference fasta file (indexed with bwa)
+in.bam          BAM file(s) (must contain read group tags)
+```
+
+##### Alignment options
+```
+-o STR          output prefix [in.realign]
+-I FLOAT[,FLOAT[,INT[,INT]]]
+                specify the mean, standard deviation (10% of the mean if absent), max
+                  (4 sigma from the mean if absent) and min of the insert size distribution.
+                  FR orientation only. [inferred]
+-n              rename reads for smaller file size
+-t INT          threads [1]
+-T DIR          temp directory [./output_prefix.XXXXXXXXXXXX]
+```
+
+##### Samblaster options
+```
+-i              include duplicates in splitters and discordants
+                  (default: exclude duplicates)
+-c INT          maximum number of split alignments for a read to be
+                  included in splitter file [default: 2]
+-m INT          minimum non-overlapping base pairs between two alignments
+                for a read to be included in splitter file [default: 20]
+```
+
+##### Sambamba options
+```
+-M              amount of memory in GB to be used for sorting [default: 20]
+```
+
+##### Global options
+```
+-K FILE         path to speedseq.config file (default: same directory as speedseq)
+-v              verbose
+-h              show help message
+```
+
+#### Output
+`speedseq realign` output is identical to that produced by `speedseq align`.
 
 ## Example workflows
 ### Call variants on a single sample
