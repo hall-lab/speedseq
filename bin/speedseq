@@ -1451,7 +1451,7 @@ global options:
 	    then
 		echo "
     # run cnvnator-multi
-    $PYTHON $CNVNATOR_WRAPPER --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w $WINDOW_SIZE -b ${FULL_BAM} $TEMP_DIR/$FULL_BASE.readdepth -c $CNVNATOR_CHROMS_DIR -g GRCh37
+    $PYTHON $CNVNATOR_WRAPPER --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w $WINDOW_SIZE -b ${FULL_BAM} -o $TEMP_DIR/$FULL_BASE.readdepth -c $CNVNATOR_CHROMS_DIR -g GRCh37
 		"
 	    fi
 	    $PYTHON $CNVNATOR_WRAPPER --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w $WINDOW_SIZE -b ${FULL_BAM} -o $TEMP_DIR/$FULL_BASE.readdepth -c $CNVNATOR_CHROMS_DIR -g GRCh37
