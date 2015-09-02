@@ -1468,7 +1468,7 @@ global options:
 
 	    if [[ "$VERBOSE" -eq 1 ]]
 	    then
-		echo "mv $TEMP_DIR/$OUTBASE.rd.sv.vcf $TEMP_DIR/$OUTBASE.rd.sv.vcf"
+		echo "mv $TEMP_DIR/$OUTBASE.rd.sv.vcf $TEMP_DIR/$OUTBASE.sv.vcf"
 		echo "mv $TEMP_DIR/$FULL_BASE.readdepth.txt $OUTPUT.$FULL_BASE.sv.readdepth.txt"
 		echo "mv $TEMP_DIR/$FULL_BASE.readdepth.bed $OUTPUT.$FULL_BASE.sv.readdepth.bed"
 	    fi
