@@ -1157,6 +1157,7 @@ sv options:
          -x FILE  BED file to exclude
          -g       genotype SV breakends with svtyper
          -d       calculate read-depth with CNVnator
+         -w	  CNVnator window size [100]
          -A       annotate the vcf with VEP
          -P       output LUMPY probability curves in VCF
          -m INT   minimum sample weight for a call [4]
@@ -1188,8 +1189,9 @@ global options:
     OUTPUT=""
     MAX_SPLIT_COUNT=2
     MIN_NON_OVERLAP=20
+    WIN_SIZE=100
 
-    while getopts ":hB:S:D:R:o:m:r:x:T:t:AdgPkvK:" OPTION
+    while getopts ":hB:S:D:R:o:m:r:x:T:t:AdwgPkvK:" OPTION
     do
 	case "${OPTION}" in
             h)
@@ -1235,6 +1237,9 @@ global options:
 	    d)
 		READDEPTH=1
 		;;
+	    w)
+	    	WINDOW_SIZE="$OPTARG"
+	    	;;
 	    g)
 		GENOTYPE=1
 		;;
@@ -1344,6 +1349,14 @@ global options:
             exit 1
 	fi
     fi
+    
+    # if window size specified, check CNVnator is also specified
+    if [[ "$WINDOW_SIZE" -eq 100 ]] && [[ "$READDEPTH" ! -eq 1 ]]
+    then 
+    	sv_usage
+            echo -e "CNVnator window size passed without CNVnator; please use -d in conjunction with -w"
+            exit 1
+    fi
 
     # check for required python modules (pysam, numpy, scipy, etc)
     check_python_modules $PYTHON
@@ -1439,7 +1452,6 @@ global options:
     if [[ "$READDEPTH" -eq 1 ]]
     then
 	echo "Calculating read depth"
-	WINDOW_SIZE=100
 
 	for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
 	do
