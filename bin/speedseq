@@ -1191,7 +1191,7 @@ global options:
     MIN_NON_OVERLAP=20
     WIN_SIZE=100
 
-    while getopts ":hB:S:D:R:o:m:r:x:T:t:AdwgPkvK:" OPTION
+    while getopts ":hB:S:D:R:o:m:r:x:T:t:Adw:gPkvK:" OPTION
     do
 	case "${OPTION}" in
             h)
