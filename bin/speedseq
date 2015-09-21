@@ -1157,7 +1157,7 @@ sv options:
          -x FILE  BED file to exclude
          -g       genotype SV breakends with svtyper
          -d       calculate read-depth with CNVnator
-         -w	  CNVnator window size [100]
+         -w INT	  CNVnator window size [100]
          -A       annotate the vcf with VEP
          -P       output LUMPY probability curves in VCF
          -m INT   minimum sample weight for a call [4]
@@ -1189,9 +1189,8 @@ global options:
     OUTPUT=""
     MAX_SPLIT_COUNT=2
     MIN_NON_OVERLAP=20
-    WIN_SIZE=100
 
-    while getopts ":hB:S:D:R:o:m:r:x:T:t:AdwgPkvK:" OPTION
+    while getopts ":hB:S:D:R:o:m:r:x:T:t:Adw:gPkvK:" OPTION
     do
 	case "${OPTION}" in
             h)
@@ -1347,11 +1346,15 @@ global options:
 	    sv_usage
             echo -e "Error: annotate_rd.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
             exit 1
+        elif [[ -z "$WINDOW_SIZE"]]
+        then
+            WINDOW_SIZE=100
+            echo -e "Using default window size: 100\n"
 	fi
     fi
     
     # if window size specified, check CNVnator is also specified
-    if [[ "$WINDOW_SIZE" -eq 100 ]] && [[ "$READDEPTH" ! -eq 1 ]]
+    if [[ -n "$WINDOW_SIZE" ]] && [[ "$READDEPTH" -ne 1 ]]
     then 
     	sv_usage
             echo -e "CNVnator window size passed without CNVnator; please use -d in conjunction with -w"
