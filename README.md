@@ -629,6 +629,15 @@ SpeedSeq is available as a public AMI (Amazon Machine Image) on the Amazon Elast
 	* example.sv.vcf.gz
 
 ## Troubleshooting
+
+If you encounter errors or strange behavior from SpeedSeq, please report them to the [issues](https://github.com/hall-lab/speedseq/issues) page with the following information:
+- Description of the problem
+- The exact command that you ran, using the "-v" option for verbose logging information
+- Any error or status information produced by SpeedSeq
+- Anything you've tried to resolve the issue
+
+#### Common issues
+
 * Installation failure with error: "No targets specified and no makefile found."
 > Ensure that SpeedSeq was cloned with the `--recursive` flag
 
