@@ -1157,6 +1157,7 @@ sv options:
          -x FILE  BED file to exclude
          -g       genotype SV breakends with svtyper
          -d       calculate read-depth with CNVnator
+         -w INT	  CNVnator window size [100]
          -A       annotate the vcf with VEP
          -P       output LUMPY probability curves in VCF
          -m INT   minimum sample weight for a call [4]
@@ -1189,7 +1190,7 @@ global options:
     MAX_SPLIT_COUNT=2
     MIN_NON_OVERLAP=20
 
-    while getopts ":hB:S:D:R:o:m:r:x:T:t:AdgPkvK:" OPTION
+    while getopts ":hB:S:D:R:o:m:r:x:T:t:Adw:gPkvK:" OPTION
     do
 	case "${OPTION}" in
             h)
@@ -1235,6 +1236,9 @@ global options:
 	    d)
 		READDEPTH=1
 		;;
+	    w)
+	    	WINDOW_SIZE="$OPTARG"
+	    	;;
 	    g)
 		GENOTYPE=1
 		;;
@@ -1342,7 +1346,19 @@ global options:
 	    sv_usage
             echo -e "Error: annotate_rd.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
             exit 1
+        elif [[ -z "$WINDOW_SIZE"]]
+        then
+            WINDOW_SIZE=100
+            echo -e "Using default window size: 100\n"
 	fi
+    fi
+    
+    # if window size specified, check CNVnator is also specified
+    if [[ -n "$WINDOW_SIZE" ]] && [[ "$READDEPTH" -ne 1 ]]
+    then 
+    	sv_usage
+            echo -e "CNVnator window size passed without CNVnator; please use -d in conjunction with -w"
+            exit 1
     fi
 
     # check for required python modules (pysam, numpy, scipy, etc)
@@ -1439,7 +1455,6 @@ global options:
     if [[ "$READDEPTH" -eq 1 ]]
     then
 	echo "Calculating read depth"
-	WINDOW_SIZE=100
 
 	for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
 	do
@@ -1468,7 +1483,7 @@ global options:
 
 	    if [[ "$VERBOSE" -eq 1 ]]
 	    then
-		echo "mv $TEMP_DIR/$OUTBASE.rd.sv.vcf $TEMP_DIR/$OUTBASE.rd.sv.vcf"
+		echo "mv $TEMP_DIR/$OUTBASE.rd.sv.vcf $TEMP_DIR/$OUTBASE.sv.vcf"
 		echo "mv $TEMP_DIR/$FULL_BASE.readdepth.txt $OUTPUT.$FULL_BASE.sv.readdepth.txt"
 		echo "mv $TEMP_DIR/$FULL_BASE.readdepth.bed $OUTPUT.$FULL_BASE.sv.readdepth.bed"
 	    fi
