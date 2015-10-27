@@ -15,7 +15,7 @@ __date__ = "$Date: 2014-04-28 14:31 $"
 
 def get_args():
     parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter, description="\
-annotate_rd.py\n\
+svgt\n\
 author: " + __author__ + "\n\
 version: " + __version__ + "\n\
 description: Compute genotype of structural variants based on breakpoint depth")
@@ -149,7 +149,7 @@ class Variant(object):
         self.var_id = var_list[2]
         self.ref = var_list[3]
         self.alt = var_list[4]
-        self.qual = float(var_list[5])
+        self.qual = var_list[5]
         self.filter = var_list[6]
         self.sample_list = vcf.sample_list
         self.info_list = vcf.info_list
@@ -215,7 +215,7 @@ class Variant(object):
             self.var_id,
             self.ref,
             self.alt,
-            '%0.2f' % self.qual,
+            self.qual,
             self.filter,
             self.get_info_string(),
             self.get_format_string(),
@@ -256,16 +256,6 @@ class Genotype(object):
         return ':'.join(map(str,g_list))
 
 
-def bnd_mate_pos(var):
-    sep = '['
-    if sep not in var.alt:
-        sep = ']'
-    c = var.alt.split(sep)[1].split(':')
-    c[1] = int(c[1])
-    
-    return c
-    
-
 # primary function
 def sv_readdepth(vcf_file, sample, root, window, vcf_out, debug, cnvnator_path):
     in_header = True
@@ -296,15 +286,6 @@ def sv_readdepth(vcf_file, sample, root, window, vcf_out, debug, cnvnator_path):
                 coord_list.write('%s:%s-%s\n' % (var.chrom, end, var.pos))
             else:
                 coord_list.write('%s:%s-%s\n' % (var.chrom, var.pos, end))
-        # parse intrachromosomal BND variants
-        else:
-            mate_chrom, mate_pos = bnd_mate_pos(var)
-            if var.chrom == mate_chrom:
-                end = mate_pos
-                if mate_pos < int(var.pos):
-                    coord_list.write('%s:%s-%s\n' % (var.chrom, mate_pos, var.pos))
-                else:
-                    coord_list.write('%s:%s-%s\n' % (var.chrom, var.pos, mate_pos))
 
     coord_list.write('exit\n')
     coord_list.close()
@@ -336,8 +317,7 @@ def sv_readdepth(vcf_file, sample, root, window, vcf_out, debug, cnvnator_path):
 
         v = line.rstrip().split('\t')
         var = Variant(v, vcf)
-        if (var.get_info('SVTYPE') != 'BND'
-            or (var.get_info('SVTYPE') == 'BND' and var.chrom == bnd_mate_pos(var)[0])):
+        if var.get_info('SVTYPE') != 'BND':
             var.genotype(sample).set_format('CN', cn_list[i])
             i += 1
 
