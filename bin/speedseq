@@ -292,7 +292,6 @@ global options:
 	exit 1
     fi
 
-
     OUTBASE=`basename "$OUTPUT"`
 
     # Check for readgroup flag
@@ -337,7 +336,7 @@ global options:
     fi
 
     # Check for BWA index of the reference
-    if [[ ! -f "$REF.sa" ]]
+    if [[ ! -f "$REF.bwt" ]] || [[ ! -f "$REF.pac" ]] || [[ ! -f "$REF.ann" ]] || [[ ! -f "$REF.amb" ]] || [[ ! -f "$REF.sa" ]]
     then
 	echo "Warning: Reference file not indexed with BWA. Indexing now..."
 	$BWA index $REF
@@ -1811,6 +1810,13 @@ global options:
         exit 1
     fi
 
+    # Check for BWA index of the reference
+    if [[ ! -f "$REF.bwt" ]] || [[ ! -f "$REF.pac" ]] || [[ ! -f "$REF.ann" ]] || [[ ! -f "$REF.amb" ]] || [[ ! -f "$REF.sa" ]]
+    then
+	echo "Warning: Reference file not indexed with BWA. Indexing now..."
+	$BWA index $REF
+	echo "Done"
+    fi
 
     echo "Aligning..."
     for i in $( seq 0 $(( ${#REALIGN_RG_LIST[@]}-1 )) )
