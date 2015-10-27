@@ -1156,6 +1156,7 @@ sv options:
          -x FILE  BED file to exclude
          -g       genotype SV breakends with svtyper
          -d       calculate read-depth with CNVnator
+         -w INT   CNVnator window size [100]
          -A       annotate the vcf with VEP
          -P       output LUMPY probability curves in VCF
          -m INT   minimum sample weight for a call [4]
@@ -1181,6 +1182,7 @@ global options:
     TEMP_DIR=""
     GENOTYPE=0
     READDEPTH=0
+    WINDOW_SIZE=100
     PROBCURVE=0
     VERBOSE=0
     KEEP=0
@@ -1188,7 +1190,7 @@ global options:
     MAX_SPLIT_COUNT=2
     MIN_NON_OVERLAP=20
 
-    while getopts ":hB:S:D:R:o:m:r:x:T:t:AdgPkvK:" OPTION
+    while getopts ":hB:S:D:R:o:m:r:x:T:t:Adw:gPkvK:" OPTION
     do
 	case "${OPTION}" in
             h)
@@ -1233,6 +1235,9 @@ global options:
 		;;
 	    d)
 		READDEPTH=1
+		;;
+	    w)
+		WINDOW_SIZE="$OPTARG"
 		;;
 	    g)
 		GENOTYPE=1
@@ -1438,7 +1443,6 @@ global options:
     if [[ "$READDEPTH" -eq 1 ]]
     then
 	echo "Calculating read depth"
-	WINDOW_SIZE=100
 
 	for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
 	do
