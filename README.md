@@ -54,6 +54,7 @@ As a template for installation on other systems, we have provided the exact comm
 #### Prerequisites
 * g++ and the standard C and C++ development libraries (https://gcc.gnu.org/)
 * CMake (http://www.cmake.org/)
+* GNU awk and core utils
 * Python 2.7 (https://www.python.org/)
 	* numpy
 	* pysam 0.8.0+
