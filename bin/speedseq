@@ -6,6 +6,9 @@
 #  Author: Colby Chiang (cc2qe@virginia.edu)
 ############################################################
 
+# force bitwise sorting
+LC_ALL=C
+
 # source the paths to the binaries used in the script
 function source_binaries() {
     if [[ -e $1 ]]
