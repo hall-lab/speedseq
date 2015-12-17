@@ -2,7 +2,10 @@
 
  A flexible framework for rapid genome analysis and interpretation
 
-C Chiang, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth, A R Quinlan, and I M Hall. 2014. SpeedSeq: Ultra-Fast Personal Genome Analysis and Interpretation. bioRxiv. [doi:10.1101/012179](http://dx.doi.org/10.1101/012179).
+C Chiang, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth, A R Quinlan, and I M Hall. SpeedSeq: ultra-fast personal genome analysis and interpretation. Nat Meth (2015). doi:10.1038/nmeth.3505.
+
+http://www.nature.com/nmeth/journal/vaop/ncurrent/full/nmeth.3505.html
+
 
 ![SpeedSeq workflow](etc/speedseq_workflow.png?raw=true "SpeedSeq workflow")
 
@@ -15,6 +18,7 @@ C Chiang, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth,
 	* [var](#speedseq-var)
 	* [somatic](#speedseq-somatic)
 	* [sv](#speedseq-sv)
+	* [realign](#speedseq-realign)
 5. [Example workflows](#example-workflows)
 6. [SpeedSeq AMI (Amazon Machine Image)](#speedseq-ami)
 7. [Troubleshooting](#troubleshooting)
@@ -22,7 +26,7 @@ C Chiang, R M Layer, G G Faust, M R Lindberg, D B Rose, E P Garrison, G T Marth,
 ## Quick start
 1. Install
 	```
-	git clone --recursive https://github.com/cc2qe/speedseq
+	git clone --recursive https://github.com/hall-lab/speedseq
 	cd speedseq
 	make
 	```
@@ -50,9 +54,10 @@ As a template for installation on other systems, we have provided the exact comm
 #### Prerequisites
 * g++ and the standard C and C++ development libraries (https://gcc.gnu.org/)
 * CMake (http://www.cmake.org/)
+* GNU awk and core utils
 * Python 2.7 (https://www.python.org/)
 	* numpy
-	* pysam
+	* pysam 0.8.0+
 	* scipy
 * ROOT (https://root.cern.ch/) (required if running CNVnator)
 * Variant Effect Predictor (http://www.ensembl.org/info/docs/tools/vep/index.html) (required if annotating VCF files)
@@ -73,7 +78,7 @@ The core components enable standard functionality outlined in [Quick start](#qui
 
 Compilation requires g++ and the standard C and C++ development libraries. Additionally, cmake is required for building the BamTools API within FreeBayes and LUMPY.
 ```
-git clone --recursive https://github.com/cc2qe/speedseq
+git clone --recursive https://github.com/hall-lab/speedseq
 cd speedseq
 make
 ```
@@ -158,6 +163,9 @@ SpeedSeq is a modular framework with four components:
 * [speedseq var](#speedseq-var) - Run FreeBayes one or more BAM files
 * [speedseq somatic](#speedseq-somatic) - Run FreeBayes on a tumor/normal pair of BAM files
 * [speedseq sv](#speedseq-sv) - Run LUMPY on one or more BAM files, with optional breakend genotyping and read-depth calculation.
+* [speedseq realign](#speedseq-realign) - Realign from a BAM file.
+
+These modules operate independently of each other and produce universal output formats that are compatible with external tools. SpeedSeq modules can also run on BAM alignments that were produced outside of the SpeedSeq framework. . However, structural variant detection on BAM files generated outside of SpeedSeq will be slower due to two unique features of `speedseq align`. First, our alignment uses SAMBLASTER to automatically extract split and discordant reads for SV detection. While the `speedseq sv` module will internally extract split and discordant reads from regular BAM files, it takes much longer due to obligate name-sorting of the BAM file. Secondly, structural variant genotyping is much faster on BAM files processed by SAMBLASTER due to the addition of mate CIGAR and mate mapping quality tags. In the absence of these tags, SVTyper must jump to each read’s mate position in the BAM file, which greatly increases run time.
 
 ### speedseq align
 `speedseq align` converts paired-end FASTQ sequences to a duplicate-marked, sorted, indexed BAM file that can be processed with other SpeedSeq modules.
@@ -287,7 +295,6 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
                    we recommend using the annotations/ceph18.b37.include.2014-01-15.bed
                    (see Annotations)
 -t INT           number of threads to use [default: 1]
--s               only output somatic variants
 -F FLOAT         require at least this fraction of observations supporting
                    an alternate allele within a single individual in order
                    to evaluate the position [0.05]
@@ -347,6 +354,56 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 
 * `outprefix.sv.vcf.gz`
 
+### speedseq realign
+`speedseq realign` allows alignment from one or more BAM files, rather than FASTQ inputs. It automatically read group information from the BAM header to mark duplicates by library.
+
+```
+usage:   speedseq realign [options] <reference.fa> <in1.bam> [in2.bam [...]]
+```
+
+##### Positional arguments
+```
+reference.fa    genome reference fasta file (indexed with bwa)
+in.bam          BAM file(s) (must contain read group tags)
+```
+
+##### Alignment options
+```
+-o STR          output prefix [in.realign]
+-I FLOAT[,FLOAT[,INT[,INT]]]
+                specify the mean, standard deviation (10% of the mean if absent), max
+                  (4 sigma from the mean if absent) and min of the insert size distribution.
+                  FR orientation only. [inferred]
+-n              rename reads for smaller file size
+-t INT          threads [1]
+-T DIR          temp directory [./output_prefix.XXXXXXXXXXXX]
+```
+
+##### Samblaster options
+```
+-i              include duplicates in splitters and discordants
+                  (default: exclude duplicates)
+-c INT          maximum number of split alignments for a read to be
+                  included in splitter file [default: 2]
+-m INT          minimum non-overlapping base pairs between two alignments
+                for a read to be included in splitter file [default: 20]
+```
+
+##### Sambamba options
+```
+-M              amount of memory in GB to be used for sorting [default: 20]
+```
+
+##### Global options
+```
+-K FILE         path to speedseq.config file (default: same directory as speedseq)
+-v              verbose
+-h              show help message
+```
+
+#### Output
+`speedseq realign` output is identical to that produced by `speedseq align`.
+
 ## Example workflows
 ### Call variants on a single sample
 1. Use `speedseq align` to produce a sorted, duplicate-marked, BAM alignment from paired-end fastq data.
@@ -362,8 +419,8 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 	Note: if using an interleaved paired-end fastq file, use the `-p` flag
 	```
 	speedseq align \
-		-p \
 		-o NA12878 \
+		-p \
 		-R "@RG\tID:NA12878.S1\tSM:NA12878\tLB:lib1" \
 		human_g1k_v37.fasta \
 		NA12878.interleaved.fq.gz
@@ -371,14 +428,17 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 
 2. Use `speedseq var` to call SNVs and indels on a single sample.
 	```
-	speedseq var -o NA12878 \
+	speedseq var \
+		-o NA12878 \
 		-w annotations/ceph18.b37.include.2014-01-15.bed \
-		human_g1k_v37.fasta NA12878.bam
+		human_g1k_v37.fasta \
+		NA12878.bam
 	```
 
 3. Use `speedseq sv` to call structural variants. The optional `-g` and `-d` flags perform breakend genotyping and read-depth calculation respectively
 	```
-	speedseq sv -o NA12878 \
+	speedseq sv \
+		-o NA12878 \
 		-x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
 		-g \
 		-d \
@@ -391,13 +451,19 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 1. Use `speedseq align` to produce a sorted, duplicate-marked, BAM alignment of each library.
 	```
 	speedseq align -o NA12878_S1 -R "@RG\tID:NA12878.S1\tSM:NA12878\tLB:lib1" \
-		human_g1k_v37.fasta NA12878.S1.1.fq.gz NA12878.S1.2.fq.gz
+		human_g1k_v37.fasta \
+		NA12878.S1.1.fq.gz \
+		NA12878.S1.2.fq.gz
 
 	speedseq align -o NA12878_S2 -R "@RG\tID:NA12878.S2\tSM:NA12878\tLB:lib2" \
-		human_g1k_v37.fasta NA12878.S2.1.fq.gz NA12878.S2.2.fq.gz
+		human_g1k_v37.fasta \
+		NA12878.S2.1.fq.gz \
+		NA12878.S2.2.fq.gz
 
 	speedseq align -o NA12878_S3 -R "@RG\tID:NA12878.S3\tSM:NA12878\tLB:lib3" \
-		human_g1k_v37.fasta NA12878.S3.1.fq.gz NA12878.S3.2.fq.gz
+		human_g1k_v37.fasta \
+		NA12878.S3.1.fq.gz \
+		NA12878.S3.2.fq.gz
 	```
 
 2. Merge the samples
@@ -408,7 +474,8 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 
 3. Use `speedseq var` to call SNVs and indels.
 	```
-	speedseq var -o NA12878 \
+	speedseq var \
+		-o NA12878 \
 		-w annotations/ceph18.b37.include.2014-01-15.bed \
 		human_g1k_v37.fasta \
 		NA12878_merged.bam
@@ -416,7 +483,8 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 
 3. Use `speedseq sv` to call structural variants.
 	```
-	speedseq -sv -o NA12878 \
+	speedseq -sv \
+		-o NA12878 \
 		-x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
 		-B NA12878_merged.bam \
 		-S NA12878_merged.splitters.bam \
@@ -427,26 +495,43 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 ### Call variants on multiple samples
 1. Use `speedseq align` to produce sorted, duplicate-marked, BAM alignments for each sample.
 	```
-	speedseq align -o NA12877 -R "@RG\tID:NA12877.S1\tSM:NA12877\tLB:lib1" \
-		human_g1k_v37.fasta NA12877.1.fq.gz NA12877.2.fq.gz
+	speedseq align \
+		-o NA12877 \
+		-R "@RG\tID:NA12877.S1\tSM:NA12877\tLB:lib1" \
+		human_g1k_v37.fasta \
+		NA12877.1.fq.gz \
+		NA12877.2.fq.gz
 
-	speedseq align -o NA12878 -R "@RG\tID:NA12878.S1\tSM:NA12878\tLB:lib2" \
-		human_g1k_v37.fasta NA12878.1.fq.gz NA12878.2.fq.gz
+	speedseq align \
+		-o NA12878 \
+		-R "@RG\tID:NA12878.S1\tSM:NA12878\tLB:lib2" \
+		human_g1k_v37.fasta \
+		NA12878.1.fq.gz \
+		NA12878.2.fq.gz
 
-	speedseq align -o NA12879 -R "@RG\tID:NA12879.S1\tSM:NA12879\tLB:lib3" \
-		human_g1k_v37.fasta NA12879.1.fq.gz NA12879.2.fq.gz
+	speedseq align \
+		-o NA12879 \
+		-R "@RG\tID:NA12879.S1\tSM:NA12879\tLB:lib3" \
+		human_g1k_v37.fasta \
+		NA12879.1.fq.gz \
+		NA12879.2.fq.gz
 	```
 
 2. Use `speedseq var` to call SNVs and indels on multiple samples.
 	```
-	speedseq var -o cephtrio \
+	speedseq var \
+		-o cephtrio \
 		-w annotations/ceph18.b37.include.2014-01-15.bed \
-		human_g1k_v37.fasta NA12877.bam NA12878.bam NA12879.bam
+		human_g1k_v37.fasta \
+		NA12877.bam \
+		NA12878.bam \
+		NA12879.bam
 	```
 
 3. Use `speedseq sv` to call structural variants on multiple samples.
 	```
-	speedseq sv -o cephtrio \
+	speedseq sv \
+		-o cephtrio \
 		-x annotations/ceph18.b37.lumpy.exclude.2014-01-15.bed \
 		-B NA12877.bam,NA12878.bam,NA12879.bam \
 		-D NA12877.discordants.bam,NA12878.discordants.bam,NA12879.discordants.bam \
@@ -456,12 +541,16 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 ### Call variants on a tumor/normal pair
 1. Use `speedseq align` to produce sorted, duplicate-marked, BAM alignments for the tumor/normal pair
 	```
-	speedseq align -p -o TCGA-B6-A0I6.normal \
+	speedseq align \
+		-o TCGA-B6-A0I6.normal \
+		-p \
 		-R "@RG\tID:TCGA-B6-A0I6-10A-01D-A128-09\tSM:TCGA-B6-A0I6-10A-01D-A128-09\tLB:lib1" \
 		human_g1k_v37.fasta \
 		TCGA-B6-A0I6-10A-01D-A128-09.interleaved.fq.gz
 
-	speedseq align -p -o TCGA-B6-A0I6.tumor \
+	speedseq align \
+		-o TCGA-B6-A0I6.tumor \
+		-p \
 		-R "@RG\tID:TCGA-B6-A0I6-10A-01D-A128-09\tSM:TCGA-B6-A0I6-10A-01D-A128-09\tLB:lib1" \
 		human_g1k_v37.fasta \
 		TCGA-B6-A0I6-01A-11D-A128-09.interleaved.fq.gz
@@ -469,7 +558,8 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 
 2. Use `speedseq somatic` to call SNVs and indels on the tumor/normal pair.
 	```
-	speedseq somatic -o TCGA-B6-A0I6 \
+	speedseq somatic \
+		-o TCGA-B6-A0I6 \
 		-w annotations/ceph18.b37.include.2014-01-15.bed \
 		-F 0.05 \
 		-q 1 \
@@ -540,6 +630,15 @@ SpeedSeq is available as a public AMI (Amazon Machine Image) on the Amazon Elast
 	* example.sv.vcf.gz
 
 ## Troubleshooting
+
+If you encounter errors or strange behavior from SpeedSeq, please report them to the [issues](https://github.com/hall-lab/speedseq/issues) page with the following information:
+- Description of the problem
+- The exact command that you ran, using the "-v" option for verbose logging information
+- Any error or status information produced by SpeedSeq
+- Anything you've tried to resolve the issue
+
+#### Common issues
+
 * Installation failure with error: "No targets specified and no makefile found."
 > Ensure that SpeedSeq was cloned with the `--recursive` flag
 
@@ -551,3 +650,14 @@ SpeedSeq is available as a public AMI (Amazon Machine Image) on the Amazon Elast
 
 * Runtime error: "ImportError: No module named argparse"
 > Ensure you are running Python 2.7 or later.
+
+* CNVnator fails to run during `speedseq sv`
+> This may be due to a problem with the ROOT installation. Try configuring the ROOT package without the --prefix flag. Then run
+> ```
+./configure
+make
+> ```
+> Add /pathto/root/bin/thisroot.sh to the speedseq.config file
+
+* Python errors
+> Python errors commonly result from incompatibilities with older versions of Pysam. SpeedSeq runs on Pysam versions 0.8.0 and newer.
