@@ -22,3 +22,10 @@
     -S example.splitters.bam \
     -D example.discordants.bam \
     -R data/human_g1k_v37_20_42220611-42542245.fasta
+
+# 4. realign with BWA
+../bin/speedseq realign \
+    -o example.realign \
+    -M 3 \
+    data/human_g1k_v37_20_42220611-42542245.fasta \
+    example.bam
