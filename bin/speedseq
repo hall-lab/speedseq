@@ -200,7 +200,7 @@ global options:
     MIN_NON_OVERLAP=20
     THREADS=1
     TEMP_DIR=""
-    VERBOSE=0
+    VERBOSE=1
     INS_DIST=""
     SORT_MEM=20 # amount of memory for sorting, in gigabytes
 
@@ -502,7 +502,7 @@ options:
     TEMP_DIR=""
     ANNOTATE=0
     MINQUAL=1
-    VERBOSE=0
+    VERBOSE=1
     KEEP=0
     VEP_ASSEMBLY="GRCh37"
 
@@ -849,7 +849,7 @@ options:
     MINQUAL=1e-5
     ONLY_SOMATIC=0
     SSC_THRES=18
-    VERBOSE=0
+    VERBOSE=1
     KEEP=0
     VEP_ASSEMBLY="GRCh37"
 
@@ -1204,7 +1204,7 @@ global options:
     READDEPTH=0
     WINDOW_SIZE=100
     PROBCURVE=0
-    VERBOSE=0
+    VERBOSE=1
     KEEP=0
     OUTPUT=""
     MAX_SPLIT_COUNT=2
@@ -1644,7 +1644,7 @@ global options:
     MIN_NON_OVERLAP=20
     THREADS=1
     TEMP_DIR=""
-    VERBOSE=0
+    VERBOSE=1
     INS_DIST=""
     RENAME=""
     SORT_MEM=20 # amount of memory for sorting, in gigabytes
