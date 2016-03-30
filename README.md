@@ -355,7 +355,7 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 * `outprefix.sv.vcf.gz`
 
 ### speedseq realign
-`speedseq realign` allows alignment from one or more BAM files, rather than FASTQ inputs. It automatically read group information from the BAM header to mark duplicates by library.
+`speedseq realign` allows alignment from one or more BAM files, rather than FASTQ inputs. It automatically parses read group information from the BAM header to mark duplicates by library.
 
 ```
 usage:   speedseq realign [options] <reference.fa> <in1.bam> [in2.bam [...]]
