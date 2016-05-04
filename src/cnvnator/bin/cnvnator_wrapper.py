@@ -151,24 +151,15 @@ def get_hist_fn(bam_fn):
 # get list of chromosomes from the BAM file header
 def get_chroms_list(bam_fn):
 	proc = subprocess.Popen(['samtools', 'view', '-H', bam_fn], stdout = subprocess.PIPE)
-	ret = proc.poll()
-	while ret is None:
-		time.sleep(2)
-		ret = proc.poll()
 	(dout, derr) = proc.communicate()	
-	if ret != 0:
-		print "Error viewing / processing header from specified BAM input file: %s" % derr
-		return []
 	chroms_list = []
 	lines = dout.split('\n')
 	for line in lines:
 		pieces = line.split()
-		if len(pieces) < 1: continue
+		if len(pieces) != 3: continue
 		if pieces[0] == "@SQ":
-                    for i in xrange(1,len(pieces)):
-                        if pieces[i].startswith('SN:'):
-                            chrm = pieces[i][pieces[i].find(":")+1:]
-                            chroms_list.append(chrm)
+			chrm = pieces[1][pieces[1].find(":")+1:]
+			chroms_list.append(chrm)	
 	return chroms_list
 # end of chromosomes list
 
