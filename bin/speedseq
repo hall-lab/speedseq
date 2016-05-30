@@ -1854,7 +1854,7 @@ global options:
     fi
     
     # if user supplies command line readgroup info, then override existing RG info in input BAMs
-    if $RG_FMT
+    if [[ -z $RG_FMT ]]
     then
 	RETAIN_INPUT_RG=""
     else
