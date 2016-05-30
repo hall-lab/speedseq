@@ -159,7 +159,7 @@ positional args:
 
 alignment options:
          -o STR   output prefix [in1.fq]
-         -R       read group header line such as \"@RG\tID:id\tSM:samplename\tLB:lib\" (required)
+         -R STR   read group header line such as \"@RG\tID:id\tSM:samplename\tLB:lib\" (required)
          -p       first fastq file consists of interleaved paired-end sequences
          -t INT   threads [1]
          -T DIR   temp directory [./output_prefix.XXXXXXXXXXXX]
@@ -1612,6 +1612,11 @@ alignment options:
          -n       rename reads for smaller file size
          -t INT   threads [1]
          -T DIR   temp directory [./output_prefix.XXXXXXXXXXXX]
+         -R STR   read group header line such as \"@RG\tID:id\tSM:samplename\tLB:lib\"
+                    WARNING: By default SpeedSeq will automatically parse readgroup info
+                    from the input BAM headers. This option will supercede that info and
+                    should therefore only be used when input BAM(s) lack readgroups or when
+                    custom editing of readgroups is desired.
 
 samblaster options:
          -i       include duplicates in splitters and discordants
@@ -1649,8 +1654,9 @@ global options:
     INS_DIST=""
     RENAME=""
     SORT_MEM=20 # amount of memory for sorting, in gigabytes
+    RG_FMT=""
 
-    while getopts ":hw:o:pic:m:M:t:T:I:nvK:" OPTION
+    while getopts ":hw:o:pic:m:M:t:T:I:nvK:R:" OPTION
     do
 	case "${OPTION}" in
 	    h)
@@ -1693,6 +1699,10 @@ global options:
 	    K)
 		CONFIG="$OPTARG"
 		;;
+            R)
+                RG="$OPTARG"
+                RG_FMT="-R '$OPTARG'"
+                ;;
 	esac
     done
 
@@ -1822,7 +1832,7 @@ global options:
     fi
     FQ="$TEMP_DIR/fq_pipe"
 
-    # make a sloppy "merged" header.
+    # make a sloppy "merged" header
     $PYTHON $BAMCLEANHEADER $BAM_STRING > $TEMP_DIR/header.txt
 
     # SHOULD ADD A CHECK HERE TO MAKE SURE EACH INDIVIDUAL BAM CONTAINS READGROUPS
@@ -1830,14 +1840,25 @@ global options:
     # parse the libraries in the BAM header to extract readgroups from the same library
     if [[ -z $REALIGN_RG_LIST ]]
     then
-	REALIGN_RG_LIST+=(`$PYTHON $BAMLIBS -S $TEMP_DIR/header.txt`)
+	REALIGN_RG_LIST+=(`$PYTHON $BAMLIBS -S $TEMP_DIR/header.txt`)	
     fi
 
+    # if input BAM lacks RG info, generate it from output filename
     if [[ ${#REALIGN_RG_LIST[@]} -eq 0 ]]
     then
-	realign_usage
-        echo -e "Error: BAM headers lack read group fields (@RG)\n"
-        exit 1
+	# realign_usage
+        # exit 1
+        echo -e "Warning: BAM headers lack read group fields (@RG)\n"
+	REALIGN_RG_LIST=""
+	RG_FMT="-R '@RG\tID:$OUTPUT\tSM:$OUTPUT\tLB:$OUTPUT'"
+    fi
+    
+    # if user supplies command line readgroup info, then override existing RG info in input BAMs
+    if $RG_FMT
+    then
+	RETAIN_INPUT_RG=""
+    else
+	RETAIN_INPUT_RG="-C"
     fi
 
     # Check for BWA index of the reference
@@ -1852,15 +1873,21 @@ global options:
     for i in $( seq 0 $(( ${#REALIGN_RG_LIST[@]}-1 )) )
     do
 	REALIGN_RG=${REALIGN_RG_LIST[i]}
+	if [[ -z "$REALIGN_RG" ]]
+	then
+	    REALIGN_RG_FMT=""
+	else
+	    REALIGN_RG_FMT="-r ${REALIGN_RG_LIST[i]}"
+	fi
 	echo "             Realigning readgroups: $REALIGN_RG"
 
 	# alignment command
 	if [[ $VERBOSE -eq 1 ]]
 	    then
 	        echo -e "
-            $PYTHON $BAMTOFASTQ -r $REALIGN_RG $RENAME $BAM_STRING | $MBUFFER -q -m 1G > $FQ
-            $BWA mem -t $THREADS -C -p $INS_DIST $RG_FMT $REF $FQ \\
-                | $PYTHON $BAMHEADRG -d $TEMP_DIR/header.txt -r $REALIGN_RG \\
+            $PYTHON $BAMTOFASTQ $REALIGN_RG_FMT $RENAME $BAM_STRING | $MBUFFER -q -m 1G > $FQ
+            $BWA mem -t $THREADS $RETAIN_INPUT_RG -p $INS_DIST $RG_FMT $REF $FQ \\
+                | $PYTHON $BAMHEADRG -d $TEMP_DIR/header.txt $REALIGN_RG_FMT \\
                 | $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \\
                 | $SAMBAMBA view -S -f bam -l 0 /dev/stdin \\
                 | $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $TEMP_DIR/$OUTBASE.$(($i+1)).bam /dev/stdin
@@ -1873,9 +1900,9 @@ global options:
 	fi
 
 	echo -e "
-            $PYTHON $BAMTOFASTQ -r $REALIGN_RG $RENAME $BAM_STRING | $MBUFFER -q -m 1G > $FQ
-            $BWA mem -t $THREADS -C -p $INS_DIST $RG_FMT $REF $FQ \
-                | $PYTHON $BAMHEADRG -d $TEMP_DIR/header.txt -r $REALIGN_RG \
+            $PYTHON $BAMTOFASTQ $REALIGN_RG_FMT $RENAME $BAM_STRING | $MBUFFER -q -m 1G > $FQ
+            $BWA mem -t $THREADS $RETAIN_INPUT_RG -p $INS_DIST $RG_FMT $REF $FQ \
+                | $PYTHON $BAMHEADRG -d $TEMP_DIR/header.txt $REALIGN_RG_FMT \
                 | $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
                 | $SAMBAMBA view -S -f bam -l 0 /dev/stdin \
                 | $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $TEMP_DIR/$OUTBASE.$(($i+1)).bam /dev/stdin
