@@ -336,6 +336,7 @@ tumor.bam         tumor BAM file(s) (comma separated BAMs for multiple libraries
 -g               genotype SV breakends with svtyper
 -d               calculate read-depth with CNVnator
 -A               annotate the vcf with VEP
+-P               output LUMPY probability curves in VCF
 -m INT           minimum sample weight for a call [default: 4]
 -r FLOAT         trim threshold [0]
 -T DIR           temp directory [./outprefix.XXXXXXXXXXXX]
