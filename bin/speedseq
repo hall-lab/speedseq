@@ -701,7 +701,7 @@ options:
                 | sort -k1,1 -k2,2n | cat $TEMP_DIR/header.txt - \\
                 | $VEP \\
                 $FORK \\
-                -o /dev/stdout \\
+                -o STDOUT \\
                 --force_overwrite \\
                 --offline \\
                 --no_stats \\
@@ -728,7 +728,7 @@ options:
 	    | sort -k1,1 -k2,2n | cat $TEMP_DIR/header.txt - \
 	    | $VEP \
             $FORK \
-            -o /dev/stdout \
+            -o STDOUT \
 	    --force_overwrite \
             --offline \
             --no_stats \
@@ -1064,7 +1064,7 @@ options:
                 | sort -k1,1 -k2,2n | cat $TEMP_DIR/header.txt - \\
                 | $VEP \\
                 $FORK \\
-                -o /dev/stdout \\
+                -o STDOUT \\
                 --force_overwrite \\
                 --offline \\
                 --no_stats \\
@@ -1090,7 +1090,7 @@ options:
             | sort -k1,1 -k2,2n | cat $TEMP_DIR/header.txt - \
             | $VEP \
             $FORK \
-            -o /dev/stdout \
+            -o STDOUT \
 	    --force_overwrite \
             --offline \
             --no_stats \
@@ -1522,7 +1522,7 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
     | $PYTHON $VAWK --header '(\$1<=22 || \$1==\"X\" || \$1==\"Y\") && (I\$SVTYPE==\"BND\" || (I\$SVLEN<=50000 && I\$SVLEN>=-50000))' \\
     | $VEP \\
     $FORK \\
-    -o /dev/stdout \\
+    -o STDOUT \\
     --force_overwrite \\
     --format vcf \\
     --offline \\
@@ -1548,7 +1548,7 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
 	    | $PYTHON $VAWK --header '($1<=22 || $1=="X" || $1=="Y") && (I$SVTYPE=="BND" || (I$SVLEN<=50000 && I$SVLEN>=-50000))' \
 	    | $VEP \
             $FORK \
-            -o /dev/stdout \
+            -o STDOUT \
             --force_overwrite \
 	    --format vcf \
             --offline \
