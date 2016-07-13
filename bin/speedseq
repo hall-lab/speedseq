@@ -1386,7 +1386,7 @@ global options:
     if [[ ! -f $REF.fai && ! -f $(echo ${REF%*.*}).fai ]]
     then
 	sv_usage
-	echo -e "Error: reference fasta file $REF not indexed\n"
+	echo -e "Error: reference fasta file $REF not indexed. Please run samtools faidx on the .fasta file\n"
 	exit 1
     fi
     if [[ ${#FULL_BAM_LIST[@]} -eq 0 ]]
