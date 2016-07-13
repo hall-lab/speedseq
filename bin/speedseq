@@ -1833,7 +1833,12 @@ global options:
     FQ="$TEMP_DIR/fq_pipe"
 
     # make a sloppy "merged" header
-    $PYTHON $BAMCLEANHEADER $BAM_STRING > $TEMP_DIR/header.txt
+    if [[ -z "$RG_FMT" ]]
+    then
+	$PYTHON $BAMCLEANHEADER $BAM_STRING > $TEMP_DIR/header.txt
+    else
+	> $TEMP_DIR/header.txt
+    fi
 
     # SHOULD ADD A CHECK HERE TO MAKE SURE EACH INDIVIDUAL BAM CONTAINS READGROUPS
 
@@ -1850,11 +1855,16 @@ global options:
         # exit 1
         echo -e "Warning: BAM headers lack read group fields (@RG)\n"
 	REALIGN_RG_LIST=""
-	RG_FMT="-R '@RG\tID:$OUTPUT\tSM:$OUTPUT\tLB:$OUTPUT'"
+	# use the supplied readgroup from the command line if available, otherwise
+	# create readgroup from the output name
+	if [[ -z "$RG_FMT" ]]
+	then
+	    RG_FMT="-R '@RG\tID:$OUTPUT\tSM:$OUTPUT\tLB:$OUTPUT'"
+	fi
     fi
     
     # if user supplies command line readgroup info, then override existing RG info in input BAMs
-    if [[ -z $RG_FMT ]]
+    if [[ -z "$RG_FMT" ]]
     then
 	RETAIN_INPUT_RG="-C"
     else
