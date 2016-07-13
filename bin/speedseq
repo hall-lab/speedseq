@@ -1856,9 +1856,9 @@ global options:
     # if user supplies command line readgroup info, then override existing RG info in input BAMs
     if [[ -z $RG_FMT ]]
     then
-	RETAIN_INPUT_RG=""
-    else
 	RETAIN_INPUT_RG="-C"
+    else
+	RETAIN_INPUT_RG=""
     fi
 
     # Check for BWA index of the reference
