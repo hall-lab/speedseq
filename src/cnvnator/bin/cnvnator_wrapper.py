@@ -13,6 +13,7 @@ cnvnator\n\
 author: " + __author__ + "\n\
 version: " + __version__ + "\n\
 description: SpeedSeq wrapper for CNVnator v0.3.2")
+    parser.add_argument('-t', '--threads', type=int, required=False, default=1, help='number of threads')
     parser.add_argument('-w', '--window', type=str, required=False, default='100', help='window size in base pairs [100]')
     parser.add_argument('-b', '--bam', required=True, help='input bam file name')
     parser.add_argument('-o', '--output', required=True, help='output variant file name')
