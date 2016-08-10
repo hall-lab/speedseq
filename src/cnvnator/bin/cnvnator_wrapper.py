@@ -49,11 +49,13 @@ def get_chroms_list(bam_fn):
 	p = re.compile('.*alt.*|HLA.*|.*decoy.*|chrEBV')
 	for line in lines:
 		pieces = line.split()
-		if len(pieces) != 3: continue
+		if len(pieces) < 1: continue
 		if pieces[0] == "@SQ":
-			chrm = pieces[1][pieces[1].find(":")+1:]
-			if p.match(chrm): continue
-			chroms_list.append(chrm)	
+			for i in xrange(1,len(pieces)):
+				if pieces[i].startswith('SN:'):
+					chrm = pieces[i][pieces[i].find(":")+1:]
+					if p.match(chrm): continue
+					chroms_list.append(chrm)	
 	return chroms_list
 # end of chromosomes list
 
