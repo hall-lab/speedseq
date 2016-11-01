@@ -14,7 +14,7 @@ $ make
 Even if compilation is not completed but file libbam.a has been created you
 can continue.
 
-$ cd ../
+$ cd ../../
 $ make
 
 2. Predicting CNV regions
