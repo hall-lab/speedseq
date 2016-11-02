@@ -1,7 +1,7 @@
 VERSION	  = v0.3
 #ROOTFLAGS = -pthread -m64
 ROOTFLAGS = -m64 -O3
-LIBS      = -lz
+LIBS      = -lz -pthread
 ROOTLIBS  = -L$(ROOTSYS)/lib -lCore -lCint -lRIO -lNet -lHist -lGraf -lGraf3d \
 		-lGpad -lTree -lRint -lMatrix -lPhysics \
 		-lMathCore -lThread -lGui
