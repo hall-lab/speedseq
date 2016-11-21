@@ -1,6 +1,6 @@
 [submodule "src/svtyper"]
 	path = src/svtyper
-	url = https://github.com/cc2qe/svtyper.git
+	url = https://github.com/hall-lab/svtyper.git
 [submodule "src/samblaster"]
 	path = src/samblaster
 	url = https://github.com/GregoryFaust/samblaster.git
