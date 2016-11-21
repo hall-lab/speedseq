@@ -167,7 +167,7 @@ def get_chroms_list(bam_fn):
 		if pieces[0] == "@SQ":
                     for i in xrange(1,len(pieces)):
                         if pieces[i].startswith('SN:'):
-                            chrm = pieces[1][pieces[1].find(":")+1:]
+                            chrm = pieces[i][pieces[i].find(":")+1:]
                             chroms_list.append(chrm)
 	return chroms_list
 # end of chromosomes list
