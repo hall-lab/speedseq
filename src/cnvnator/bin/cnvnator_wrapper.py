@@ -55,7 +55,7 @@ def get_chroms_list(bam_fn):
 				if pieces[i].startswith('SN:'):
 					chrm = pieces[i][pieces[i].find(":")+1:]
 					if p.match(chrm): continue
-					chroms_list.append(chrm)	
+					chroms_list.append(chrm)
 	return chroms_list
 # end of chromosomes list
 
@@ -125,9 +125,24 @@ def run_tree(bam_fn, genome, chroms):
     #return 0
 	print "Running on bam %s" % bam_fn
 	sep=" "
-	ret = subprocess.call([CNVNATOR, '-root', get_root_fn(bam_fn), '-genome', genome, '-tree', bam_fn, '-unique', '-chrom', sep.join(chroms)])
+        cmd = [CNVNATOR, '-root', get_root_fn(bam_fn), '-chrom', chroms, '-tree', bam_fn, '-unique']
+        cmd = flatten_cmd(cmd)
+        print(cmd)
+	ret = subprocess.call(cmd)
 	return ret
 # end of run tree
+
+def flatten_cmd(cmd):
+    full_cmd = []
+
+    for i in cmd:
+        if isinstance(i, list):
+            full_cmd.extend(i)
+        else:
+            full_cmd.append(i)
+
+    return full_cmd
+# end of flatten cmd
 
 
 # make a bedgraph file
