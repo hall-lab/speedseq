@@ -117,12 +117,6 @@ def run_calls(bin_size, hist_fn, out_fn):
 # run tree
 def run_tree(bam_fn, genome, chroms):
 	print "===== Running tree on input data"
-	#for x in chroms:
-	#	ret = subprocess.call([CNVNATOR, '-root', get_root_fn(bam_fn), '-genome', genome, '-tree', bam_fn, '-unique', '-chrom', x])
-	#	if ret != 0:
-	#		print "Error in tree creation chromosome x"
-	#		return ret
-    #return 0
 	print "Running on bam %s" % bam_fn
 	sep=" "
         cmd = [CNVNATOR, '-root', get_root_fn(bam_fn), '-chrom', chroms, '-tree', bam_fn, '-unique']
@@ -132,6 +126,7 @@ def run_tree(bam_fn, genome, chroms):
 	return ret
 # end of run tree
 
+# flatten cmd
 def flatten_cmd(cmd):
     full_cmd = []
 
@@ -160,8 +155,6 @@ def mk_graph_file(out_fn):
   		idx = pieces[1].find(':')
   		idx2 = pieces[1].find('-')
   		chr = pieces[1][0:idx]
-#		# remove any 'chr' prefixes from the chrom name
-#		if chr.startswith('chr'): chr = chr[3:]
   		start = int(pieces[1][idx+1:idx2])
   		end = int(pieces[1][idx2+1:])
   		prev_chr, prev_end = chr, end
