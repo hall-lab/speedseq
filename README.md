@@ -630,6 +630,11 @@ SpeedSeq is available as a public AMI (Amazon Machine Image) on the Amazon Elast
 	* example.vcf.gz
 	* example.sv.vcf.gz
 
+## Frequently asked questions (FAQ)
+
+* Can I use SpeedSeq on exome data?
+	* SpeedSeq can detect SNVs and indels from exome data using `speedseq var` or `speedseq somatic`. However, you should not use the [excluded regions](https://github.com/hall-lab/speedseq#annotations), as these were designed for WGS data. SpeedSeq cannot detect SVs from exome data.
+
 ## Troubleshooting
 
 If you encounter errors or strange behavior from SpeedSeq, please report them to the [issues](https://github.com/hall-lab/speedseq/issues) page with the following information:
