@@ -91,6 +91,18 @@ function check_python_modules() {
     fi
 }
 
+# Check if a file is a cram based on the file extension
+function is_cram ()
+{
+    FILENAME="$1"
+    FILE_EXTENSION="${FILENAME##*.}"
+    if [[ "$FILE_EXTENSION" == "cram" || "$FILE_EXTENSION" == "CRAM" ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 ## global usage
 function usage() {
     echo "
@@ -1472,7 +1484,11 @@ global options:
 	do
 	    FULL_BAM=${FULL_BAM_LIST[$i]}
 	    FULL_BASE=`basename $FULL_BAM`
-	    SAMPLE=`$SAMBAMBA view -H $FULL_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
+	    CRAM_OPTS=""
+	    if is_cram $FULL_BAM; then
+	        CRAM_OPTS="-C"
+	    fi
+	    SAMPLE=`$SAMBAMBA view $CRAM_OPTS -H $FULL_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
 
 	    if [[ "$VERBOSE" -eq 1 ]]
 	    then
