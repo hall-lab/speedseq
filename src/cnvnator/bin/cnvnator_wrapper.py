@@ -21,6 +21,7 @@ description: SpeedSeq wrapper for CNVnator v0.3.2")
     parser.add_argument('-c', '--chroms', required=True, help='path to chromosome files')
     parser.add_argument('-g', '--genome', required=False, default='GRCh37', help='genome build [GRCh37]')
     parser.add_argument('--cnvnator', required=False, default='cnvnator-multi', help='path to cnvnator-multi binary')
+    parser.add_argument('--samtools', required=False, default='samtools', help='path to samtools binary')
     parser.add_argument('-T', '--tempdir', type=str, required=False, default='temp', help='temp directiory [./temp]')
 
     # parse the arguments
@@ -46,8 +47,8 @@ def timestamp(string):
     print "{0}: {1}\n".format(string, st)
 
 # get list of chromosomes from the BAM file header
-def get_chroms_list(bam_fn):
-    proc = subprocess.Popen(['samtools1.2', 'view', '-H', bam_fn], stdout = subprocess.PIPE)
+def get_chroms_list(bam_fn, samtools):
+    proc = subprocess.Popen([samtools, 'view', '-H', bam_fn], stdout = subprocess.PIPE)
     (dout, derr) = proc.communicate()
     chroms_list = []
     lines = dout.split('\n')
@@ -202,7 +203,7 @@ if __name__ == "__main__":
         os.mkdir(TEMPDIR)
 
     # build chroms_list
-    chroms_list = get_chroms_list(args.bam)
+    chroms_list = get_chroms_list(args.bam, args.samtools)
     if len(chroms_list) == 0:
         print "No chromosomes found in BAM file."
         sys.exit(1)
