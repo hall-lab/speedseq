@@ -22,6 +22,7 @@ description: SpeedSeq wrapper for CNVnator v0.3.2")
     parser.add_argument('-g', '--genome', required=False, default='GRCh37', help='genome build [GRCh37]')
     parser.add_argument('--cnvnator', required=False, default='cnvnator-multi', help='path to cnvnator-multi binary')
     parser.add_argument('--samtools', required=False, default='samtools', help='path to samtools binary')
+    parser.add_argument('--exclude', required=False, nargs='?', default=['alt', 'HLA', 'decoy', 'chrEBV'], help='chromosome substring to exclude')
     parser.add_argument('-T', '--tempdir', type=str, required=False, default='temp', help='temp directiory [./temp]')
 
     # parse the arguments
@@ -47,20 +48,24 @@ def timestamp(string):
     print "{0}: {1}\n".format(string, st)
 
 # get list of chromosomes from the BAM file header
-def get_chroms_list(bam_fn, samtools):
+def get_chroms_list(bam_fn, samtools, exclusion_list):
     proc = subprocess.Popen([samtools, 'view', '-H', bam_fn], stdout = subprocess.PIPE)
     (dout, derr) = proc.communicate()
     chroms_list = []
     lines = dout.split('\n')
-    p = re.compile('.*alt.*|HLA.*|.*decoy.*|chrEBV')
+    regex = '.*{0}.*'.format('.*|.*'.join(exclusion_list))
+
+    p = re.compile(regex)
     for line in lines:
         pieces = line.split()
-        if len(pieces) < 1: continue
+        if len(pieces) < 1:
+            continue
         if pieces[0] == "@SQ":
-            for i in xrange(1,len(pieces)):
+            for i in xrange(1, len(pieces)):
                 if pieces[i].startswith('SN:'):
-                    chrm = pieces[i][pieces[i].find(":")+1:]
-                    if p.match(chrm): continue
+                    chrm = pieces[i][pieces[i].find(":") + 1:]
+                    if p.match(chrm):
+                        continue
                     chroms_list.append(chrm)
     return chroms_list
 # end of chromosomes list
@@ -203,7 +208,7 @@ if __name__ == "__main__":
         os.mkdir(TEMPDIR)
 
     # build chroms_list
-    chroms_list = get_chroms_list(args.bam, args.samtools)
+    chroms_list = get_chroms_list(args.bam, args.samtools, args.exclude)
     if len(chroms_list) == 0:
         print "No chromosomes found in BAM file."
         sys.exit(1)
