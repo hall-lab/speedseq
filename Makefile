@@ -60,6 +60,7 @@ config:
 	@echo "VAWK=$(MKFILE_DIR)/$(TARGET_BIN)/vawk" >> $(TARGET_BIN)/speedseq.config
 	@echo "PARALLEL=$(MKFILE_DIR)/$(TARGET_BIN)/parallel" >> $(TARGET_BIN)/speedseq.config
 	@echo "PYTHON=`which python2.7`" >> $(TARGET_BIN)/speedseq.config
+	@echo "HEXDUMP=`which hexdump`" >> $(TARGET_BIN)/speedseq.config
 
 	@echo "" >> $(TARGET_BIN)/speedseq.config
 	@echo "# align" >> $(TARGET_BIN)/speedseq.config
