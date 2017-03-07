@@ -44,7 +44,7 @@ var: freebayes tabix vawk parallel config
 
 somatic: var
 
-sv: lumpy sambamba samblaster vawk bamkit tabix svtyper cnvnator-multi config
+sv: lumpy sambamba samblaster vawk bamkit tabix svtyper cnvnator-multi cnvnator-wrappers config
 
 realign: bwa sambamba samblaster parallel mbuffer bamkit config
 
@@ -122,6 +122,11 @@ lumpy:
 svtyper:
 	cp $(SVTYPER_DIR)/svtyper $(TARGET_BIN)
 
+cnvnator-wrappers:
+	cp $(CNVNATOR_DIR)/bin/cnvnator_wrapper.py $(TARGET_BIN)
+	cp $(CNVNATOR_DIR)/bin/cnvnator2VCF.pl $(TARGET_BIN)
+	cp $(CNVNATOR_DIR)/bin/annotate_rd.py $(TARGET_BIN)
+
 cnvnator-multi:
 ifeq ($(ROOTSYS),)
 	@echo -e  "\nWARNING: CNVnator not compiled because the ROOT package is not installed."
@@ -129,9 +134,6 @@ ifeq ($(ROOTSYS),)
 else
 	$(MAKE) -C $(CNVNATOR_DIR)
 	cp $(CNVNATOR_DIR)/bin/cnvnator-multi $(TARGET_BIN)
-	cp $(CNVNATOR_DIR)/bin/cnvnator_wrapper.py $(TARGET_BIN)
-	cp $(CNVNATOR_DIR)/bin/cnvnator2VCF.pl $(TARGET_BIN)
-	cp $(CNVNATOR_DIR)/bin/annotate_rd.py $(TARGET_BIN)
 endif
 
 tabix:
