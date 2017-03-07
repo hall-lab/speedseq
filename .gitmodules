@@ -22,3 +22,7 @@
 [submodule "src/parallel"]
 	path = src/parallel
 	url = http://git.savannah.gnu.org/r/parallel.git
+[submodule "src/lumpy-sv"]
+	path = src/lumpy-sv
+	url = https://github.com/ernfrid/lumpy-sv
+	branch = 0.2.13_cram_support
