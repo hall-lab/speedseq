@@ -54,6 +54,7 @@ config:
 	@echo "SPEEDSEQ_HOME=$(MKFILE_DIR)" >> $(TARGET_BIN)/speedseq.config
 	@echo "" >> $(TARGET_BIN)/speedseq.config
 	@echo "# general" >> $(TARGET_BIN)/speedseq.config
+	@echo "SAMTOOLS=`which samtools`" >> $(TARGET_BIN)/speedseq.config
 	@echo "SAMBAMBA=$(MKFILE_DIR)/$(TARGET_BIN)/sambamba" >> $(TARGET_BIN)/speedseq.config
 	@echo "BGZIP=$(MKFILE_DIR)/$(TARGET_BIN)/bgzip" >> $(TARGET_BIN)/speedseq.config
 	@echo "TABIX=$(MKFILE_DIR)/$(TARGET_BIN)/tabix" >> $(TARGET_BIN)/speedseq.config
