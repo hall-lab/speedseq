@@ -7,9 +7,6 @@
 [submodule "src/vawk"]
 	path = src/vawk
 	url = https://github.com/cc2qe/vawk.git
-[submodule "src/lumpy-sv"]
-	path = src/lumpy-sv
-	url = https://github.com/cc2qe/lumpy-sv.git
 [submodule "src/tabix"]
 	path = src/tabix
 	url = https://github.com/samtools/tabix.git
@@ -25,3 +22,7 @@
 [submodule "src/parallel"]
 	path = src/parallel
 	url = http://git.savannah.gnu.org/r/parallel.git
+[submodule "src/lumpy-sv"]
+	path = src/lumpy-sv
+	url = https://github.com/ernfrid/lumpy-sv
+	branch = 0.2.13_cram_support

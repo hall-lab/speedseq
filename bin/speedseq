@@ -27,11 +27,13 @@ function source_binaries() {
 	# general
 	SPEEDSEQ_HOME=$( dirname `which speedseq` )
 	SAMBAMBA=`which sambamba || true`
+	SAMTOOLS=`which samtools || true`
 	BGZIP=`which bgzip || true`
 	TABIX=`which tabix || true`
 	VAWK=`which vawk || true`
 	PARALLEL=`which parallel || true`
 	PYTHON=`which python2.7 || true`
+    HEXDUMP=`which hexdump || true`
 
 	# align
 	BWA=`which bwa || true`
@@ -88,6 +90,46 @@ function check_python_modules() {
 	usage
 	echo  -e "Error: scipy is not installed for $PYTHON_TEST\n"
 	exit 1
+    fi
+}
+
+# Check if a file is a cram or bam based on the binary header
+function is_cram () {
+    local file_path=$1
+
+    header=$($HEXDUMP -n 4 -e '"%c"' ${file_path})
+    if [ ${header} == 'CRAM' ]; then
+        result=0
+    else
+        result=1
+    fi
+
+    return ${result}
+}
+
+function is_bam () {
+    local file_path=$1
+    local result=1
+
+    is_gzipped=$($HEXDUMP -n 2 -e '"%x"' ${file_path})
+    if [ ${is_gzipped} = '8b1f' ]; then
+        is_bam=$(zcat ${file_path} | $HEXDUMP -n 3 -e '"%c"')
+        if [ ${is_bam} = 'BAM' ]; then
+            result=0
+        fi
+    fi
+
+    return ${result}
+}
+
+# ensure that we have a valid CRAM or BAM file
+function check_valid_cram_or_bam () {
+    local input_path=$1
+    if is_cram ${input_path} || is_bam ${input_path} ; then
+        echo -e "${input_path} is a valid CRAM/BAM file"
+    else
+        echo -e "${input_path}: is NOT a valid CRAM/BAM file!"
+        exit 1
     fi
 }
 
@@ -1471,17 +1513,22 @@ global options:
 	for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
 	do
 	    FULL_BAM=${FULL_BAM_LIST[$i]}
+	    check_valid_cram_or_bam ${FULL_BAM}
 	    FULL_BASE=`basename $FULL_BAM`
-	    SAMPLE=`$SAMBAMBA view -H $FULL_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
+	    CRAM_OPTS=""
+	    if is_cram $FULL_BAM; then
+	        CRAM_OPTS="-C"
+	    fi
+	    SAMPLE=`$SAMBAMBA view $CRAM_OPTS -H $FULL_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
 
 	    if [[ "$VERBOSE" -eq 1 ]]
 	    then
 		echo "
     # run cnvnator-multi
-    $PYTHON $CNVNATOR_WRAPPER --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w $WINDOW_SIZE -b ${FULL_BAM} -o $TEMP_DIR/$FULL_BASE.readdepth -c $CNVNATOR_CHROMS_DIR -g GRCh37
+    $PYTHON $CNVNATOR_WRAPPER --samtools $SAMTOOLS --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w $WINDOW_SIZE -b ${FULL_BAM} -o $TEMP_DIR/$FULL_BASE.readdepth -c $CNVNATOR_CHROMS_DIR
 		"
 	    fi
-	    $PYTHON $CNVNATOR_WRAPPER --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w $WINDOW_SIZE -b ${FULL_BAM} -o $TEMP_DIR/$FULL_BASE.readdepth -c $CNVNATOR_CHROMS_DIR -g GRCh37
+	    $PYTHON $CNVNATOR_WRAPPER --samtools $SAMTOOLS --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w $WINDOW_SIZE -b ${FULL_BAM} -o $TEMP_DIR/$FULL_BASE.readdepth -c $CNVNATOR_CHROMS_DIR
 
 	    # Calculate read-depth of LUMPY calls
 	    if [[ "$VERBOSE" -eq 1 ]]

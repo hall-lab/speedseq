@@ -44,7 +44,7 @@ var: freebayes tabix vawk parallel config
 
 somatic: var
 
-sv: lumpy sambamba samblaster vawk bamkit tabix svtyper cnvnator-multi config
+sv: lumpy sambamba samblaster vawk bamkit tabix svtyper cnvnator-multi cnvnator-wrappers config
 
 realign: bwa sambamba samblaster parallel mbuffer bamkit config
 
@@ -54,12 +54,14 @@ config:
 	@echo "SPEEDSEQ_HOME=$(MKFILE_DIR)" >> $(TARGET_BIN)/speedseq.config
 	@echo "" >> $(TARGET_BIN)/speedseq.config
 	@echo "# general" >> $(TARGET_BIN)/speedseq.config
+	@echo "SAMTOOLS=`which samtools`" >> $(TARGET_BIN)/speedseq.config
 	@echo "SAMBAMBA=$(MKFILE_DIR)/$(TARGET_BIN)/sambamba" >> $(TARGET_BIN)/speedseq.config
 	@echo "BGZIP=$(MKFILE_DIR)/$(TARGET_BIN)/bgzip" >> $(TARGET_BIN)/speedseq.config
 	@echo "TABIX=$(MKFILE_DIR)/$(TARGET_BIN)/tabix" >> $(TARGET_BIN)/speedseq.config
 	@echo "VAWK=$(MKFILE_DIR)/$(TARGET_BIN)/vawk" >> $(TARGET_BIN)/speedseq.config
 	@echo "PARALLEL=$(MKFILE_DIR)/$(TARGET_BIN)/parallel" >> $(TARGET_BIN)/speedseq.config
 	@echo "PYTHON=`which python2.7`" >> $(TARGET_BIN)/speedseq.config
+	@echo "HEXDUMP=`which hexdump`" >> $(TARGET_BIN)/speedseq.config
 
 	@echo "" >> $(TARGET_BIN)/speedseq.config
 	@echo "# align" >> $(TARGET_BIN)/speedseq.config
@@ -122,6 +124,11 @@ lumpy:
 svtyper:
 	cp $(SVTYPER_DIR)/svtyper $(TARGET_BIN)
 
+cnvnator-wrappers:
+	cp $(CNVNATOR_DIR)/bin/cnvnator_wrapper.py $(TARGET_BIN)
+	cp $(CNVNATOR_DIR)/bin/cnvnator2VCF.pl $(TARGET_BIN)
+	cp $(CNVNATOR_DIR)/bin/annotate_rd.py $(TARGET_BIN)
+
 cnvnator-multi:
 ifeq ($(ROOTSYS),)
 	@echo -e  "\nWARNING: CNVnator not compiled because the ROOT package is not installed."
@@ -129,9 +136,6 @@ ifeq ($(ROOTSYS),)
 else
 	$(MAKE) -C $(CNVNATOR_DIR)
 	cp $(CNVNATOR_DIR)/bin/cnvnator-multi $(TARGET_BIN)
-	cp $(CNVNATOR_DIR)/bin/cnvnator_wrapper.py $(TARGET_BIN)
-	cp $(CNVNATOR_DIR)/bin/cnvnator2VCF.pl $(TARGET_BIN)
-	cp $(CNVNATOR_DIR)/bin/annotate_rd.py $(TARGET_BIN)
 endif
 
 tabix:
