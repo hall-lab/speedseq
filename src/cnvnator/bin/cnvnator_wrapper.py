@@ -24,7 +24,6 @@ description: SpeedSeq wrapper for CNVnator v0.3.2")
     parser.add_argument('--samtools', required=False, default='samtools', help='path to samtools binary')
     parser.add_argument('--exclude', required=False, nargs='?', default=['alt', 'HLA', 'decoy', 'chrEBV'], help='chromosome substring to exclude')
     parser.add_argument('-T', '--tempdir', type=str, required=False, default='temp', help='temp directiory [./temp]')
-    parser.add_argument('-R', '--ref_fasta', type=str, required=False, default=None, help='indexed FASTA reference file (recommended for reading CRAM files)')
 
     # parse the arguments
     args = parser.parse_args()
@@ -49,11 +48,8 @@ def timestamp(string):
     print "{0}: {1}\n".format(string, st)
 
 # get list of chromosomes from the BAM file header
-def get_chroms_list(bam_fn, samtools, exclusion_list, ref_fasta):
-    if ref_fasta is not None:
-        proc = subprocess.Popen([samtools, 'view', '-H', '-T', ref_fasta, bam_fn], stdout = subprocess.PIPE)
-    else:
-        proc = subprocess.Popen([samtools, 'view', '-H', bam_fn], stdout = subprocess.PIPE)
+def get_chroms_list(bam_fn, samtools, exclusion_list):
+    proc = subprocess.Popen([samtools, 'view', '-H', bam_fn], stdout = subprocess.PIPE)
     (dout, derr) = proc.communicate()
     chroms_list = []
     lines = dout.split('\n')
@@ -212,7 +208,7 @@ if __name__ == "__main__":
         os.mkdir(TEMPDIR)
 
     # build chroms_list
-    chroms_list = get_chroms_list(args.bam, args.samtools, args.exclude, args.ref_fasta)
+    chroms_list = get_chroms_list(args.bam, args.samtools, args.exclude)
     if len(chroms_list) == 0:
         print "No chromosomes found in BAM file."
         sys.exit(1)
