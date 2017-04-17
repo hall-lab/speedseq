@@ -44,7 +44,7 @@ var: freebayes tabix vawk parallel config
 
 somatic: var
 
-sv: lumpy sambamba samblaster vawk bamkit tabix svtyper cnvnator-multi cnvnator-wrappers config
+sv: lumpy sambamba samblaster vawk bamkit tabix svtyper cnvnator config
 
 realign: bwa sambamba samblaster parallel mbuffer bamkit config
 
@@ -87,7 +87,7 @@ config:
 	@echo "" >> $(TARGET_BIN)/speedseq.config
 	@echo "# CNVnator" >> $(TARGET_BIN)/speedseq.config
 	@echo "CNVNATOR_WRAPPER=$(MKFILE_DIR)/$(TARGET_BIN)/cnvnator_wrapper.py" >> $(TARGET_BIN)/speedseq.config
-	@echo "CNVNATOR_MULTI=$(MKFILE_DIR)/$(TARGET_BIN)/cnvnator-multi" >> $(TARGET_BIN)/speedseq.config
+	@echo "CNVNATOR=$(MKFILE_DIR)/$(TARGET_BIN)/cnvnator" >> $(TARGET_BIN)/speedseq.config
 	@echo "ANNOTATE_RD=$(MKFILE_DIR)/$(TARGET_BIN)/annotate_rd.py" >> $(TARGET_BIN)/speedseq.config
 	@echo "CNVNATOR_CHROMS_DIR=$(MKFILE_DIR)/$(ANNOTATIONS_DIR)/cnvnator_chroms" >> $(TARGET_BIN)/speedseq.config
 
@@ -124,18 +124,13 @@ lumpy:
 svtyper:
 	cp $(SVTYPER_DIR)/svtyper $(TARGET_BIN)
 
-cnvnator-wrappers:
-	cp $(CNVNATOR_DIR)/bin/cnvnator_wrapper.py $(TARGET_BIN)
-	cp $(CNVNATOR_DIR)/bin/cnvnator2VCF.pl $(TARGET_BIN)
-	cp $(CNVNATOR_DIR)/bin/annotate_rd.py $(TARGET_BIN)
-
-cnvnator-multi:
+cnvnator:
 ifeq ($(ROOTSYS),)
 	@echo -e  "\nWARNING: CNVnator not compiled because the ROOT package is not installed."
 	@echo "Please see the README for instructions on manually installing ROOT."
 else
 	$(MAKE) -C $(CNVNATOR_DIR)
-	cp $(CNVNATOR_DIR)/bin/cnvnator-multi $(TARGET_BIN)
+	cp $(CNVNATOR_DIR)/bin/cnvnator $(TARGET_BIN)
 endif
 
 tabix:
@@ -189,7 +184,7 @@ clean:
 		bin/bamfilterrg.py \
 		bin/bamcleanheader.py \
 		bin/bamlibs.py \
-		bin/cnvnator-multi \
+		bin/cnvnator \
 		bin/annotate_rd.py
 	$(MAKE) -C $(BWA_DIR) clean
 	$(MAKE) -C $(SAMBLASTER_DIR) clean

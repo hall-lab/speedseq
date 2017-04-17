@@ -26,3 +26,6 @@
 	path = src/lumpy-sv
 	url = https://github.com/ernfrid/lumpy-sv
 	branch = 0.2.13_cram_support
+[submodule "src/CNVnator"]
+	path = src/CNVnator
+	url = https://github.com/abyzovlab/CNVnator

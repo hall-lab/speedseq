@@ -53,7 +53,7 @@ function source_binaries() {
 
         # CNVnator
 	CNVNATOR_WRAPPER=`which cnvnator_wrapper.py || true`
-	CNVNATOR_MULTI=`which cnvnator-multi || true`
+	CNVNATOR=`which cnvnator || true`
 	ANNOTATE_RD=`which annotate_rd.py || true`
 	CNVNATOR_CHROMS_DIR=~/genomes/GRCh37/chroms
 
@@ -1397,7 +1397,7 @@ global options:
     # if CNV read-depth requested, look for cnvnator executables
     if [[ "$READDEPTH" -eq 1 ]]
     then
-	if [[ ! -f "$CNVNATOR_MULTI" ]]
+	if [[ ! -f "$CNVNATOR" ]]
 	then
 	    sv_usage
             echo -e "Error: cnvnator executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -1524,21 +1524,21 @@ global options:
 	    if [[ "$VERBOSE" -eq 1 ]]
 	    then
 		echo "
-    # run cnvnator-multi
-    $PYTHON $CNVNATOR_WRAPPER --samtools $SAMTOOLS --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w $WINDOW_SIZE -b ${FULL_BAM} -o $TEMP_DIR/$FULL_BASE.readdepth -c $CNVNATOR_CHROMS_DIR
+    # run cnvnator
+    $PYTHON $CNVNATOR_WRAPPER --samtools $SAMTOOLS --cnvnator $CNVNATOR -T $TEMP_DIR/cnvnator-temp -t $THREADS -w $WINDOW_SIZE -b ${FULL_BAM} -o $TEMP_DIR/$FULL_BASE.readdepth -c $CNVNATOR_CHROMS_DIR
 		"
 	    fi
-	    $PYTHON $CNVNATOR_WRAPPER --samtools $SAMTOOLS --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w $WINDOW_SIZE -b ${FULL_BAM} -o $TEMP_DIR/$FULL_BASE.readdepth -c $CNVNATOR_CHROMS_DIR
+	    $PYTHON $CNVNATOR_WRAPPER --samtools $SAMTOOLS --cnvnator $CNVNATOR -T $TEMP_DIR/cnvnator-temp -t $THREADS -w $WINDOW_SIZE -b ${FULL_BAM} -o $TEMP_DIR/$FULL_BASE.readdepth -c $CNVNATOR_CHROMS_DIR
 
 	    # Calculate read-depth of LUMPY calls
 	    if [[ "$VERBOSE" -eq 1 ]]
 	    then
 		echo "
     # Calculate read-depth of LUMPY calls
-    $PYTHON $ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BASE}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.sv.rd.vcf
+    $PYTHON $ANNOTATE_RD --cnvnator $CNVNATOR -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BASE}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.sv.rd.vcf
 		"
 	    fi
-	    $PYTHON $ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BASE}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.rd.sv.vcf
+	    $PYTHON $ANNOTATE_RD --cnvnator $CNVNATOR -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BASE}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.rd.sv.vcf
 
 	    if [[ "$VERBOSE" -eq 1 ]]
 	    then
