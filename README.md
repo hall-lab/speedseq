@@ -128,13 +128,15 @@ CNVnator requires the ROOT package as a prerequiste (https://root.cern.ch/drupal
 3. Compile CNVnator from the SpeedSeq directory
 	```
 	cd $SPEEDSEQ_DIR
-	make cnvnator-multi
+	make cnvnator
 	```
 
 4. Before running SpeedSeq, you'll need to add the following line to [speedseq.config](bin/speedseq.config) or your .bashrc file. (Substitute the actual path to thisroot.sh on your system)
 	```
 	source /pathto/root/bin/thisroot.sh
 	```
+
+Please refer to the [CNVnator repository](https://github.com/abyzovlab/CNVnator) for details on installing CNVnator.
 
 ## Reference genome and annotations
 
@@ -652,7 +654,7 @@ If you encounter errors or strange behavior from SpeedSeq, please report them to
 > These two components use BamTools, which requires [CMake](http://www.cmake.org/) for compilation. Ensure that CMake is installed on your system
 
 * Installation reports, "WARNING: CNVnator not compiled because the ROOT package is not installed. Please see the README for instructions on manually installing ROOT."
-> This indicates that the ROOT package has not been installed, or the $ROOTSYS variable has not been set. See the [CNVnator install section](#cnvnator) for details.
+> This indicates that the ROOT package has not been installed, or the $ROOTSYS variable has not been set. See the [CNVnator repository](https://github.com/abyzovlab/CNVnator) for details.
 
 * Runtime error: "ImportError: No module named argparse"
 > Ensure you are running Python 2.7 or later.
