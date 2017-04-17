@@ -29,6 +29,3 @@
 [submodule "src/CNVnator"]
 	path = src/CNVnator
 	url = https://github.com/abyzovlab/CNVnator
-[submodule "src/samtools"]
-	path = src/samtools
-	url = https://github.com/samtools/samtools.git
