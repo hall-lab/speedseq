@@ -9,7 +9,9 @@ SAMBLASTER_DIR=$(SRC)/samblaster
 FREEBAYES_DIR=$(SRC)/freebayes
 LUMPY_DIR=$(SRC)/lumpy-sv
 SVTYPER_DIR=$(SRC)/svtyper
-CNVNATOR_DIR=$(SRC)/cnvnator
+CNVNATOR_DIR=$(SRC)/CNVnator
+SAMTOOLS_VERSION=samtools-1.3.1
+SAMTOOLS_DIR=$(SRC)/$(SAMTOOLS_VERSION)
 TABIX_DIR=$(SRC)/tabix
 VAWK_DIR=$(SRC)/vawk
 MBUFFER_DIR=$(SRC)/mbuffer
@@ -124,13 +126,18 @@ lumpy:
 svtyper:
 	cp $(SVTYPER_DIR)/svtyper $(TARGET_BIN)
 
-cnvnator:
+samtools:
+	cd $(SAMTOOLS_DIR) && ./configure
+	$(MAKE) -C $(SAMTOOLS_DIR)
+
+cnvnator: samtools
 ifeq ($(ROOTSYS),)
 	@echo -e  "\nWARNING: CNVnator not compiled because the ROOT package is not installed."
 	@echo "Please see the README for instructions on manually installing ROOT."
 else
+	ln -f -s ../$(SAMTOOLS_VERSION) -T $(CNVNATOR_DIR)/samtools
 	$(MAKE) -C $(CNVNATOR_DIR)
-	cp $(CNVNATOR_DIR)/bin/cnvnator $(TARGET_BIN)
+	cp $(CNVNATOR_DIR)/cnvnator $(TARGET_BIN)
 endif
 
 tabix:
@@ -166,6 +173,7 @@ clean:
 		bin/cnvnator \
 		bin/cnvnator2VCF.pl \
 		bin/cnvnator_wrapper.py \
+		bin/annotate_rd.py \
 		bin/freebayes \
 		bin/lumpy \
 		bin/lumpyexpress \
@@ -183,9 +191,8 @@ clean:
 		bin/bamgroupreads.py \
 		bin/bamfilterrg.py \
 		bin/bamcleanheader.py \
-		bin/bamlibs.py \
-		bin/cnvnator \
-		bin/annotate_rd.py
+		bin/bamlibs.py
+
 	$(MAKE) -C $(BWA_DIR) clean
 	$(MAKE) -C $(SAMBLASTER_DIR) clean
 	$(MAKE) -C $(FREEBAYES_DIR) clean
