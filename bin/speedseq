@@ -212,6 +212,7 @@ alignment options:
 
 samblaster options:
          -i       include duplicates in splitters and discordants
+         -z       do not mark duplicate
          -c INT   maximum number of split alignments for a read to be included in splitter file [2]
          -m INT   minimum non-overlapping base pairs between two alignments for a read to be included in splitter file [20]
 
