@@ -1,10 +1,15 @@
-#!/bin/bash -e
+#!/bin/bash
+set -e
+# set -o pipefail
 
 ############################################################
 #  Program: speedseq
-#  Version: 0.0.2
+#  Version: 0.1.2
 #  Author: Colby Chiang (cc2qe@virginia.edu)
 ############################################################
+
+# force bitwise sorting
+LC_ALL=C
 
 # source the paths to the binaries used in the script
 function source_binaries() {
@@ -22,11 +27,13 @@ function source_binaries() {
 	# general
 	SPEEDSEQ_HOME=$( dirname `which speedseq` )
 	SAMBAMBA=`which sambamba || true`
+	SAMTOOLS=`which samtools || true`
 	BGZIP=`which bgzip || true`
 	TABIX=`which tabix || true`
 	VAWK=`which vawk || true`
 	PARALLEL=`which parallel || true`
 	PYTHON=`which python2.7 || true`
+    HEXDUMP=`which hexdump || true`
 
 	# align
 	BWA=`which bwa || true`
@@ -43,16 +50,14 @@ function source_binaries() {
 	PAIREND_DISTRO=`which pairend_distro.py || true`
 	SVTYPER=`which svtyper || true`
 	BAMGROUPREADS=`which bamgroupreads.py || true`
-	BAMFILTERRG=`which bamfilterrg.py || true`
-	BAMLIBS=`which bamlibs.py || true`
 
         # CNVnator
 	CNVNATOR_WRAPPER=`which cnvnator_wrapper.py || true`
-	CNVNATOR_MULTI=`which cnvnator-multi || true`
+	CNVNATOR=`which cnvnator || true`
 	ANNOTATE_RD=`which annotate_rd.py || true`
 	CNVNATOR_CHROMS_DIR=~/genomes/GRCh37/chroms
 
-	# re-align
+	# realign
 	BAMTOFASTQ=`which bamtofastq.py || true`
 	MBUFFER=`which mbuffer || true`
 	BAMHEADRG=`which bamheadrg.py || true`
@@ -66,16 +71,73 @@ function check_python_modules() {
     PYTHON_TEST=$1
     echo -e "\nChecking for required python modules ($PYTHON_TEST)..."
 
-    $PYTHON_TEST -c "import imp; imp.find_module('pysam')"
-    $PYTHON_TEST -c "import imp; imp.find_module('numpy')"
-    $PYTHON_TEST -c "import imp; imp.find_module('scipy')"
+    PYSAM=`$PYTHON_TEST -c "import imp; imp.find_module('pysam')" 2>&1 || true`
+    NUMPY=`$PYTHON_TEST -c "import imp; imp.find_module('numpy')" 2>&1 || true`
+    SCIPY=`$PYTHON_TEST -c "import imp; imp.find_module('scipy')" 2>&1 || true`
+
+    if [[ ! -z "$PYSAM" ]]
+    then
+	usage
+	echo  -e "Error: pysam is not installed for $PYTHON_TEST\n"
+	exit 1
+    elif [[ ! -z "$NUMPY" ]]
+    then
+	usage
+	echo  -e "Error: numpy is not installed for $PYTHON_TEST\n"
+	exit 1
+    elif [[ ! -z "$SCIPY" ]]
+    then
+	usage
+	echo  -e "Error: scipy is not installed for $PYTHON_TEST\n"
+	exit 1
+    fi
+}
+
+# Check if a file is a cram or bam based on the binary header
+function is_cram () {
+    local file_path=$1
+
+    header=$($HEXDUMP -n 4 -e '"%c"' ${file_path})
+    if [ ${header} == 'CRAM' ]; then
+        result=0
+    else
+        result=1
+    fi
+
+    return ${result}
+}
+
+function is_bam () {
+    local file_path=$1
+    local result=1
+
+    is_gzipped=$($HEXDUMP -n 2 -e '"%x"' ${file_path})
+    if [ ${is_gzipped} = '8b1f' ]; then
+        is_bam=$(zcat ${file_path} | $HEXDUMP -n 3 -e '"%c"')
+        if [ ${is_bam} = 'BAM' ]; then
+            result=0
+        fi
+    fi
+
+    return ${result}
+}
+
+# ensure that we have a valid CRAM or BAM file
+function check_valid_cram_or_bam () {
+    local input_path=$1
+    if is_cram ${input_path} || is_bam ${input_path} ; then
+        echo -e "${input_path} is a valid CRAM/BAM file"
+    else
+        echo -e "${input_path}: is NOT a valid CRAM/BAM file!"
+        exit 1
+    fi
 }
 
 ## global usage
 function usage() {
     echo "
 Program: speedseq
-Version: 0.0.2
+Version: 0.1.2
 Author: Colby Chiang (cc2qe@virginia.edu)
 
 usage:   speedseq <command> [options]
@@ -84,7 +146,7 @@ command: align    align FASTQ files with BWA-MEM
          var      call SNV and indel variants with FreeBayes
          somatic  call somatic SNV and indel variants in a tumor/normal pair with FreeBayes
          sv       call SVs with LUMPY
-         realign  re-align from a coordinate sorted BAM file
+         realign  realign from a coordinate sorted BAM file
 
 options: -h       show this message
 "
@@ -139,7 +201,7 @@ positional args:
 
 alignment options:
          -o STR   output prefix [in1.fq]
-         -R       read group header line such as \"@RG\tID:id\tSM:samplename\tLB:lib\" (required)
+         -R STR   read group header line such as \"@RG\tID:id\tSM:samplename\tLB:lib\" (required)
          -p       first fastq file consists of interleaved paired-end sequences
          -t INT   threads [1]
          -T DIR   temp directory [./output_prefix.XXXXXXXXXXXX]
@@ -181,7 +243,7 @@ global options:
     MIN_NON_OVERLAP=20
     THREADS=1
     TEMP_DIR=""
-    VERBOSE=0
+    VERBOSE=1
     INS_DIST=""
     SORT_MEM=20 # amount of memory for sorting, in gigabytes
 
@@ -241,13 +303,7 @@ global options:
 	    OUTPUT=`basename "$FQ"`
 	fi
 
-        # Check that the ref and fastq files exist
-	if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
-	then
-            align_usage
-            echo -e "Error: Reference file $REF not found.\n"
-            exit 1
-	elif [[ -z "$FQ" ]]
+	if [[ -z "$FQ" ]]
 	then
             align_usage
             echo -e "Error: Fastq file $FQ not found.\n"
@@ -262,13 +318,7 @@ global options:
 	    OUTPUT=`basename "$FQ1"`
 	fi
 
-        # Check that the ref and fastq files exist
-	if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
-	then
-            align_usage
-            echo -e "Error: Reference file $REF not found.\n"
-            exit 1
-	elif [[ -z "$FQ1" ]]
+	if [[ -z "$FQ1" ]]
 	then
             align_usage
             echo -e "Error: Fastq file $FQ1 not found.\n"
@@ -279,6 +329,14 @@ global options:
             echo -e "Error: Fastq file $FQ2 not found. (single-end reads not supported, use -p for interleaved FASTQ)\n"
             exit 1
 	fi
+    fi
+
+    # Check that the ref and fastq files exist
+    if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
+    then
+	align_usage
+	echo -e "Error: Reference file $REF not found.\n"
+	exit 1
     fi
 
     OUTBASE=`basename "$OUTPUT"`
@@ -302,33 +360,41 @@ global options:
     # Check the for the relevant binaries
     source_binaries $CONFIG
 
-    if [[ -z "$BWA" ]]
+    if [[ ! -f "$BWA" ]]
     then
 	align_usage
         echo -e "Error: bwa executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z  "$SAMBLASTER" ]]
+    elif [[ ! -f  "$SAMBLASTER" ]]
     then
 	align_usage
         echo -e "Error: samblaster executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$SAMBAMBA" ]]
+    elif [[ ! -f "$SAMBAMBA" ]]
     then
 	align_usage
         echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$PARALLEL" ]]
+    elif [[ ! -f "$PARALLEL" ]]
     then
 	align_usage
         echo -e "Error: parallel executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
     fi
 
+    # Check for BWA index of the reference
+    if [[ ! -f "$REF.bwt" ]] || [[ ! -f "$REF.pac" ]] || [[ ! -f "$REF.ann" ]] || [[ ! -f "$REF.amb" ]] || [[ ! -f "$REF.sa" ]]
+    then
+	echo "Warning: Reference file not indexed with BWA. Indexing now..."
+	$BWA index $REF
+	echo "Done"
+    fi
+
     echo "Aligning..."
     # create temp directory if not specified by command argument
     if [[ -z $TEMP_DIR ]]
     then
-	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+	TEMP_DIR=`mktemp -d ${OUTBASE}.XXXXXXXXXXXX`
     fi
 
     if [[ $VERBOSE -eq 1 ]]
@@ -355,52 +421,60 @@ global options:
 	if [[ $VERBOSE -eq 1 ]]
 	then
 	    echo -e "
-        $BWA mem -t $THREADS -M -p $INS_DIST $RG_FMT $REF $FQ | \\
+        $BWA mem -t $THREADS -p $INS_DIST $RG_FMT $REF $FQ | \\
             $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
-        $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \\
+        gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/spl_pipe | \\
+            $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
-        $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \\
+        gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/disc_pipe | \\
+            $SAMBAMBA view -S -f bam /dev/stdin | \\
             $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin"
 	fi
 
 	echo "
-        $BWA mem -t $THREADS -M -p $INS_DIST $RG_FMT $REF $FQ | \
+        $BWA mem -t $THREADS -p $INS_DIST $RG_FMT $REF $FQ | \
 	    $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
 	    $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
-        
-        $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \
+
+        gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/spl_pipe | \
+            $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
 	    $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
-        $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
+        gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/disc_pipe | \
+            $SAMBAMBA view -S -f bam /dev/stdin | \
 	    $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
         " | $PARALLEL -j 3
     else
 	if [[ $VERBOSE -eq 1 ]]
 	then
         echo -e "
-        $BWA mem -t $THREADS -M $INS_DIST $RG_FMT $REF $FQ1 $FQ2 | \\
+        $BWA mem -t $THREADS $INS_DIST $RG_FMT $REF $FQ1 $FQ2 | \\
             $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
-        $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \\
+        gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/spl_pipe | \\
+            $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
-        $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \\
+        gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/disc_pipe | \\
+            $SAMBAMBA view -S -f bam /dev/stdin | \\
             $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin"
 	fi
 
         echo "
-        $BWA mem -t $THREADS -M $INS_DIST $RG_FMT $REF $FQ1 $FQ2 | \
+        $BWA mem -t $THREADS $INS_DIST $RG_FMT $REF $FQ1 $FQ2 | \
             $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
-        $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe | \
+        gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/spl_pipe | \
+            $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
             $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $OUTPUT.splitters.bam /dev/stdin
-        $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe | \
+        gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/disc_pipe | \
+            $SAMBAMBA view -S -f bam /dev/stdin | \
             $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $OUTPUT.discordants.bam /dev/stdin
         " | $PARALLEL -j 3
     fi
@@ -448,6 +522,7 @@ options:
          -t INT   threads [1]
          -T DIR   temp directory [./output_prefix.XXXXXXXXXXXX]
          -A       annotate the vcf with VEP
+         -a       VEP assembly to use [GRCh37]
          -K FILE  path to speedseq.config file (default: same directory as speedseq)
          -v       verbose
          -k       keep temporary files
@@ -470,10 +545,11 @@ options:
     TEMP_DIR=""
     ANNOTATE=0
     MINQUAL=1
-    VERBOSE=0
+    VERBOSE=1
     KEEP=0
+    VEP_ASSEMBLY="GRCh37"
 
-    while getopts ":ho:w:t:T:Aq:vkK:" OPTION
+    while getopts ":ho:w:t:T:Aa:q:vkK:" OPTION
     do
         case "${OPTION}" in
             h)
@@ -497,6 +573,9 @@ options:
                 ;;
 	    A)
 		ANNOTATE=1
+		;;
+	    a)
+		VEP_ASSEMBLY="$OPTARG"
 		;;
             v)
                 VERBOSE=1
@@ -550,12 +629,12 @@ options:
 	var_usage
         echo -e "Error: VEP cache directory not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$PARALLEL" ]]
+    elif [[ ! -f "$PARALLEL" ]]
     then
 	var_usage
         echo -e "Error: parallel executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$VAWK" ]]
+    elif [[ ! -f "$VAWK" ]]
     then
 	var_usage
         echo -e "Error: vawk executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -589,7 +668,7 @@ options:
     fi
     if [[ -z $TEMP_DIR ]]
     then
-	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+	TEMP_DIR=`mktemp -d ${OUTBASE}.XXXXXXXXXXXX`
     else
 	mkdir -p $TEMP_DIR	
     fi
@@ -608,14 +687,13 @@ options:
     fi
     
     # construct the parallel command over windows
-    if [[ $VERBOSE ]]
+    if [[ $VERBOSE -eq 1 ]]
     then
         echo -e "
         $FREEBAYES \\
             -f $REF \\
             --region \$chrom:\$start..\$end \\
             $BAM_STRING \\
-            --experimental-gls \\
             --min-repeat-entropy 1 \\
             | $VAWK --header '\$6>=$MINQUAL && I\$RPR>0 && I\$RPL>0' \\
             > ${TEMP_DIR}/$OUTBASE.\$i.vcf"
@@ -626,7 +704,6 @@ options:
         echo "$FREEBAYES \
         -f $REF \
         --region $i \
-        --experimental-gls \
         --min-repeat-entropy 1 \
         $BAM_STRING \
         | $VAWK --header '\$6>=$MINQUAL && I\$RPR>0 && I\$RPL>0' \
@@ -634,7 +711,7 @@ options:
     done > $TEMP_DIR/var_command.txt
 
     # run the parallel freebayes command
-    if [[ $VERBOSE ]]
+    if [[ $VERBOSE -eq 1 ]]
     then
 	echo "
         cat $TEMP_DIR/var_command.txt | $PARALLEL -j $THREADS"
@@ -666,12 +743,13 @@ options:
                 | sort -k1,1 -k2,2n | cat $TEMP_DIR/header.txt - \\
                 | $VEP \\
                 $FORK \\
-                -o /dev/stdout \\
+                -o STDOUT \\
                 --force_overwrite \\
                 --offline \\
                 --no_stats \\
                 --cache \\
                 --dir_cache $VEP_CACHE_DIR \\
+                --assembly $VEP_ASSEMBLY \\
                 --species homo_sapiens \\
                 --sift b \\
                 --polyphen b \\
@@ -692,12 +770,13 @@ options:
 	    | sort -k1,1 -k2,2n | cat $TEMP_DIR/header.txt - \
 	    | $VEP \
             $FORK \
-            -o /dev/stdout \
+            -o STDOUT \
 	    --force_overwrite \
             --offline \
             --no_stats \
             --cache \
             --dir_cache $VEP_CACHE_DIR \
+            --assembly $VEP_ASSEMBLY \
             --species homo_sapiens \
             --sift b \
             --polyphen b \
@@ -774,7 +853,6 @@ options:
          -o STR   output prefix [tumor.bam]
          -w FILE  BED file of windowed genomic intervals
          -t INT   threads [1]
-         -s       only output somatic variants
          -F FLOAT Require at least this fraction of observations supporting
                     an alternate allele within a single individual in order
                     to evaluate the position [0.05]
@@ -786,6 +864,7 @@ options:
          -T DIR   temp directory [./output_prefix.XXXXXXXXXXXX]
 
          -A       annotate the vcf with VEP
+         -a       VEP assembly to use [GRCh37]
          -K FILE  path to speedseq.config file (default: same directory as speedseq)
          -v       verbose
          -k       keep tempory files
@@ -813,10 +892,11 @@ options:
     MINQUAL=1e-5
     ONLY_SOMATIC=0
     SSC_THRES=18
-    VERBOSE=0
+    VERBOSE=1
     KEEP=0
+    VEP_ASSEMBLY="GRCh37"
 
-    while getopts ":ho:w:t:F:C:T:Aq:S:svkK:" OPTION
+    while getopts ":ho:w:t:F:C:T:Aa:q:S:vkK:" OPTION
     do
         case "${OPTION}" in
             h)
@@ -844,14 +924,14 @@ options:
             A)
                 ANNOTATE=1
                 ;;
+	    a)
+		VEP_ASSEMBLY="$OPTARG"
+		;;
 	    q)
 		MINQUAL="$OPTARG"
 		;;
 	    S)
 		SSC_THRES="$OPTARG"
-		;;
-	    s)
-		ONLY_SOMATIC=1
 		;;
             v)
                 VERBOSE=1
@@ -938,7 +1018,7 @@ options:
     fi
     if [[ -z $TEMP_DIR ]]
     then
-	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+	TEMP_DIR=`mktemp -d ${OUTBASE}.XXXXXXXXXXXX`
     else
 	mkdir -p $TEMP_DIR	
     fi
@@ -1026,12 +1106,13 @@ options:
                 | sort -k1,1 -k2,2n | cat $TEMP_DIR/header.txt - \\
                 | $VEP \\
                 $FORK \\
-                -o /dev/stdout \\
+                -o STDOUT \\
                 --force_overwrite \\
                 --offline \\
                 --no_stats \\
                 --cache \\
                 --dir_cache $VEP_CACHE_DIR \\
+                --assembly $VEP_ASSEMBLY \\
                 --species homo_sapiens \\
                 --sift b \\
                 --polyphen b \\
@@ -1051,12 +1132,13 @@ options:
             | sort -k1,1 -k2,2n | cat $TEMP_DIR/header.txt - \
             | $VEP \
             $FORK \
-            -o /dev/stdout \
+            -o STDOUT \
 	    --force_overwrite \
             --offline \
             --no_stats \
             --cache \
             --dir_cache $VEP_CACHE_DIR \
+            --assembly $VEP_ASSEMBLY \
             --species homo_sapiens \
             --sift b \
             --polyphen b \
@@ -1135,7 +1217,9 @@ sv options:
          -x FILE  BED file to exclude
          -g       genotype SV breakends with svtyper
          -d       calculate read-depth with CNVnator
+         -w INT   CNVnator window size [100]
          -A       annotate the vcf with VEP
+         -a       VEP assembly to use [GRCh37]
          -P       output LUMPY probability curves in VCF
          -m INT   minimum sample weight for a call [4]
          -r FLOAT trim threshold [0]
@@ -1154,20 +1238,22 @@ global options:
     CONFIG="$SPEEDSEQ_DIR/speedseq.config"
     THREADS=1
     ANNOTATE=0
+    VEP_ASSEMBLY="GRCh37"
     MIN_SAMPLE_WEIGHT=4
     TRIM_THRES=0
     EXCLUDE_BED=
     TEMP_DIR=""
     GENOTYPE=0
     READDEPTH=0
+    WINDOW_SIZE=100
     PROBCURVE=0
-    VERBOSE=0
+    VERBOSE=1
     KEEP=0
     OUTPUT=""
     MAX_SPLIT_COUNT=2
     MIN_NON_OVERLAP=20
 
-    while getopts ":hB:S:D:R:o:m:r:x:T:t:AdgPkvK:" OPTION
+    while getopts ":hB:S:D:R:o:m:r:x:T:t:Aa:dw:gPkvK:" OPTION
     do
 	case "${OPTION}" in
             h)
@@ -1210,8 +1296,14 @@ global options:
 	    A)
 		ANNOTATE=1
 		;;
+	    a)
+		VEP_ASSEMBLY="$OPTARG"
+		;;
 	    d)
 		READDEPTH=1
+		;;
+	    w)
+		WINDOW_SIZE="$OPTARG"
 		;;
 	    g)
 		GENOTYPE=1
@@ -1242,22 +1334,22 @@ global options:
     # Check the for the relevant binaries
     source_binaries $CONFIG
 
-    if [[ -z "$LUMPY" ]]
+    if [[ ! -f "$LUMPY" ]]
     then
 	sv_usage
         echo -e "Error: lumpy executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$LUMPYEXPRESS" ]]
+    elif [[ ! -f "$LUMPYEXPRESS" ]]
     then
 	sv_usage
         echo -e "Error: lumpyexpress executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z  "$PAIREND_DISTRO" ]]
+    elif [[ ! -f  "$PAIREND_DISTRO" ]]
     then
 	sv_usage
         echo -e "Error: pairend_distro.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z  "$SAMBAMBA" ]]
+    elif [[ ! -f  "$SAMBAMBA" ]]
     then
 	sv_usage
         echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -1272,47 +1364,22 @@ global options:
 	sv_usage
         echo -e "Error: VEP cache directory not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$VAWK" ]] && [[ "$ANNOTATE" -eq 1 ]]
+    elif [[ ! -f "$VAWK" ]] && [[ "$ANNOTATE" -eq 1 ]]
     then
 	sv_usage
         echo -e "Error: vawk executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$SAMBLASTER" ]] && [[ -z "${DISC_BAM_STRING}${SPL_BAM_STRING}" ]]
+    elif [[ ! -f "$SAMBLASTER" ]] && [[ -z "${DISC_BAM_STRING}${SPL_BAM_STRING}" ]]
     then
 	sv_usage
         echo -e "Error: samblaster executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$BWA" ]] && [[ "$REALIGN" -eq 1 ]]
-    then
-	sv_usage
-	echo -e "Error: BWA executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ -z "$BAMTOFASTQ" ]] && [[ "$REALIGN" -eq 1 ]]
-    then
-	sv_usage
-	echo -e "Error: bamtofastq.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ -z "$BAMHEADRG" ]] && [[ "$REALIGN" -eq 1 ]]
-    then
-	sv_usage
-	echo -e "Error: bamheadrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ -z "$BAMCLEANHEADER" ]] && [[ "$REALIGN" -eq 1 ]]
-    then
-	sv_usage
-	echo -e "Error: bamcleanheader.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ -z "$MBUFFER" ]] && [[ "$REALIGN" -eq 1 ]]
-    then
-	sv_usage
-	echo -e "Error: mbuffer executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
-        exit 1
-    elif [[ -z "$BAMFILTERRG" ]]
+    elif [[ ! -f "$BAMFILTERRG" ]]
     then
 	sv_usage
 	echo -e "Error: bamfilterrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
-    elif [[ -z "$BAMLIBS" ]]
+    elif [[ ! -f "$BAMLIBS" ]]
     then
 	sv_usage
 	echo -e "Error: bamlibs.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -1320,7 +1387,7 @@ global options:
     fi
 
     # if genotyping requested, look for svtyper
-    if [[ "$GENOTYPE" -eq 1 ]] && [[ -z "$SVTYPER" ]]
+    if [[ "$GENOTYPE" -eq 1 ]] && [[ ! -f "$SVTYPER" ]]
     then
 	sv_usage
         echo -e "Error: svtyper executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -1330,17 +1397,17 @@ global options:
     # if CNV read-depth requested, look for cnvnator executables
     if [[ "$READDEPTH" -eq 1 ]]
     then
-	if [[ -z "$CNVNATOR_MULTI" ]]
+	if [[ ! -f "$CNVNATOR" ]]
 	then
 	    sv_usage
             echo -e "Error: cnvnator executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
             exit 1
-	elif [[ -z "$CNVNATOR_WRAPPER" ]]
+	elif [[ ! -f "$CNVNATOR_WRAPPER" ]]
 	then
 	    sv_usage
             echo -e "Error: cnvnator_wrapper.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
             exit 1
-	elif [[ -z "$ANNOTATE_RD" ]]
+	elif [[ ! -f "$ANNOTATE_RD" ]]
 	then
 	    sv_usage
             echo -e "Error: annotate_rd.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
@@ -1361,7 +1428,7 @@ global options:
     if [[ ! -f $REF.fai && ! -f $(echo ${REF%*.*}).fai ]]
     then
 	sv_usage
-	echo -e "Error: reference fasta file $REF not indexed\n"
+	echo -e "Error: reference fasta file $REF not indexed. Please run samtools faidx on the .fasta file\n"
 	exit 1
     fi
     if [[ ${#FULL_BAM_LIST[@]} -eq 0 ]]
@@ -1396,7 +1463,7 @@ global options:
     fi
     if [[ -z $TEMP_DIR ]]
     then
-	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+	TEMP_DIR=`mktemp -d ${OUTBASE}.XXXXXXXXXXXX`
     else
 	mkdir -p $TEMP_DIR	
     fi
@@ -1429,11 +1496,11 @@ global options:
 	    if [[ "$VERBOSE" -eq 1 ]]
 	    then
 		echo "# genotype structural variants"
-		echo -e "$PYTHON $SVTYPER -i $TEMP_DIR/$OUTBASE.sv.vcf -B $FULL_BAM -S $SPL_BAM > $TEMP_DIR/$OUTBASE.sv.gt.vcf ; mv $TEMP_DIR/$OUTBASE.sv.gt.vcf $TEMP_DIR/$OUTBASE.sv.vcf"
+		echo -e "$PYTHON $SVTYPER -q -i $TEMP_DIR/$OUTBASE.sv.vcf -B $FULL_BAM -S $SPL_BAM > $TEMP_DIR/$OUTBASE.sv.gt.vcf ; mv $TEMP_DIR/$OUTBASE.sv.gt.vcf $TEMP_DIR/$OUTBASE.sv.vcf"
 	    fi
 
 	    # genotype structural variants
-	    $PYTHON $SVTYPER -i $TEMP_DIR/$OUTBASE.sv.vcf -B $FULL_BAM -S $SPL_BAM > $TEMP_DIR/$OUTBASE.sv.gt.vcf
+	    $PYTHON $SVTYPER -q -i $TEMP_DIR/$OUTBASE.sv.vcf -B $FULL_BAM -S $SPL_BAM > $TEMP_DIR/$OUTBASE.sv.gt.vcf
 	    mv $TEMP_DIR/$OUTBASE.sv.gt.vcf $TEMP_DIR/$OUTBASE.sv.vcf
 	done
     fi
@@ -1442,32 +1509,36 @@ global options:
     if [[ "$READDEPTH" -eq 1 ]]
     then
 	echo "Calculating read depth"
-	WINDOW_SIZE=100
 
 	for i in $( seq 0 $(( ${#FULL_BAM_LIST[@]}-1 )) )
 	do
 	    FULL_BAM=${FULL_BAM_LIST[$i]}
+	    check_valid_cram_or_bam ${FULL_BAM}
 	    FULL_BASE=`basename $FULL_BAM`
-	    SAMPLE=`$SAMBAMBA view -H $FULL_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
+	    CRAM_OPTS=""
+	    if is_cram $FULL_BAM; then
+	        CRAM_OPTS="-C"
+	    fi
+	    SAMPLE=`$SAMBAMBA view $CRAM_OPTS -H $FULL_BAM | grep -m 1 "^@RG" | awk -v i=$i '{ for (j=1;j<=NF;++j) {if ($j~"^SM:") { gsub("^SM:","",$j); print $j } } }'`
 
 	    if [[ "$VERBOSE" -eq 1 ]]
 	    then
 		echo "
-    # run cnvnator-multi
-    $PYTHON $CNVNATOR_WRAPPER --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w $WINDOW_SIZE -b ${FULL_BAM} $TEMP_DIR/$FULL_BASE.readdepth -c $CNVNATOR_CHROMS_DIR -g GRCh37
+    # run cnvnator
+    $PYTHON $CNVNATOR_WRAPPER --samtools $SAMTOOLS --cnvnator $CNVNATOR -T $TEMP_DIR/cnvnator-temp -t $THREADS -w $WINDOW_SIZE -b ${FULL_BAM} -o $TEMP_DIR/$FULL_BASE.readdepth -c $CNVNATOR_CHROMS_DIR
 		"
 	    fi
-	    $PYTHON $CNVNATOR_WRAPPER --cnvnator $CNVNATOR_MULTI -T $TEMP_DIR/cnvnator-temp -t $THREADS -w $WINDOW_SIZE -b ${FULL_BAM} -o $TEMP_DIR/$FULL_BASE.readdepth -c $CNVNATOR_CHROMS_DIR -g GRCh37
+	    $PYTHON $CNVNATOR_WRAPPER --samtools $SAMTOOLS --cnvnator $CNVNATOR -T $TEMP_DIR/cnvnator-temp -t $THREADS -w $WINDOW_SIZE -b ${FULL_BAM} -o $TEMP_DIR/$FULL_BASE.readdepth -c $CNVNATOR_CHROMS_DIR
 
 	    # Calculate read-depth of LUMPY calls
 	    if [[ "$VERBOSE" -eq 1 ]]
 	    then
 		echo "
     # Calculate read-depth of LUMPY calls
-    $PYTHON $ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BASE}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.sv.rd.vcf
+    $PYTHON $ANNOTATE_RD --cnvnator $CNVNATOR -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BASE}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.sv.rd.vcf
 		"
 	    fi
-	    $PYTHON $ANNOTATE_RD --cnvnator $CNVNATOR_MULTI -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BASE}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.rd.sv.vcf
+	    $PYTHON $ANNOTATE_RD --cnvnator $CNVNATOR -s $SAMPLE -w $WINDOW_SIZE -r $TEMP_DIR/cnvnator-temp/${FULL_BASE}.hist.root -v $TEMP_DIR/$OUTBASE.sv.vcf > $TEMP_DIR/$OUTBASE.rd.sv.vcf
 
 	    if [[ "$VERBOSE" -eq 1 ]]
 	    then
@@ -1498,13 +1569,14 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
     | $PYTHON $VAWK --header '(\$1<=22 || \$1==\"X\" || \$1==\"Y\") && (I\$SVTYPE==\"BND\" || (I\$SVLEN<=50000 && I\$SVLEN>=-50000))' \\
     | $VEP \\
     $FORK \\
-    -o /dev/stdout \\
+    -o STDOUT \\
     --force_overwrite \\
     --format vcf \\
     --offline \\
     --no_stats \\
     --cache \\
     --dir_cache $VEP_CACHE_DIR \\
+    --assembly $VEP_ASSEMBLY \\
     --species homo_sapiens \\
     --sift b \\
     --polyphen b \\
@@ -1523,13 +1595,14 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
 	    | $PYTHON $VAWK --header '($1<=22 || $1=="X" || $1=="Y") && (I$SVTYPE=="BND" || (I$SVLEN<=50000 && I$SVLEN>=-50000))' \
 	    | $VEP \
             $FORK \
-            -o /dev/stdout \
+            -o STDOUT \
             --force_overwrite \
 	    --format vcf \
             --offline \
             --no_stats \
             --cache \
             --dir_cache $VEP_CACHE_DIR \
+	    --assembly $VEP_ASSEMBLY \
             --species homo_sapiens \
             --sift b \
             --polyphen b \
@@ -1561,8 +1634,8 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
 	rm -r ${TEMP_DIR}
     fi
 
-    echo "done"
-
+    echo "SV calling done."
+    
     # exit cleanly
     exit 0
 }
@@ -1570,13 +1643,12 @@ cat  $TEMP_DIR/$OUTBASE.sv.vcf \\
 function realign() {
     function realign_usage() {
 	echo "
-usage:   speedseq realign [options] <reference.fa> <in.bam>
+usage:   speedseq realign [options] <reference.fa> <in1.bam> [in2.bam [...]]
 
 positional args:
          reference.fa
                   fasta file (indexed with bwa)
-         in.bam   re-align from a coordinate sorted BAM file
-                    this BAM file must contain read group tags
+         in.bam   BAM file(s) (must contain read group tags)
 
 alignment options:
          -o STR   output prefix [in.realign]
@@ -1587,6 +1659,11 @@ alignment options:
          -n       rename reads for smaller file size
          -t INT   threads [1]
          -T DIR   temp directory [./output_prefix.XXXXXXXXXXXX]
+         -R STR   read group header line such as \"@RG\tID:id\tSM:samplename\tLB:lib\"
+                    WARNING: By default SpeedSeq will automatically parse readgroup info
+                    from the input BAM headers. This option will supercede that info and
+                    should therefore only be used when input BAM(s) lack readgroups or when
+                    custom editing of readgroups is desired.
 
 samblaster options:
          -i       include duplicates in splitters and discordants
@@ -1620,12 +1697,13 @@ global options:
     MIN_NON_OVERLAP=20
     THREADS=1
     TEMP_DIR=""
-    VERBOSE=0
+    VERBOSE=1
     INS_DIST=""
     RENAME=""
     SORT_MEM=20 # amount of memory for sorting, in gigabytes
+    RG_FMT=""
 
-    while getopts ":hw:o:pic:m:M:t:T:I:nvK:" OPTION
+    while getopts ":hw:o:pic:m:M:t:T:I:nvK:R:" OPTION
     do
 	case "${OPTION}" in
 	    h)
@@ -1668,28 +1746,40 @@ global options:
 	    K)
 		CONFIG="$OPTARG"
 		;;
+            R)
+                RG="$OPTARG"
+                RG_FMT="-R '$OPTARG'"
+                ;;
 	esac
     done
 
     REF="${@:${OPTIND}:1}"
-    IN_BAM="${@:$((${OPTIND}+1)):1}"
+    BAM_STRING="${@:$((${OPTIND}+1))}"
+    BAM_LIST=($BAM_STRING)
+
     if [[ -z "$OUTPUT" ]]
     then
-	OUTPUT=`basename "$IN_BAM" ".bam"`".realign"
+	OUTPUT=`basename "${BAM_LIST[0]}" ".bam"`".realign"
     fi
 
-    # Check that the ref and bam files exist
+    # Check that the ref files exists
     if [[ -z "$REF" ]] || [[ ! -f "$REF" ]]
     then
 	realign_usage
 	echo -e "Error: Reference file $REF not found.\n"
 	exit 1
-    elif [[ -z "$IN_BAM" ]] || [[ ! -e "$IN_BAM" ]]
-    then
-	realign_usage
-	echo -e "Error: BAM file $IN_BAM not found.\n"
-	exit 1
     fi
+
+    # Check that the input BAMs exist
+    for TEST_BAM in ${BAM_LIST[@]}
+    do
+        if [[ ! -f $TEST_BAM ]]
+        then
+            realign_usage
+            echo -e "Error: BAM file $TEST_BAM not found.\n"
+            exit 1
+        fi
+    done
 
     # Check that SORT_MEM > 2
     if [[ "$SORT_MEM" -lt 3 ]]
@@ -1701,47 +1791,47 @@ global options:
 
     # Check the for the relevant binaries
     source_binaries $CONFIG
-    if [[ -z "$BWA" ]]
+    if [[ ! -f "$BWA" ]]
     then
 	realign_usage
         echo -e "Error: bwa executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z  "$SAMBLASTER" ]]
+    elif [[ ! -f  "$SAMBLASTER" ]]
     then
 	realign_usage
         echo -e "Error: samblaster executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$SAMBAMBA" ]]
+    elif [[ ! -f "$SAMBAMBA" ]]
     then
 	realign_usage
         echo -e "Error: sambamba executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
         exit 1
-    elif [[ -z "$MBUFFER" ]]
+    elif [[ ! -f "$MBUFFER" ]]
     then
 	realign_usage
 	echo -e "Error: mbuffer executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
-    elif [[ -z "$BAMTOFASTQ" ]]
+    elif [[ ! -f "$BAMTOFASTQ" ]]
     then
 	realign_usage
 	echo -e "Error: bamtofastq.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
-    elif [[ -z "$BAMHEADRG" ]]
+    elif [[ ! -f "$BAMHEADRG" ]]
     then
 	realign_usage
 	echo -e "Error: bamheadrg.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
-    elif [[ -z "$BAMCLEANHEADER" ]]
+    elif [[ ! -f "$BAMCLEANHEADER" ]]
     then
 	realign_usage
 	echo -e "Error: bamcleanheader.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
-    elif [[ -z "$BAMLIBS" ]]
+    elif [[ ! -f "$BAMLIBS" ]]
     then
 	realign_usage
 	echo -e "Error: bamlibs.py executable not found. Please set path in $SPEEDSEQ_DIR/speedseq.config file\n"
 	exit 1
-    elif [[ -z "$PARALLEL" ]]
+    elif [[ ! -f "$PARALLEL" ]]
     then
         realign_usage
 	echo parallel is $PARALLEL
@@ -1752,27 +1842,12 @@ global options:
     # check for required python modules (pysam, numpy, scipy, etc)
     check_python_modules $PYTHON
 
-    # parse the libraries in the BAM header to extract readgroups from the same library
-    if [[ -z $REALIGN_RG_LIST ]]
-    then
-	REALIGN_RG_LIST=(`$BAMCLEANHEADER $IN_BAM | $BAMLIBS -S`)
-    fi
-
-    if [[ ${#REALIGN_RG_LIST[@]} -eq 0 ]]
-    then
-	realign_usage
-        echo -e "Error: $IN_BAM lacks read group fields (@RG) in BAM header\n"
-        exit 1
-    fi
-
     # set the output name
     OUTBASE=`basename "$OUTPUT"`
-
-    echo "Aligning..."
-    # create temp directory if not specified by command argument
+    # create temp directory and pipes
     if [[ -z $TEMP_DIR ]]
     then
-	TEMP_DIR=`mktemp -d -p ./ ${OUTBASE}.XXXXXXXXXXXX`
+	TEMP_DIR=`mktemp -d ${OUTBASE}.XXXXXXXXXXXX`
     fi
 
     if [[ $VERBOSE -eq 1 ]]
@@ -1789,8 +1864,6 @@ global options:
         mkdir -p $TEMP_DIR/full $TEMP_DIR/spl $TEMP_DIR/disc
         mkfifo $TEMP_DIR/spl_pipe $TEMP_DIR/disc_pipe $TEMP_DIR/fq_pipe"
     fi
-
-    # create temp files and pipes
     mkdir -p $TEMP_DIR $TEMP_DIR/full $TEMP_DIR/spl $TEMP_DIR/disc
     if [[ ! -e $TEMP_DIR/spl_pipe ]]
     then
@@ -1806,37 +1879,95 @@ global options:
     fi
     FQ="$TEMP_DIR/fq_pipe"
 
+    # make a sloppy "merged" header
+    if [[ -z "$RG_FMT" ]]
+    then
+	$PYTHON $BAMCLEANHEADER $BAM_STRING > $TEMP_DIR/header.txt
+    else
+	> $TEMP_DIR/header.txt
+    fi
+
+    # SHOULD ADD A CHECK HERE TO MAKE SURE EACH INDIVIDUAL BAM CONTAINS READGROUPS
+
+    # parse the libraries in the BAM header to extract readgroups from the same library
+    if [[ -z $REALIGN_RG_LIST ]]
+    then
+	REALIGN_RG_LIST+=(`$PYTHON $BAMLIBS -S $TEMP_DIR/header.txt`)	
+    fi
+
+    # if input BAM lacks RG info, generate it from output filename
+    if [[ ${#REALIGN_RG_LIST[@]} -eq 0 ]]
+    then
+	# realign_usage
+        # exit 1
+        echo -e "Warning: BAM headers lack read group fields (@RG)\n"
+	REALIGN_RG_LIST=""
+	# use the supplied readgroup from the command line if available, otherwise
+	# create readgroup from the output name
+	if [[ -z "$RG_FMT" ]]
+	then
+	    RG_FMT="-R '@RG\tID:$OUTPUT\tSM:$OUTPUT\tLB:$OUTPUT'"
+	fi
+    fi
+    
+    # if user supplies command line readgroup info, then override existing RG info in input BAMs
+    if [[ -z "$RG_FMT" ]]
+    then
+	RETAIN_INPUT_RG="-C"
+    else
+	RETAIN_INPUT_RG=""
+    fi
+
+    # Check for BWA index of the reference
+    if [[ ! -f "$REF.bwt" ]] || [[ ! -f "$REF.pac" ]] || [[ ! -f "$REF.ann" ]] || [[ ! -f "$REF.amb" ]] || [[ ! -f "$REF.sa" ]]
+    then
+	echo "Warning: Reference file not indexed with BWA. Indexing now..."
+	$BWA index $REF
+	echo "Done"
+    fi
+
+    echo "Aligning..."
     for i in $( seq 0 $(( ${#REALIGN_RG_LIST[@]}-1 )) )
     do
 	REALIGN_RG=${REALIGN_RG_LIST[i]}
-	echo "             Re-aligning readgroups: $REALIGN_RG"
+	if [[ -z "$REALIGN_RG" ]]
+	then
+	    REALIGN_RG_FMT=""
+	else
+	    REALIGN_RG_FMT="-r ${REALIGN_RG_LIST[i]}"
+	fi
+	echo "             Realigning readgroups: $REALIGN_RG"
 
 	# alignment command
 	if [[ $VERBOSE -eq 1 ]]
 	    then
 	        echo -e "
-            $PYTHON $BAMTOFASTQ -r $REALIGN_RG $RENAME -i $IN_BAM | $MBUFFER -q -m 1G > $FQ
-            $BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ \\
-                | $PYTHON $BAMHEADRG -d $IN_BAM -r $REALIGN_RG \\
+            $PYTHON $BAMTOFASTQ $REALIGN_RG_FMT $RENAME $BAM_STRING | $MBUFFER -q -m 1G > $FQ
+            $BWA mem -t $THREADS $RETAIN_INPUT_RG -p $INS_DIST $RG_FMT $REF $FQ \\
+                | $PYTHON $BAMHEADRG -d $TEMP_DIR/header.txt $REALIGN_RG_FMT \\
                 | $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \\
                 | $SAMBAMBA view -S -f bam -l 0 /dev/stdin \\
                 | $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $TEMP_DIR/$OUTBASE.$(($i+1)).bam /dev/stdin
-            $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe \\
+	    gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/spl_pipe \\
+		| $SAMBAMBA view -S -f bam -l 0 /dev/stdin \\
                 | $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.$(($i+1)).splitters.bam /dev/stdin
-            $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe \\
+	    gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/disc_pipe \\
+		| $SAMBAMBA view -S -f bam -l 0 /dev/stdin \\
                 | $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.$(($i+1)).discordants.bam /dev/stdin"
 	fi
 
 	echo -e "
-            $PYTHON $BAMTOFASTQ -r $REALIGN_RG $RENAME -i $IN_BAM | $MBUFFER -q -m 1G > $FQ
-            $BWA mem -t $THREADS -C -M -p $INS_DIST $RG_FMT $REF $FQ \
-                | $PYTHON $BAMHEADRG -d $IN_BAM -r $REALIGN_RG \
+            $PYTHON $BAMTOFASTQ $REALIGN_RG_FMT $RENAME $BAM_STRING | $MBUFFER -q -m 1G > $FQ
+            $BWA mem -t $THREADS $RETAIN_INPUT_RG -p $INS_DIST $RG_FMT $REF $FQ \
+                | $PYTHON $BAMHEADRG -d $TEMP_DIR/header.txt $REALIGN_RG_FMT \
                 | $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe \
                 | $SAMBAMBA view -S -f bam -l 0 /dev/stdin \
                 | $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $TEMP_DIR/$OUTBASE.$(($i+1)).bam /dev/stdin
-            $SAMBAMBA view -S -f bam -l 0 $TEMP_DIR/spl_pipe \
+	    gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/spl_pipe \
+		| $SAMBAMBA view -S -f bam -l 0 /dev/stdin \
                 | $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/spl -o $TEMP_DIR/$OUTBASE.$(($i+1)).splitters.bam /dev/stdin
-            $SAMBAMBA view -S -f bam $TEMP_DIR/disc_pipe \
+	    gawk '{ if (\$0~\"^@\") { print; next } else { \$10=\"*\"; \$11=\"*\"; print } }' OFS=\"\\t\" $TEMP_DIR/disc_pipe \
+		| $SAMBAMBA view -S -f bam -l 0 /dev/stdin \
                 | $SAMBAMBA sort -t 4 -m 1G --tmpdir=$TEMP_DIR/disc -o $TEMP_DIR/$OUTBASE.$(($i+1)).discordants.bam /dev/stdin
             " | $PARALLEL -j 4
     done
@@ -1949,3 +2080,19 @@ case "$1" in
 esac
 
 ## END SCRIPT
+
+#                             .       .
+#                            / `.   .' \
+#                    .---.  <    > <    >  .---.
+#                    |    \  \ - ~ ~ - /  /    |
+#                     ~-..-~             ~-..-~
+#                 \~~~\.'                    `./~~~/
+#       .-~~^-.    \__/                        \__/
+#     .'  O    \     /               /       \  \
+#    (_____,    `._.'               |         }  \/~~~/
+#     `----.          /       }     |        /    \__/
+#           `-.      |       /      |       /      `. ,~~|
+#               ~-.__|      /_ - ~ ^|      /- _      `..-'   f: f:
+#                    |     /        |     /     ~-.     `-. _||_||_
+#                    |_____|        |_____|         ~ - . _ _ _ _ _>
+#

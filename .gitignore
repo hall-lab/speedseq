@@ -1,7 +1,5 @@
 # Binaries #
 ############
-bin/bedpeToBed12
-bin/bedpeToVcf
 bin/bgzip
 bin/cnvnator-multi
 src/cnvnator/bin/cnvnator-multi
@@ -13,8 +11,6 @@ bin/lumpy
 bin/lumpyexpress
 bin/pairend_distro.py
 bin/samblaster
-bin/splitReadSamToBedpe
-bin/splitterToBreakpoint
 bin/svtyper
 bin/tabix
 bin/vawk
@@ -65,7 +61,6 @@ bin/mbuffer
 bin/parallel
 bin/bamheadrg.py
 bin/bamtofastq.py
-bin/lumpyToBedpe
 bin/bamgroupreads.py
 bin/bamfilterrg.py
 bin/bamcleanheader.py

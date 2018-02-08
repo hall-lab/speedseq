@@ -1,24 +1,18 @@
 [submodule "src/svtyper"]
 	path = src/svtyper
-	url = https://github.com/cc2qe/svtyper.git
+	url = https://github.com/hall-lab/svtyper.git
 [submodule "src/samblaster"]
 	path = src/samblaster
 	url = https://github.com/GregoryFaust/samblaster.git
 [submodule "src/vawk"]
 	path = src/vawk
 	url = https://github.com/cc2qe/vawk.git
-[submodule "src/lumpy-sv"]
-	path = src/lumpy-sv
-	url = https://github.com/cc2qe/lumpy-sv.git
 [submodule "src/tabix"]
 	path = src/tabix
 	url = https://github.com/samtools/tabix.git
 [submodule "src/freebayes"]
 	path = src/freebayes
 	url = https://github.com/ekg/freebayes.git
-[submodule "src/svtools"]
-	path = src/svtools
-	url = https://github.com/hall-lab/sv-tools.git
 [submodule "src/bwa"]
 	path = src/bwa
 	url = https://github.com/lh3/bwa.git
@@ -28,3 +22,10 @@
 [submodule "src/parallel"]
 	path = src/parallel
 	url = http://git.savannah.gnu.org/r/parallel.git
+[submodule "src/lumpy-sv"]
+	path = src/lumpy-sv
+	url = https://github.com/hall-lab/lumpy-sv.git
+	branch = 0.2.13_cram_support
+[submodule "src/CNVnator"]
+	path = src/CNVnator
+	url = https://github.com/abyzovlab/CNVnator
