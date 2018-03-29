@@ -212,6 +212,7 @@ alignment options:
 
 samblaster options:
          -i       include duplicates in splitters and discordants
+         -z       do not mark duplicate
          -c INT   maximum number of split alignments for a read to be included in splitter file [2]
          -m INT   minimum non-overlapping base pairs between two alignments for a read to be included in splitter file [20]
 
@@ -239,6 +240,7 @@ global options:
     RG_FMT=""
     OUTPUT=""
     INCLUDE_DUPS="--excludeDups"
+	MARK_DUPS=""
     MAX_SPLIT_COUNT=2
     MIN_NON_OVERLAP=20
     THREADS=1
@@ -247,7 +249,7 @@ global options:
     INS_DIST=""
     SORT_MEM=20 # amount of memory for sorting, in gigabytes
 
-    while getopts ":hw:o:R:pic:m:M:t:T:I:vK:" OPTION
+    while getopts ":hw:o:R:pizc:m:M:t:T:I:vK:" OPTION
     do
 	case "${OPTION}" in
 	    h)
@@ -269,6 +271,9 @@ global options:
 		;;
 	    c)
 		MAX_SPLIT_COUNT="$OPTARG"
+		;;
+	    z)
+		MARK_DUPS="--acceptDupMarks"
 		;;
 	    m)
 		MIN_NON_OVERLAP="$OPTARG"
@@ -422,7 +427,7 @@ global options:
 	then
 	    echo -e "
         $BWA mem -t $THREADS -p $INS_DIST $RG_FMT $REF $FQ | \\
-            $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
+            $SAMBLASTER $INCLUDE_DUPS $MARK_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
@@ -436,7 +441,7 @@ global options:
 
 	echo "
         $BWA mem -t $THREADS -p $INS_DIST $RG_FMT $REF $FQ | \
-	    $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
+	    $SAMBLASTER $INCLUDE_DUPS $MARK_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
 	    $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
@@ -452,7 +457,7 @@ global options:
 	then
         echo -e "
         $BWA mem -t $THREADS $INS_DIST $RG_FMT $REF $FQ1 $FQ2 | \\
-            $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
+            $SAMBLASTER $INCLUDE_DUPS $MARK_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \\
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \\
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
@@ -466,7 +471,7 @@ global options:
 
         echo "
         $BWA mem -t $THREADS $INS_DIST $RG_FMT $REF $FQ1 $FQ2 | \
-            $SAMBLASTER $INCLUDE_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
+            $SAMBLASTER $INCLUDE_DUPS $MARK_DUPS --addMateTags --maxSplitCount $MAX_SPLIT_COUNT --minNonOverlap $MIN_NON_OVERLAP --splitterFile $TEMP_DIR/spl_pipe --discordantFile $TEMP_DIR/disc_pipe | \
             $SAMBAMBA view -S -f bam -l 0 /dev/stdin | \
             $SAMBAMBA sort -t $THREADS -m $((${SORT_MEM}-2))G --tmpdir=$TEMP_DIR/full -o $OUTPUT.bam /dev/stdin
 
