@@ -12,7 +12,7 @@
 	url = https://github.com/samtools/tabix.git
 [submodule "src/freebayes"]
 	path = src/freebayes
-	url = https://github.com/ekg/freebayes.git
+	url = https://github.com/freebayes/freebayes.git
 [submodule "src/bwa"]
 	path = src/bwa
 	url = https://github.com/lh3/bwa.git
@@ -21,7 +21,7 @@
 	url = https://github.com/cc2qe/bamkit.git
 [submodule "src/parallel"]
 	path = src/parallel
-	url = http://git.savannah.gnu.org/r/parallel.git
+	url = git://git.savannah.gnu.org/parallel.git
 [submodule "src/lumpy-sv"]
 	path = src/lumpy-sv
 	url = https://github.com/hall-lab/lumpy-sv.git
@@ -29,3 +29,6 @@
 [submodule "src/CNVnator"]
 	path = src/CNVnator
 	url = https://github.com/abyzovlab/CNVnator
+[submodule "src/sambamba"]
+	path = src/sambamba
+	url = https://github.com/biod/sambamba.git
