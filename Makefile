@@ -5,6 +5,8 @@ SRC=src
 
 SPEEDSEQ_DIR=$(shell pwd)
 BWA_DIR=$(SRC)/bwa
+SAMBAMBA_DIR=$(SRC)/sambamba
+SAMBAMBA_VERSION=$(shell cat $(SAMBAMBA_DIR)/VERSION)
 SAMBLASTER_DIR=$(SRC)/samblaster
 FREEBAYES_DIR=$(SRC)/freebayes
 LUMPY_DIR=$(SRC)/lumpy-sv
@@ -106,15 +108,17 @@ bwa:
 	cp $(BWA_DIR)/bwa $(TARGET_BIN)
 
 sambamba:
-	cp $(SRC)/sambamba $(TARGET_BIN)
+	$(MAKE) -C $(SAMBAMBA_DIR)
+	cp $(SAMBAMBA_DIR)/bin/sambamba-$(SAMBAMBA_VERSION) $(TARGET_BIN)/sambamba
 
 samblaster:
 	$(MAKE) -C $(SAMBLASTER_DIR)
 	cp $(SAMBLASTER_DIR)/samblaster $(TARGET_BIN)
 
 freebayes:
-	$(MAKE) -C $(FREEBAYES_DIR)
-	cp $(FREEBAYES_DIR)/bin/freebayes $(TARGET_BIN)
+	meson $(FREEBAYES_DIR)/build/ $(FREEBAYES_DIR)
+	ninja -C $(FREEBAYES_DIR)/build/
+	cp $(FREEBAYES_DIR)/build/freebayes $(TARGET_BIN)
 
 lumpy:
 	$(MAKE) -C $(LUMPY_DIR)
@@ -149,7 +153,7 @@ vawk:
 	cp $(VAWK_DIR)/vawk $(TARGET_BIN)
 
 mbuffer:
-	cd $(MBUFFER_DIR); ./configure --prefix=$(shell pwd)
+	cd $(MBUFFER_DIR); ./configure --prefix=$(shell pwd) --build=$(shell uname -m)-unknown-linux-gnu
 	$(MAKE) -C $(MBUFFER_DIR)
 	cp $(MBUFFER_DIR)/mbuffer $(TARGET_BIN)
 
@@ -167,9 +171,8 @@ bamkit:
 	cp $(BAMKIT_DIR)/bamlibs.py $(TARGET_BIN)
 
 clean:
-	rm -f \
+	rm -rf \
 		bin/bgzip \
-		bin/sambamba \
 		bin/cnvnator \
 		bin/cnvnator2VCF.pl \
 		bin/cnvnator_wrapper.py \
@@ -191,11 +194,12 @@ clean:
 		bin/bamgroupreads.py \
 		bin/bamfilterrg.py \
 		bin/bamcleanheader.py \
-		bin/bamlibs.py
+		bin/bamlibs.py \
+		$(FREEBAYES_DIR)/build
 
 	$(MAKE) -C $(BWA_DIR) clean
 	$(MAKE) -C $(SAMBLASTER_DIR) clean
-	$(MAKE) -C $(FREEBAYES_DIR) clean
+	$(MAKE) -C $(SAMBAMBA_DIR) clean
 	$(MAKE) -C $(LUMPY_DIR) clean
 	$(MAKE) -C $(CNVNATOR_DIR) clean
 	$(MAKE) -C $(TABIX_DIR) clean

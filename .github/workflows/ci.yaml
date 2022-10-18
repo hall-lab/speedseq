@@ -1,0 +1,85 @@
+name: CI
+
+on: [push, pull_request]
+
+env:
+  LDC_VERSION: 1.30.0 # for Sambamba
+
+jobs:
+  build:
+    name: Build x86_64
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+          fetch-depth: 0
+
+      - name: Install build dependencies
+        run: |
+          set -x
+          sudo apt-get update
+          sudo apt-get install python2-dev ninja-build meson libtabixpp-dev libvcflib-dev libseqlib-dev libjsoncpp-dev liblz4-dev libz-dev cmake zlib1g-dev
+          sudo ln -s /usr/include/jsoncpp/json /usr/include/ # workaround for freebayes
+          wget https://bootstrap.pypa.io/pip/2.7/get-pip.py
+          python2 get-pip.py
+          pip2 install --user --progress-bar off numpy
+          pip2 install --user --progress-bar off pysam
+          pip2 install --user --progress-bar off scipy
+          ARCH=$(uname -m)
+          wget --quiet https://github.com/ldc-developers/ldc/releases/download/v${{ env.LDC_VERSION }}/ldc2-${{ env.LDC_VERSION }}-linux-${ARCH}.tar.xz
+          tar xf ldc2-${{ env.LDC_VERSION }}-linux-${ARCH}.tar.xz
+          echo "export PATH=$PWD/ldc2-${{ env.LDC_VERSION }}-linux-${ARCH}/bin:$PATH" >> $HOME/.env
+
+      - name: Build
+        run: |
+          set -x
+          source $HOME/.env
+          make -j2 
+          file bin/*
+
+      - name: Test
+        run:  cd example && ./run_speedseq.sh
+
+  
+  build-aarch64:
+    name: Build aarch64
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+          submodules: 'recursive'
+          fetch-depth: 0
+
+    - name: Build
+      uses: uraimo/run-on-arch-action@v2
+      with:
+        arch: aarch64
+        distro: ubuntu20.04
+        githubToken: ${{ github.token }}
+        dockerRunArgs: |
+          --volume "${PWD}:/speedseq"
+        install: |
+          apt-get update -q -y
+          apt-get install -q -y gcc g++ cmake gawk python2 python2-dev liblapack-dev libblas-dev gfortran wget file texinfo ninja-build meson libtabixpp-dev libvcflib-dev libseqlib-dev libjsoncpp-dev libbz2-dev zlib1g-dev pkg-config ncurses-dev xz-utils tar liblz4-dev make python3 libxml2-dev libz-dev
+          ln -s /usr/include/jsoncpp/json /usr/include/ # workaround for freebayes
+          wget https://bootstrap.pypa.io/pip/2.7/get-pip.py
+          python2 get-pip.py
+          pip2 install --user --progress-bar off numpy
+          pip2 install --user --progress-bar off pysam
+          pip2 install --user --progress-bar off scipy
+          ARCH=$(uname -m)
+          wget --quiet https://github.com/ldc-developers/ldc/releases/download/v${{ env.LDC_VERSION }}/ldc2-${{ env.LDC_VERSION }}-linux-${ARCH}.tar.xz
+          tar xf ldc2-${{ env.LDC_VERSION }}-linux-${ARCH}.tar.xz
+          echo "export PATH=$PWD/ldc2-${{ env.LDC_VERSION }}-linux-${ARCH}/bin:$PATH" >> $HOME/.env
+        run: |
+          set -x
+          source $HOME/.env
+          cd /speedseq
+          make -j2
+          file bin/*
+          cd example && ./run_speedseq.sh
+          
